@@ -8,6 +8,7 @@ import {
   MouseEvent,
 } from "react";
 import { INFURA_GATEWAY } from "../../../lib/constants";
+import Perspective from "perspectivejs";
 import { useDesignStorage } from "../../Activity/hooks/useDesignStorage";
 import { useApp } from "../../../context/AppContext";
 import {
@@ -141,13 +142,33 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
         const imageUrl = getImageUrl(child.imageUrl);
         await new Promise<void>((resolve) => {
           img.onload = () => {
-            ctx.save();
-            ctx.translate(child.x + child.width/2, child.y + child.height/2);
-            if (child.rotation) ctx.rotate((child.rotation * Math.PI) / 180);
-            if (child.scale && child.scale !== 1) ctx.scale(child.scale, child.scale);
-            if (child.flip === -1) ctx.scale(-1, 1);
-            ctx.drawImage(img, -child.width/2, -child.height/2, child.width, child.height);
-            ctx.restore();
+            if (child.warpPoints) {
+              const tempCanvas = document.createElement('canvas');
+              const tempCtx = tempCanvas.getContext('2d');
+              if (tempCtx) {
+                tempCanvas.width = child.width;
+                tempCanvas.height = child.height;
+                
+                tempCtx.save();
+                tempCtx.translate(child.width/2, child.height/2);
+                if (child.rotation) tempCtx.rotate((child.rotation * Math.PI) / 180);
+                if (child.scale && child.scale !== 1) tempCtx.scale(child.scale, child.scale);
+                if (child.flip === -1) tempCtx.scale(-1, 1);
+                tempCtx.drawImage(img, -child.width/2, -child.height/2, child.width, child.height);
+                tempCtx.restore();
+                
+                const p = new Perspective(ctx, tempCanvas);
+                p.draw([
+                  [child.warpPoints.topLeft.x, child.warpPoints.topLeft.y],
+                  [child.warpPoints.topRight.x, child.warpPoints.topRight.y],
+                  [child.warpPoints.bottomRight.x, child.warpPoints.bottomRight.y],
+                  [child.warpPoints.bottomLeft.x, child.warpPoints.bottomLeft.y],
+                ]);
+              }
+            } else {
+              ctx.imageSmoothingEnabled = true;
+              ctx.drawImage(img, child.x, child.y, child.width, child.height);
+            }
             if (child.isDragging || child.isSelected || child.isWarping) {
               const isWarping =
                 child.isWarping || (mode === "warp" && child.isSelected);
@@ -272,8 +293,9 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
         }
         const img = new Image();
         const processedImageUrl = getImageUrl(imageUrl);
+        img.crossOrigin = 'anonymous';
         img.onload = () => {
-          const maxSize = 120;
+          const maxSize = 1000;
           const naturalWidth = img.naturalWidth;
           const naturalHeight = img.naturalHeight;
           let width, height;
@@ -296,42 +318,70 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
             height *= scale;
           }
 
-          const x = (canvasWidth / 2 - width / 2);
-          const y = (canvasHeight / 2 - height / 2);
+          let finalWidth = width;
+          let finalHeight = height;
+          
+          if (transforms?.scale !== undefined || transforms?.rotation !== undefined || transforms?.flip !== undefined) {
+            const scale = transforms.scale || 1;
+            const rotation = (transforms.rotation || 0) * Math.PI / 180;
+            
+            finalWidth = width * scale;
+            finalHeight = height * scale;
+            
+            if (rotation !== 0) {
+              const cos = Math.abs(Math.cos(rotation));
+              const sin = Math.abs(Math.sin(rotation));
+              finalWidth = Math.ceil((width * cos + height * sin) * scale);
+              finalHeight = Math.ceil((width * sin + height * cos) * scale);
+            }
+          }
+          
+          const x = (canvasWidth / 2 - finalWidth / 2);
+          const y = (canvasHeight / 2 - finalHeight / 2);
+          
+          const tempCanvas = document.createElement('canvas');
+          const tempCtx = tempCanvas.getContext('2d');
+          let finalImageUrl = processedImageUrl;
+          
+          if (tempCtx) {
+            const highResScale = 4;
+            tempCanvas.width = finalWidth * highResScale;
+            tempCanvas.height = finalHeight * highResScale;
+            tempCtx.imageSmoothingEnabled = false;
+            
+            if (transforms?.scale !== undefined || transforms?.rotation !== undefined || transforms?.flip !== undefined) {
+              tempCtx.save();
+              tempCtx.translate(tempCanvas.width/2, tempCanvas.height/2);
+              if (transforms.rotation) tempCtx.rotate((transforms.rotation * Math.PI) / 180);
+              if (transforms.scale && transforms.scale !== 1) tempCtx.scale(transforms.scale, transforms.scale);
+              if (transforms.flip === -1) tempCtx.scale(-1, 1);
+              tempCtx.drawImage(img, -width * highResScale/2, -height * highResScale/2, width * highResScale, height * highResScale);
+              tempCtx.restore();
+            } else {
+              tempCtx.drawImage(img, 0, 0, width * highResScale, height * highResScale);
+            }
+            
+            try {
+              finalImageUrl = tempCanvas.toDataURL();
+            } catch (error) {
+              finalImageUrl = processedImageUrl;
+            }
+          }
           
           const newChild: ChildElement = {
             id: `child-${Date.now()}`,
             uri: placementUri,
             x,
             y,
-            width,
-            height,
-            imageUrl,
-            scale: transforms?.scale,
-            rotation: transforms?.rotation,
-            flip: transforms?.flip,
+            width: finalWidth,
+            height: finalHeight,
+            imageUrl: finalImageUrl,
+            scale: transforms ? 1 : undefined,
+            rotation: transforms ? 0 : undefined,
+            flip: transforms ? 1 : undefined,
           };
           
-          if (transforms?.scale !== undefined || transforms?.rotation !== undefined || transforms?.flip !== undefined) {
-            const transformedCorners = getTransformedCorners(newChild);
-            newChild.warpPoints = {
-              topLeft: transformedCorners[0],
-              topRight: transformedCorners[1], 
-              bottomLeft: transformedCorners[2],
-              bottomRight: transformedCorners[3],
-            };
-          } else {
-            newChild.warpPoints = {
-              topLeft: { x, y },
-              topRight: { x: x + width, y },
-              bottomLeft: { x, y: y + height },
-              bottomRight: { x: x + width, y: y + height },
-            };
-          }
-          
-          setChildren((prev) => {
-            return [...prev, newChild];
-          });
+          setChildren((prev) => [...prev, newChild]);
         };
         img.onerror = () => {
           const width = 100;
@@ -345,28 +395,8 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
             y,
             width,
             height,
-            imageUrl,
-            scale: transforms?.scale,
-            rotation: transforms?.rotation,
-            flip: transforms?.flip,
+            imageUrl: processedImageUrl,
           };
-          
-          if (transforms?.scale !== undefined || transforms?.rotation !== undefined || transforms?.flip !== undefined) {
-            const transformedCorners = getTransformedCorners(newChild);
-            newChild.warpPoints = {
-              topLeft: transformedCorners[0],
-              topRight: transformedCorners[1], 
-              bottomLeft: transformedCorners[2],
-              bottomRight: transformedCorners[3],
-            };
-          } else {
-            newChild.warpPoints = {
-              topLeft: { x, y },
-              topRight: { x: x + width, y },
-              bottomLeft: { x, y: y + height },
-              bottomRight: { x: x + width, y: y + height },
-            };
-          }
           
           setChildren((prev) => [...prev, newChild]);
         };
@@ -425,10 +455,10 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
       const flipX = child.flip === -1 ? -1 : 1;
       
       const corners = [
-        { x: -child.width / 2, y: -child.height / 2 }, // topLeft
-        { x: child.width / 2, y: -child.height / 2 },  // topRight
-        { x: -child.width / 2, y: child.height / 2 },  // bottomLeft
-        { x: child.width / 2, y: child.height / 2 }    // bottomRight
+        { x: -child.width / 2, y: -child.height / 2 },
+        { x: child.width / 2, y: -child.height / 2 }, 
+        { x: -child.width / 2, y: child.height / 2 },  
+        { x: child.width / 2, y: child.height / 2 }    
       ];
       
       return corners.map(corner => {
@@ -768,25 +798,12 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
               newWidth = Math.min(newWidth, canvasWidth - newX);
               newHeight = Math.min(newHeight, canvasHeight - newY);
               
-              const updatedChild = {
+              return {
                 ...child,
                 x: newX,
                 y: newY,
                 width: newWidth,
                 height: newHeight,
-              };
-              
-              const transformedCorners = getTransformedCorners(updatedChild);
-              const updatedWarpPoints = {
-                topLeft: transformedCorners[0],
-                topRight: transformedCorners[1],
-                bottomLeft: transformedCorners[2],
-                bottomRight: transformedCorners[3],
-              };
-              
-              return {
-                ...updatedChild,
-                warpPoints: updatedWarpPoints,
               };
             }
             return child;
@@ -847,6 +864,90 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
         return null;
       }
     }, [children.length, backgroundImage, redraw]);
+
+    const initializeWarpPoints = useCallback((childId: string) => {
+      setChildren((prev) =>
+        prev.map((child) => {
+          if (child.id === childId && !child.warpPoints) {
+            const transformedCorners = getTransformedCorners(child);
+            return {
+              ...child,
+              warpPoints: {
+                topLeft: transformedCorners[0],
+                topRight: transformedCorners[1],
+                bottomLeft: transformedCorners[2],
+                bottomRight: transformedCorners[3],
+              },
+            };
+          }
+          return child;
+        })
+      );
+    }, []);
+
+    const bakeTransforms = useCallback(async (childId: string) => {
+      const child = children.find(c => c.id === childId);
+      if (!child || (child.scale === 1 && child.rotation === 0 && child.flip === 1)) return;
+
+      const tempCanvas = document.createElement('canvas');
+      const tempCtx = tempCanvas.getContext('2d');
+      if (!tempCtx) return;
+
+      tempCanvas.width = child.width;
+      tempCanvas.height = child.height;
+
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      return new Promise<void>((resolve) => {
+        img.onload = () => {
+          tempCtx.save();
+          tempCtx.translate(child.width/2, child.height/2);
+          if (child.rotation) tempCtx.rotate((child.rotation * Math.PI) / 180);
+          if (child.scale && child.scale !== 1) tempCtx.scale(child.scale, child.scale);
+          if (child.flip === -1) tempCtx.scale(-1, 1);
+          tempCtx.drawImage(img, -child.width/2, -child.height/2, child.width, child.height);
+          tempCtx.restore();
+
+          try {
+            const bakedImageUrl = tempCanvas.toDataURL();
+            setChildren((prev) =>
+              prev.map((c) => {
+                if (c.id === childId) {
+                  return {
+                    ...c,
+                    imageUrl: bakedImageUrl,
+                    scale: 1,
+                    rotation: 0,
+                    flip: 1,
+                  };
+                }
+                return c;
+              })
+            );
+          } catch (error) {
+            console.log('CORS prevented baking, keeping transforms');
+          }
+          resolve();
+        };
+        img.onerror = () => resolve();
+        img.src = getImageUrl(child.imageUrl);
+      });
+    }, [children]);
+
+    const handleModeChange = useCallback(async (newMode: "normal" | "warp") => {
+      if (newMode === "warp") {
+        const selectedChild = children.find(c => c.isSelected);
+        if (selectedChild) {
+          await bakeTransforms(selectedChild.id);
+          if (!selectedChild.warpPoints) {
+            initializeWarpPoints(selectedChild.id);
+          }
+        }
+      }
+      setMode(newMode);
+    }, [mode, children, initializeWarpPoints, bakeTransforms]);
+
     useImperativeHandle(
       ref,
       () => ({
@@ -861,7 +962,7 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
         <div className="flex flex-col items-center gap-2">
           <div className="flex gap-2 mb-2">
             <button
-              onClick={() => setMode("normal")}
+              onClick={() => handleModeChange("normal")}
               className={`px-3 py-1 text-xs rounded transition-colors ${
                 mode === "normal"
                   ? "bg-blue-600 text-white"
@@ -871,7 +972,7 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
               Normal Mode
             </button>
             <button
-              onClick={() => setMode("warp")}
+              onClick={() => handleModeChange("warp")}
               className={`px-3 py-1 text-xs rounded transition-colors ${
                 mode === "warp"
                   ? "bg-purple-600 text-white"

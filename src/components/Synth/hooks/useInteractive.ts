@@ -179,34 +179,6 @@ const useInteractive = (templateChild: Template | null) => {
       
       const elementProps = { ...props, key: key || `${type}-${Math.random()}` };
       
-      // if (elementProps['stroke-width']) {
-      //   elementProps.strokeWidth = elementProps['stroke-width'];
-      //   delete elementProps['stroke-width'];
-      // }
-      // if (elementProps['fill-rule']) {
-      //   elementProps.fillRule = elementProps['fill-rule'];
-      //   delete elementProps['fill-rule'];
-      // }
-      // if (elementProps['clip-path']) {
-      //   elementProps.clipPath = elementProps['clip-path'];
-      //   delete elementProps['clip-path'];
-      // }
-      // if (elementProps['xml:space']) {
-      //   elementProps.xmlSpace = elementProps['xml:space'];
-      //   delete elementProps['xml:space'];
-      // }
-
-      // if (elementProps.style && typeof elementProps.style === 'string') {
-      //   const styleObj: any = {};
-      //   elementProps.style.split(';').forEach((rule: string) => {
-      //     const [property, value] = rule.split(':').map(s => s.trim());
-      //     if (property && value) {
-      //       const camelProperty = property.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
-      //       styleObj[camelProperty] = value;
-      //     }
-      //   });
-      //   elementProps.style = styleObj;
-      // }
     
       if ((type === "path" || type === "g" || type === "polygon" || type === "circle" || type === "rect") && onChildClick && childUri) {
         elementProps.style = { ...(elementProps.style || {}), pointerEvents: "all", cursor: "pointer" };
