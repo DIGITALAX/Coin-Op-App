@@ -7,6 +7,9 @@ export interface ChildElement {
   width: number;
   height: number;
   imageUrl: string;
+  scale?: number;
+  rotation?: number;
+  flip?: number;
   isDragging?: boolean;
   isResizing?: boolean;
   isWarping?: boolean;

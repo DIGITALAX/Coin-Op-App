@@ -100,18 +100,15 @@ const useComposite = (
       }
       let imageToAdd: string;
       let childRef = templateChild?.childReferences.find(c => c.uri === originalChildUri);
-      console.log({childRef, childImageData})
       if (childImageData) {
         imageToAdd = childImageData;
       } else {
         if (childRef?.child?.metadata?.image) {
           imageToAdd = getImageUrl(childRef.child.metadata.image);
-          console.log({imageToAdd})
         } else {
           imageToAdd = getImageUrl(childUri);
         }
       }
-      console.log({imageToAdd})
       const transforms = childRef?.metadata ? {
         x: childRef.metadata.x,
         y: childRef.metadata.y,

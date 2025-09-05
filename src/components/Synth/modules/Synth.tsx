@@ -96,7 +96,6 @@ export default function Synth() {
   }, [selectedPatternChild, currentDesign, getItem]);
   const handleChildClick = useCallback(
     async (childUri: string) => {
-      console.log('handleChildClick called with:', childUri);
       if (!selectedLayer) return;
       let originalChildUri = childUri;
       if (childUri.startsWith("data:")) {
@@ -116,11 +115,7 @@ export default function Synth() {
         }
       }
       const canvasHistory = await getItem("canvasHistory", "synth");
-      console.log('Canvas history check:', { 
-        hasHistory: !!canvasHistory, 
-        isArray: Array.isArray(canvasHistory), 
-        length: canvasHistory?.length 
-      });
+   
       if (canvasHistory && Array.isArray(canvasHistory)) {
         try {
           const historyItem = canvasHistory.find(
@@ -166,13 +161,7 @@ export default function Synth() {
               const clearCanvasFn = (window as any).clearCanvas;
               const loadChildSvgFn = (window as any).loadChildSvg;
               
-              console.log('Default child loading:', {
-                clearCanvasFn: !!clearCanvasFn,
-                loadChildSvgFn: !!loadChildSvgFn,
-                imageUri: child.child?.metadata?.image,
-                child
-              });
-              
+          
               if (clearCanvasFn) {
                 clearCanvasFn();
               }
@@ -184,7 +173,6 @@ export default function Synth() {
           }
         } catch (error) {}
       } else {
-        console.log('No canvas history - loading default child');
         const child = currentTemplate?.childReferences.find(
           (c: Child) =>
             c.uri === originalChildUri ||
@@ -198,13 +186,7 @@ export default function Synth() {
           setSelectedPatternChild(child);
           const clearCanvasFn = (window as any).clearCanvas;
           const loadChildSvgFn = (window as any).loadChildSvg;
-          
-          console.log('Default child loading:', {
-            clearCanvasFn: !!clearCanvasFn,
-            loadChildSvgFn: !!loadChildSvgFn,
-            imageUri: child.child?.metadata?.image,
-            child
-          });
+        
           
           if (clearCanvasFn) {
             clearCanvasFn();
