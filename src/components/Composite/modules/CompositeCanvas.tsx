@@ -344,7 +344,7 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
           let finalImageUrl = processedImageUrl;
           
           if (tempCtx) {
-            const highResScale = 4;
+            const highResScale = 8;
             tempCanvas.width = finalWidth * highResScale;
             tempCanvas.height = finalHeight * highResScale;
             tempCtx.imageSmoothingEnabled = false;
@@ -935,6 +935,20 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
       });
     }, [children]);
 
+    useEffect(() => {
+      const initializeWarpForSelectedChild = async () => {
+        if (mode === "warp" && selectedChildId) {
+          const selectedChild = children.find(c => c.id === selectedChildId);
+          if (selectedChild && !selectedChild.warpPoints) {
+            await bakeTransforms(selectedChildId);
+            initializeWarpPoints(selectedChildId);
+          }
+        }
+      };
+      
+      initializeWarpForSelectedChild();
+    }, [selectedChildId, mode, children, bakeTransforms, initializeWarpPoints]);
+
     const handleModeChange = useCallback(async (newMode: "normal" | "warp") => {
       if (newMode === "warp") {
         const selectedChild = children.find(c => c.isSelected);
@@ -943,6 +957,108 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
           if (!selectedChild.warpPoints) {
             initializeWarpPoints(selectedChild.id);
           }
+        }
+      } else if (mode === "warp" && newMode === "normal") {
+        const warpedChildren = children.filter(c => c.warpPoints);
+        for (const child of warpedChildren) {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          
+          await new Promise<void>((resolve) => {
+            img.onload = () => {
+              const highResScale = 8;
+              
+              const sourceCanvas = document.createElement('canvas');
+              const sourceCtx = sourceCanvas.getContext('2d');
+              if (!sourceCtx) return resolve();
+              
+              sourceCanvas.width = child.width;
+              sourceCanvas.height = child.height;
+              
+              sourceCtx.save();
+              sourceCtx.translate(child.width/2, child.height/2);
+              if (child.rotation) sourceCtx.rotate((child.rotation * Math.PI) / 180);
+              if (child.scale && child.scale !== 1) sourceCtx.scale(child.scale, child.scale);
+              if (child.flip === -1) sourceCtx.scale(-1, 1);
+              sourceCtx.drawImage(img, -child.width/2, -child.height/2, child.width, child.height);
+              sourceCtx.restore();
+              
+              const minX = Math.min(
+                child.warpPoints!.topLeft.x,
+                child.warpPoints!.topRight.x,
+                child.warpPoints!.bottomLeft.x,
+                child.warpPoints!.bottomRight.x
+              );
+              const maxX = Math.max(
+                child.warpPoints!.topLeft.x,
+                child.warpPoints!.topRight.x,
+                child.warpPoints!.bottomLeft.x,
+                child.warpPoints!.bottomRight.x
+              );
+              const minY = Math.min(
+                child.warpPoints!.topLeft.y,
+                child.warpPoints!.topRight.y,
+                child.warpPoints!.bottomLeft.y,
+                child.warpPoints!.bottomRight.y
+              );
+              const maxY = Math.max(
+                child.warpPoints!.topLeft.y,
+                child.warpPoints!.topRight.y,
+                child.warpPoints!.bottomLeft.y,
+                child.warpPoints!.bottomRight.y
+              );
+              
+              const newWidth = maxX - minX;
+              const newHeight = maxY - minY;
+              const newX = minX;
+              const newY = minY;
+              
+              const destCanvas = document.createElement('canvas');
+              const destCtx = destCanvas.getContext('2d');
+              if (!destCtx) return resolve();
+              
+              destCanvas.width = newWidth * highResScale;
+              destCanvas.height = newHeight * highResScale;
+              destCtx.imageSmoothingEnabled = false;
+              
+              destCtx.scale(highResScale, highResScale);
+              destCtx.translate(-newX, -newY);
+              
+              const p = new Perspective(destCtx, sourceCanvas);
+              p.draw([
+                [child.warpPoints!.topLeft.x, child.warpPoints!.topLeft.y],
+                [child.warpPoints!.topRight.x, child.warpPoints!.topRight.y],
+                [child.warpPoints!.bottomRight.x, child.warpPoints!.bottomRight.y],
+                [child.warpPoints!.bottomLeft.x, child.warpPoints!.bottomLeft.y],
+              ]);
+              
+              try {
+                
+                const bakedImageUrl = destCanvas.toDataURL();
+                setChildren((prev) =>
+                  prev.map((c) =>
+                    c.id === child.id
+                      ? { 
+                          ...c, 
+                          imageUrl: bakedImageUrl, 
+                          warpPoints: undefined, 
+                          scale: 1, 
+                          rotation: 0, 
+                          flip: 1,
+                          x: newX,
+                          y: newY,
+                          width: newWidth,
+                          height: newHeight
+                        }
+                      : c
+                  )
+                );
+              } catch (error) {}
+              resolve();
+            };
+            img.onerror = () => resolve();
+            img.src = getImageUrl(child.imageUrl);
+          });
         }
       }
       setMode(newMode);
@@ -981,6 +1097,14 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
             >
               Warp Mode
             </button>
+            {selectedChildId !== null && (
+              <button
+                onClick={deleteSelected}
+                className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors"
+              >
+                Delete
+              </button>
+            )}
           </div>
           <canvas
             ref={canvasRef}
@@ -993,16 +1117,6 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
             onMouseLeave={handleMouseUp}
           />
         </div>
-        {selectedChildId !== null && (
-          <div className="flex items-center">
-            <button
-              onClick={deleteSelected}
-              className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors"
-            >
-              Delete
-            </button>
-          </div>
-        )}
       </div>
     );
   }
