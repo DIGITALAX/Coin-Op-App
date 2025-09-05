@@ -1,0 +1,85 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+Mens-hoodie-1.pdf
+
+node_modules
+dist
+dist-ssr
+*.local
+CLAUDE.md
+.claude/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Tauri app data and sensitive files
+src-tauri/target/
+src-tauri/Cargo.lock
+*.key
+*.pem
+*.p12
+*.pfx
+private-keys/
+wallet-data/
+app-data/
+user-settings/
+
+# Rust development files
+**/*.rs.bk
+target/
+Cargo.lock
+
+# Tauri build files
+src-tauri/gen/
+bundle/
+
+# Private keys and wallet files
+*private-wallet-key*
+*wallet-key*
+*private-key*
+*.wallet
+*.keystore
+
+# Local app data storage
+.coinop/
+coinop-data/
+app-storage/
+
+# Environment and config files
+.env
+.env.local
+.env.production
+.env.development
+config.json
+secrets.json
+
+# OS generated files
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Development temporary files
+*.tmp
+*.temp
+*.bak
+coverage/
+.nyc_output/
+
+# Security documentation (keep in repo for reference)
+# SECURITY.md should be committed for developer reference

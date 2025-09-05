@@ -1,0 +1,660 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "_accessControl",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_customComposite",
+        "type": "address",
+        "internalType": "address"
+      },
+      { "name": "_parentFGO", "type": "address", "internalType": "address" },
+      {
+        "name": "_patternFGOSplitsData",
+        "type": "address",
+        "internalType": "address"
+      },
+      { "name": "_childFGO", "type": "address", "internalType": "address" },
+      { "name": "_fulfillers", "type": "address", "internalType": "address" }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "accessControl",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract PatternFGOAccessControl"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "buyCustomComposite",
+    "inputs": [
+      {
+        "name": "params",
+        "type": "tuple",
+        "internalType": "struct PatternFGOLibrary.BuyParms",
+        "components": [
+          { "name": "details", "type": "string", "internalType": "string" },
+          { "name": "uri", "type": "string", "internalType": "string" },
+          { "name": "currency", "type": "address", "internalType": "address" },
+          { "name": "templateId", "type": "uint256", "internalType": "uint256" },
+          {
+            "name": "materialId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "fulfillerId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          { "name": "quantity", "type": "uint256", "internalType": "uint256" }
+        ]
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "buyCustomCompositeBatch",
+    "inputs": [
+      {
+        "name": "params",
+        "type": "tuple[]",
+        "internalType": "struct PatternFGOLibrary.BuyParms[]",
+        "components": [
+          { "name": "details", "type": "string", "internalType": "string" },
+          { "name": "uri", "type": "string", "internalType": "string" },
+          { "name": "currency", "type": "address", "internalType": "address" },
+          { "name": "templateId", "type": "uint256", "internalType": "uint256" },
+          {
+            "name": "materialId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "fulfillerId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          { "name": "quantity", "type": "uint256", "internalType": "uint256" }
+        ]
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "buyParentNFT",
+    "inputs": [
+      {
+        "name": "params",
+        "type": "tuple[]",
+        "internalType": "struct PatternFGOLibrary.BuyParms[]",
+        "components": [
+          { "name": "details", "type": "string", "internalType": "string" },
+          { "name": "uri", "type": "string", "internalType": "string" },
+          { "name": "currency", "type": "address", "internalType": "address" },
+          { "name": "templateId", "type": "uint256", "internalType": "uint256" },
+          {
+            "name": "materialId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "fulfillerId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          { "name": "quantity", "type": "uint256", "internalType": "uint256" }
+        ]
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "childFGO",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract PatternFGOChild"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "createMaterial",
+    "inputs": [
+      { "name": "price", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "customComposite",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract CustomCompositeNFT"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "fulfillers",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract PatternFGOFulfillers"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getBuyerToOrderIds",
+    "inputs": [
+      { "name": "buyer", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [
+      { "name": "", "type": "uint256[]", "internalType": "uint256[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getMaterial",
+    "inputs": [
+      { "name": "materialId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct PatternFGOLibrary.Material",
+        "components": [
+          { "name": "price", "type": "uint256", "internalType": "uint256" },
+          { "name": "isActive", "type": "bool", "internalType": "bool" }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getMaterialSupply",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderBuyer",
+    "inputs": [
+      { "name": "orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderCurrency",
+    "inputs": [
+      { "name": "orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderDetails",
+    "inputs": [
+      { "name": "orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [{ "name": "", "type": "string", "internalType": "string" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderIsFulfilled",
+    "inputs": [
+      { "name": "orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderMessages",
+    "inputs": [
+      { "name": "orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [{ "name": "", "type": "string[]", "internalType": "string[]" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderParentId",
+    "inputs": [
+      { "name": "orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderParentTokenId",
+    "inputs": [
+      { "name": "orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderStatus",
+    "inputs": [
+      { "name": "orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "enum PatternFGOLibrary.OrderStatus"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderSupply",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderTimestamp",
+    "inputs": [
+      { "name": "orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderTokenId",
+    "inputs": [
+      { "name": "orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderTotalPrice",
+    "inputs": [
+      { "name": "orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "name",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "string", "internalType": "string" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "parentFGO",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract PatternFGOParent"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "patternFGOSplitsData",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract PatternFGOSplitsData"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "setAccessControl",
+    "inputs": [
+      { "name": "_accessControl", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setChildFGO",
+    "inputs": [
+      { "name": "_childFGO", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setCustomCompositeNFT",
+    "inputs": [
+      {
+        "name": "_customComposite",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setFulfillers",
+    "inputs": [
+      { "name": "_fulfillers", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setOrderDetails",
+    "inputs": [
+      { "name": "newDetails", "type": "string", "internalType": "string" },
+      { "name": "orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setOrderMessage",
+    "inputs": [
+      { "name": "newMessage", "type": "string", "internalType": "string" },
+      { "name": "orderId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setOrderStatus",
+    "inputs": [
+      { "name": "orderId", "type": "uint256", "internalType": "uint256" },
+      {
+        "name": "status",
+        "type": "uint8",
+        "internalType": "enum PatternFGOLibrary.OrderStatus"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setParentFGO",
+    "inputs": [
+      { "name": "_parentFGO", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setPatternFGOSplitsData",
+    "inputs": [
+      {
+        "name": "_patternFGOSplitsData",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "symbol",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "string", "internalType": "string" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "updateMaterial",
+    "inputs": [
+      { "name": "materialId", "type": "uint256", "internalType": "uint256" },
+      { "name": "price", "type": "uint256", "internalType": "uint256" },
+      { "name": "isActive", "type": "bool", "internalType": "bool" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "CustomCompositeCreated",
+    "inputs": [
+      {
+        "name": "buyer",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "fulfiller",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "templateId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "materialId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "totalPrice",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MaterialCreated",
+    "inputs": [
+      {
+        "name": "materialId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "price",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MaterialUpdated",
+    "inputs": [
+      {
+        "name": "materialId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "price",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "isActive",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OrderCreated",
+    "inputs": [
+      {
+        "name": "buyer",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "templateId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "orderId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "totalPrice",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OrderIsFulfilled",
+    "inputs": [
+      {
+        "name": "orderId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "UpdateOrderDetails",
+    "inputs": [
+      {
+        "name": "orderId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "UpdateOrderMessage",
+    "inputs": [
+      {
+        "name": "newMessageDetails",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "orderId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "UpdateOrderStatus",
+    "inputs": [
+      {
+        "name": "orderId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "newSubOrderStatus",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum PatternFGOLibrary.OrderStatus"
+      }
+    ],
+    "anonymous": false
+  },
+  { "type": "error", "name": "AddressInvalid", "inputs": [] },
+  { "type": "error", "name": "CurrencyNotWhitelisted", "inputs": [] },
+  { "type": "error", "name": "InvalidAmount", "inputs": [] },
+  { "type": "error", "name": "InvalidChild", "inputs": [] },
+  { "type": "error", "name": "ReentrancyGuardReentrantCall", "inputs": [] }
+]

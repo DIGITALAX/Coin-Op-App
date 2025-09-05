@@ -1,0 +1,186 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Megamax Jones";
+  src: url("/fonts/MegamaxJones.ttf");
+}
+
+@font-face {
+  font-family: "Bitblox";
+  font-weight: 400;
+  src: url("/fonts/Bitblox.otf");
+}
+
+@font-face {
+  font-family: "Vcr";
+  src: url("/fonts/Vcr.ttf");
+}
+
+@font-face {
+  font-family: "Monument Regular";
+  src: url("/fonts/MonumentExtendedR.otf");
+}
+
+@font-face {
+  font-family: "Aquatico Regular";
+  src: url("/fonts/AquaticoRegular.otf");
+}
+
+@font-face {
+  font-family: "Satoshi Regular";
+  src: url("/fonts/SatoshiRegular.otf");
+}
+
+@font-face {
+  font-family: "Satoshi Black";
+  src: url("/fonts/SatoshiBlack.otf");
+}
+
+@font-face {
+  font-family: "Hermano Alto Stamp";
+  src: url("/fonts/HermanoAltoStamp.ttf");
+}
+
+@font-face {
+  font-family: "Manaspace";
+  src: url("/fonts/Manaspace.ttf");
+}
+
+@theme {
+  --font-xxxs: 0.5rem;
+  --font-xxs: 0.6rem;
+
+  --font-mega: "Megamax Jones";
+  --font-monu: "Monument Regular";
+  --font-aqua: "Aquatico Regular";
+  --font-sat: "Satoshi Regular";
+  --font-satB: "Satoshi Black";
+  --font-herm: "Hermano Alto Stamp";
+  --font-mana: "Manaspace";
+  --font-vcr: "Vcr";
+  --font-bit: "Bitblox";
+
+  --color-azul: #2a36f6;
+  --color-eme: #6dd400;
+  --color-smo: #32c5ff;
+  --color-gris: #6d7278;
+  --color-ligero: #e5f0d4;
+  --color-mist: #81a8f8;
+  --color-pozo: #00abfe;
+  --color-fuego: #e50013;
+  --color-bb: #00abfe;
+  --color-offBlack: #111313;
+  --color-verde: #25ec68;
+  --color-oscurazul: #030d6b;
+  --color-fresa: #b620e0;
+  --color-ama: #fbdb86;
+  --color-moda: #cfb0fa;
+  --color-leg: #32c5ff;
+  --color-mod: #6236ff;
+  --color-sol: #ffc800;
+
+  --bg-cross: url("https://thedial.infura-ipfs.io/ipfs/QmPKU1ck9PLyFchFpe2vzJh3eyxSYij28ixTdRzaHi4E1p");
+}
+
+@layer utilities {
+  .text-xxxs {
+    font-size: var(--font-xxxs);
+  }
+  .text-xxs {
+    font-size: var(--font-xxs);
+  }
+
+  .font-mega {
+    font-family: var(--font-mega);
+  }
+  .font-monu {
+    font-family: var(--font-monu);
+  }
+  .font-aqua {
+    font-family: var(--font-aqua);
+  }
+  .font-sat {
+    font-family: var(--font-sat);
+  }
+  .font-satB {
+    font-family: var(--font-satB);
+  }
+  .font-herm {
+    font-family: var(--font-herm);
+  }
+  .font-bit {
+    font-family: var(--font-bit);
+  }
+  .font-vcr {
+    font-family: var(--font-vcr);
+  }
+  .font-mana {
+    font-family: var(--font-mana);
+  }
+
+  .bg-cross {
+    background-image: var(--bg-cross);
+  }
+
+  .z-1 {
+    z-index: var(--z-1);
+  }
+  .z-2 {
+    z-index: var(--z-2);
+  }
+
+  .bg-oscurazul {
+    background-color: var(--color-oscurazul);
+  }
+}
+
+html {
+  background-color: black;
+}
+
+
+html::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
+html::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
+html::-webkit-scrollbar-track:active {
+  background-color: transparent !important;
+  opacity: 0;
+}
+
+html::-webkit-scrollbar-thumb:active {
+  background-color: transparent !important;
+}
+
+div::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
+div::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
+div::-webkit-scrollbar-track:active {
+  background-color: transparent !important;
+  opacity: 0;
+}
+
+div::-webkit-scrollbar-thumb:active {
+  background-color: transparent !important;
+}
+
+.sparrow-svg-container svg text {
+  display: none !important;
+}

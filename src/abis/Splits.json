@@ -1,0 +1,217 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "printAccessControlAddress",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "addCurrency",
+    "inputs": [
+      { "name": "currency", "type": "address", "internalType": "address" },
+      { "name": "weiAmount", "type": "uint256", "internalType": "uint256" },
+      { "name": "rate", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "getAllCurrencies",
+    "inputs": [],
+    "outputs": [
+      { "name": "", "type": "address[]", "internalType": "address[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCurrencyRate",
+    "inputs": [
+      { "name": "currency", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCurrencyWei",
+    "inputs": [
+      { "name": "currency", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getFulfillerBase",
+    "inputs": [
+      { "name": "currency", "type": "address", "internalType": "address" },
+      { "name": "printType", "type": "uint8", "internalType": "uint8" }
+    ],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getFulfillerSplit",
+    "inputs": [
+      { "name": "currency", "type": "address", "internalType": "address" },
+      { "name": "printType", "type": "uint8", "internalType": "uint8" }
+    ],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getIsCurrency",
+    "inputs": [
+      { "name": "currency", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "name",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "string", "internalType": "string" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "printAccessControl",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract PrintAccessControl"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "removeCurrency",
+    "inputs": [
+      { "name": "currency", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setPrintAccessControlAddress",
+    "inputs": [
+      {
+        "name": "newPrintAccessControlAddress",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setSplits",
+    "inputs": [
+      { "name": "currency", "type": "address", "internalType": "address" },
+      {
+        "name": "fulfillerSplit",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      { "name": "fulfillerBase", "type": "uint256", "internalType": "uint256" },
+      { "name": "printType", "type": "uint8", "internalType": "uint8" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "symbol",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "string", "internalType": "string" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "event",
+    "name": "CurrencyAdded",
+    "inputs": [
+      {
+        "name": "currency",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "weiAmount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "rate",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "CurrencyRemoved",
+    "inputs": [
+      {
+        "name": "currency",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SplitsSet",
+    "inputs": [
+      {
+        "name": "currency",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "fulfillerSplit",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "fulfillerBase",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "printType",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "uint8"
+      }
+    ],
+    "anonymous": false
+  },
+  { "type": "error", "name": "AddressNotAdmin", "inputs": [] },
+  { "type": "error", "name": "CurrencyDoesntExist", "inputs": [] },
+  { "type": "error", "name": "ExistingCurrency", "inputs": [] }
+]
