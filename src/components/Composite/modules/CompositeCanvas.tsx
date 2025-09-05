@@ -141,125 +141,13 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
         const imageUrl = getImageUrl(child.imageUrl);
         await new Promise<void>((resolve) => {
           img.onload = () => {
-            const tolerance = 1;
-            const isWarped =
-              child.warpPoints &&
-              (Math.abs(child.warpPoints.topLeft.x - child.x) > tolerance ||
-                Math.abs(child.warpPoints.topLeft.y - child.y) > tolerance ||
-                Math.abs(
-                  child.warpPoints.topRight.x - (child.x + child.width)
-                ) > tolerance ||
-                Math.abs(child.warpPoints.topRight.y - child.y) > tolerance ||
-                Math.abs(child.warpPoints.bottomLeft.x - child.x) > tolerance ||
-                Math.abs(
-                  child.warpPoints.bottomLeft.y - (child.y + child.height)
-                ) > tolerance ||
-                Math.abs(
-                  child.warpPoints.bottomRight.x - (child.x + child.width)
-                ) > tolerance ||
-                Math.abs(
-                  child.warpPoints.bottomRight.y - (child.y + child.height)
-                ) > tolerance);
-            if (false) {
-              const wp = child.warpPoints;
-              try {
-                const tempCanvas = document.createElement('canvas');
-                const tempCtx = tempCanvas.getContext('2d');
-                if (!tempCtx) throw new Error('Failed to create temp context');
-                
-                tempCanvas.width = child.width;
-                tempCanvas.height = child.height;
-                
-                tempCtx.save();
-                tempCtx.translate(child.width/2, child.height/2);
-                if (child.rotation) tempCtx.rotate((child.rotation * Math.PI) / 180);
-                if (child.scale && child.scale !== 1) tempCtx.scale(child.scale, child.scale);
-                if (child.flip && child.flip !== 1) tempCtx.scale(-1, 1);
-                tempCtx.drawImage(img, -child.width/2, -child.height/2, child.width, child.height);
-                tempCtx.restore();
-                
-                const isAxisAligned = (
-                  Math.abs(wp.topLeft.x - wp.bottomLeft.x) < 2 &&
-                  Math.abs(wp.topRight.x - wp.bottomRight.x) < 2 &&
-                  Math.abs(wp.topLeft.y - wp.topRight.y) < 2 &&
-                  Math.abs(wp.bottomLeft.y - wp.bottomRight.y) < 2
-                );
-                
-                if (isAxisAligned) {
-                  ctx.save();
-                  ctx.beginPath();
-                  ctx.moveTo(wp.topLeft.x, wp.topLeft.y);
-                  ctx.lineTo(wp.topRight.x, wp.topRight.y);
-                  ctx.lineTo(wp.bottomRight.x, wp.bottomRight.y);
-                  ctx.lineTo(wp.bottomLeft.x, wp.bottomLeft.y);
-                  ctx.closePath();
-                  ctx.clip();
-                  
-                  ctx.drawImage(
-                    tempCanvas,
-                    wp.topLeft.x,
-                    wp.topLeft.y,
-                    Math.abs(wp.topRight.x - wp.topLeft.x),
-                    Math.abs(wp.bottomLeft.y - wp.topLeft.y)
-                  );
-                  ctx.restore();
-                } else {
-                  const drawTriangle = (srcTri: any, destTri: any) => {
-                    const [sx1, sy1, sx2, sy2, sx3, sy3] = srcTri;
-                    const [dx1, dy1, dx2, dy2, dx3, dy3] = destTri;
-                    
-                    const det = (sx2 - sx1) * (sy3 - sy1) - (sx3 - sx1) * (sy2 - sy1);
-                    if (Math.abs(det) < 0.001) return;
-                    
-                    const a = ((dx2 - dx1) * (sy3 - sy1) - (dx3 - dx1) * (sy2 - sy1)) / det;
-                    const b = ((sx2 - sx1) * (dx3 - dx1) - (sx3 - sx1) * (dx2 - dx1)) / det;
-                    const c = ((sx2 - sx1) * (sy3 - sy1) - (sx3 - sx1) * (sy2 - sy1)) / det;
-                    const d = ((dy2 - dy1) * (sy3 - sy1) - (dy3 - dy1) * (sy2 - sy1)) / det;
-                    const e = dx1 - a * sx1 - b * sy1;
-                    const f = dy1 - c * sx1 - d * sy1;
-                    
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.moveTo(dx1, dy1);
-                    ctx.lineTo(dx2, dy2);
-                    ctx.lineTo(dx3, dy3);
-                    ctx.closePath();
-                    ctx.clip();
-                    
-                    ctx.transform(a, c, b, d, e, f);
-                    ctx.drawImage(tempCanvas, 0, 0);
-                    ctx.restore();
-                  };
-                  
-                  drawTriangle(
-                    [0, 0, child.width, 0, 0, child.height],
-                    [wp.topLeft.x, wp.topLeft.y, wp.topRight.x, wp.topRight.y, wp.bottomLeft.x, wp.bottomLeft.y]
-                  );
-                  
-                  drawTriangle(
-                    [child.width, 0, child.width, child.height, 0, child.height],
-                    [wp.topRight.x, wp.topRight.y, wp.bottomRight.x, wp.bottomRight.y, wp.bottomLeft.x, wp.bottomLeft.y]
-                  );
-                }
-              } catch (error) {
-                ctx.save();
-                ctx.translate(child.x + child.width/2, child.y + child.height/2);
-                if (child.rotation) ctx.rotate((child.rotation * Math.PI) / 180);
-                if (child.scale && child.scale !== 1) ctx.scale(child.scale, child.scale);
-                if (child.flip === -1) ctx.scale(-1, 1);
-                ctx.drawImage(img, -child.width/2, -child.height/2, child.width, child.height);
-                ctx.restore();
-              }
-            } else {
-             
-              ctx.save();
-              ctx.translate(child.x + child.width/2, child.y + child.height/2);
-              if (child.rotation) ctx.rotate((child.rotation * Math.PI) / 180);
-              if (child.scale && child.scale !== 1) ctx.scale(child.scale, child.scale);
-              if (child.flip === -1) ctx.scale(-1, 1);
-              ctx.drawImage(img, -child.width/2, -child.height/2, child.width, child.height);
-              ctx.restore();
-            }
+            ctx.save();
+            ctx.translate(child.x + child.width/2, child.y + child.height/2);
+            if (child.rotation) ctx.rotate((child.rotation * Math.PI) / 180);
+            if (child.scale && child.scale !== 1) ctx.scale(child.scale, child.scale);
+            if (child.flip === -1) ctx.scale(-1, 1);
+            ctx.drawImage(img, -child.width/2, -child.height/2, child.width, child.height);
+            ctx.restore();
             if (child.isDragging || child.isSelected || child.isWarping) {
               const isWarping =
                 child.isWarping || (mode === "warp" && child.isSelected);
@@ -269,20 +157,21 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
                 ? "#ff00ff"
                 : "#0088ff";
               ctx.lineWidth = 2;
-              if (isWarping && child.warpPoints) {
+              if (isWarping) {
+                const transformedCorners = getTransformedCorners(child);
                 ctx.beginPath();
-                ctx.moveTo(child.warpPoints.topLeft.x, child.warpPoints.topLeft.y);
-                ctx.lineTo(child.warpPoints.topRight.x, child.warpPoints.topRight.y);
-                ctx.lineTo(child.warpPoints.bottomRight.x, child.warpPoints.bottomRight.y);
-                ctx.lineTo(child.warpPoints.bottomLeft.x, child.warpPoints.bottomLeft.y);
+                ctx.moveTo(transformedCorners[0].x, transformedCorners[0].y);
+                ctx.lineTo(transformedCorners[1].x, transformedCorners[1].y);
+                ctx.lineTo(transformedCorners[3].x, transformedCorners[3].y);
+                ctx.lineTo(transformedCorners[2].x, transformedCorners[2].y);
                 ctx.closePath();
                 ctx.stroke();
                 const handleSize = 8;
                 ctx.fillStyle = "#ff00ff";
-                Object.values(child.warpPoints).forEach((point) => {
+                transformedCorners.forEach((corner) => {
                   ctx.fillRect(
-                    point.x - handleSize / 2,
-                    point.y - handleSize / 2,
+                    corner.x - handleSize / 2,
+                    corner.y - handleSize / 2,
                     handleSize,
                     handleSize
                   );
@@ -566,17 +455,18 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
       mousePos: { x: number; y: number },
       child: ChildElement
     ): "topLeft" | "topRight" | "bottomLeft" | "bottomRight" | null => {
-      if (!child.warpPoints || mode !== "warp") {
+      if (mode !== "warp") {
         return null;
       }
       const handleSize = 8;
       const tolerance = handleSize / 2;
       
+      const transformedCorners = getTransformedCorners(child);
       const warpHandles = [
-        { type: "topLeft" as const, pos: child.warpPoints.topLeft },
-        { type: "topRight" as const, pos: child.warpPoints.topRight },
-        { type: "bottomLeft" as const, pos: child.warpPoints.bottomLeft },
-        { type: "bottomRight" as const, pos: child.warpPoints.bottomRight },
+        { type: "topLeft" as const, pos: transformedCorners[0] },
+        { type: "topRight" as const, pos: transformedCorners[1] },
+        { type: "bottomLeft" as const, pos: transformedCorners[2] },
+        { type: "bottomRight" as const, pos: transformedCorners[3] },
       ];
       
       for (const handle of warpHandles) {
