@@ -297,7 +297,8 @@ export default function Layer() {
           isOpen={showDesignModal}
           onClose={handleModalClose}
           templateId={selectedTemplate?.templates[0]?.templateId || ""}
-          layerTemplateId={(selectedFront || selectedBack)?.templateId || ""}
+          frontLayerTemplateId={selectedFront?.templateId || ""}
+          backLayerTemplateId={selectedBack?.templateId}
           childUri={
             ((selectedFront || selectedBack)?.childReferences || [])[0]?.child.metadata.image || ""
           }

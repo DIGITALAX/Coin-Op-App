@@ -12,9 +12,7 @@ const useChildren = () => {
     if (!currentTemplate?.childReferences) return;
     
     const filteredChildren = currentTemplate.childReferences.filter((child) => {
-      const hasCoordinates = child.metadata?.x !== null && child.metadata?.y !== null;
-      const isNotBase = child.metadata?.location !== "base";
-      return hasCoordinates && isNotBase;
+      return child.child.metadata.tags.includes("zone");
     });
     
     const currentIndex = filteredChildren.findIndex(
@@ -44,9 +42,8 @@ const useChildren = () => {
     if (!currentTemplate?.childReferences) return [];
     
     const filteredChildren = currentTemplate.childReferences.filter((child) => {
-      const hasCoordinates = child.metadata?.x !== null && child.metadata?.y !== null;
-      const isNotBase = child.metadata?.location !== "base";
-      return hasCoordinates && isNotBase;
+
+      return child.child.metadata.tags.includes("zone");
     });
     
     if (filteredChildren.length <= 3) return filteredChildren;

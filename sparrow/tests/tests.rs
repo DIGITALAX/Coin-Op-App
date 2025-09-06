@@ -34,16 +34,13 @@ mod integration_tests {
         let importer = Importer::new(config.cde_config, config.poly_simpl_tolerance, config.min_item_separation, config.narrow_concavity_cutoff_ratio);
         let instance = jagua_rs::probs::spp::io::import(&importer, &json_instance)?;
 
-        println!("[TEST] loaded instance: {}", json_instance.name);
 
         let rng = match RNG_SEED {
             Some(seed) => {
-                println!("[TEST] using provided seed: {}", seed);
                 SmallRng::seed_from_u64(seed as u64)
             }
             None => {
                 let seed = rand::random();
-                println!("[TEST] no seed provided, using: {}", seed);
                 SmallRng::seed_from_u64(seed)
             }
         };

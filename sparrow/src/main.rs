@@ -77,11 +77,11 @@ fn main() -> Result<()>{
 
     let ext_instance = io::read_spp_instance_json(Path::new(&input_file_path))?;
 
-    // Check if the JSON contains custom min_item_separation
-    let custom_separation = if let Ok(json_str) = std::fs::read_to_string(&input_file_path) {
+    // Check if the JSON contains custom settings
+    let (custom_separation, custom_iter_limit, custom_strike_limit) = if let Ok(json_str) = std::fs::read_to_string(&input_file_path) {
         if let Ok(json_value) = serde_json::from_str::<serde_json::Value>(&json_str) {
-            if let Some(separation) = json_value.get("min_item_separation") {
-                if let Some(sep_f64) = separation.as_f64() {
+            let separation = if let Some(sep) = json_value.get("min_item_separation") {
+                if let Some(sep_f64) = sep.as_f64() {
                     info!("[MAIN] Using custom min_item_separation: {}", sep_f64);
                     Some(sep_f64 as f32)
                 } else {
@@ -89,13 +89,43 @@ fn main() -> Result<()>{
                 }
             } else {
                 config.min_item_separation
-            }
+            };
+            
+            let iter_limit = if let Some(iter) = json_value.get("iteration_limit") {
+                if let Some(iter_u64) = iter.as_u64() {
+                    info!("[MAIN] Using custom iteration_limit: {}", iter_u64);
+                    iter_u64 as usize
+                } else {
+                    config.expl_cfg.separator_config.iter_no_imprv_limit
+                }
+            } else {
+                config.expl_cfg.separator_config.iter_no_imprv_limit
+            };
+            
+            let strike_limit = if let Some(strike) = json_value.get("strike_limit") {
+                if let Some(strike_u64) = strike.as_u64() {
+                    info!("[MAIN] Using custom strike_limit: {}", strike_u64);
+                    strike_u64 as usize
+                } else {
+                    config.expl_cfg.separator_config.strike_limit
+                }
+            } else {
+                config.expl_cfg.separator_config.strike_limit
+            };
+            
+            (separation, iter_limit, strike_limit)
         } else {
-            config.min_item_separation
+            (config.min_item_separation, config.expl_cfg.separator_config.iter_no_imprv_limit, config.expl_cfg.separator_config.strike_limit)
         }
     } else {
-        config.min_item_separation
+        (config.min_item_separation, config.expl_cfg.separator_config.iter_no_imprv_limit, config.expl_cfg.separator_config.strike_limit)
     };
+    
+    // Apply custom settings to config
+    config.expl_cfg.separator_config.iter_no_imprv_limit = custom_iter_limit;
+    config.expl_cfg.separator_config.strike_limit = custom_strike_limit;
+    config.cmpr_cfg.separator_config.iter_no_imprv_limit = custom_iter_limit;
+    config.cmpr_cfg.separator_config.strike_limit = custom_strike_limit;
 
     let importer = Importer::new(config.cde_config, config.poly_simpl_tolerance, custom_separation, config.narrow_concavity_cutoff_ratio);
     let instance = jagua_rs::probs::spp::io::import(&importer, &ext_instance)?;

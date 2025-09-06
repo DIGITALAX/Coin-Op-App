@@ -7,7 +7,6 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-Mens-hoodie-1.pdf
 
 node_modules
 dist

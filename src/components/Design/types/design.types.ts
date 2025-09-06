@@ -2,7 +2,8 @@ export interface Design {
   id: string;
   name: string;
   templateId: string;
-  layerTemplateId: string;
+  frontLayerTemplateId: string;
+  backLayerTemplateId?: string;
   childUri: string;
   createdAt: Date;
   lastModified: Date;
@@ -29,7 +30,8 @@ export interface DesignMetadata {
 export interface CreateDesignRequest {
   name: string;
   templateId: string;
-  layerTemplateId: string;
+  frontLayerTemplateId: string;
+  backLayerTemplateId?: string;
   childUri: string;
   description?: string;
 }
@@ -47,7 +49,8 @@ export interface DesignCreationModalProps {
   isOpen: boolean;
   onClose: () => void;
   templateId: string;
-  layerTemplateId: string;
+  frontLayerTemplateId: string;
+  backLayerTemplateId?: string;
   childUri: string;
   onDesignCreated: (request: CreateDesignRequest) => Promise<Design>;
 }

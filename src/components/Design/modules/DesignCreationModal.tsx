@@ -4,7 +4,8 @@ export default function DesignCreationModal({
   isOpen,
   onClose,
   templateId,
-  layerTemplateId,
+  frontLayerTemplateId,
+  backLayerTemplateId,
   childUri,
   onDesignCreated,
 }: DesignCreationModalProps) {
@@ -23,7 +24,8 @@ export default function DesignCreationModal({
       await onDesignCreated({
         name: designName.trim(),
         templateId,
-        layerTemplateId,
+        frontLayerTemplateId,
+        backLayerTemplateId,
         childUri,
         description: description.trim() || undefined,
       });
@@ -83,7 +85,8 @@ export default function DesignCreationModal({
           )}
           <div className="text-xs text-gray-500 space-y-1">
             <p>Template: {templateId}</p>
-            <p>Layer: {layerTemplateId}</p>
+            <p>Front Layer: {frontLayerTemplateId}</p>
+            {backLayerTemplateId && <p>Back Layer: {backLayerTemplateId}</p>}
           </div>
         </div>
         <div className="flex gap-3 mt-6">

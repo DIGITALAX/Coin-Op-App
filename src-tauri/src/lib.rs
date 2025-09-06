@@ -5,8 +5,7 @@ use std::fs;
 use ::image::{ ImageFormat, load_from_memory, imageops };
 use printpdf::*;
 use std::fs::File;
-use std::io::BufWriter;
-use tauri::Manager;
+use std::io::BufWriter; 
 mod pattern_nesting;
 mod professional_patterns;
 mod subgraph;
@@ -654,6 +653,8 @@ pub fn run() {
                 pattern_nesting::nest_pattern_pieces,
                 pattern_nesting::get_live_sparrow_svg,
                 pattern_nesting::get_sparrow_stats,
+                pattern_nesting::is_sparrow_process_running,
+                pattern_nesting::clear_sparrow_data,
                 pattern_nesting::cancel_sparrow_process,
                 professional_patterns::export_professional_pattern,
                 fetch_template_children

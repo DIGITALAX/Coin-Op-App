@@ -926,7 +926,7 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
               })
             );
           } catch (error) {
-            console.log('CORS prevented baking, keeping transforms');
+            console.error('CORS prevented baking, keeping transforms');
           }
           resolve();
         };

@@ -13,14 +13,11 @@ export interface PatternPiece {
   id: string;
   name: string;
   garmentType: "tshirt" | "hoodie";
-  category: "body" | "sleeve" | "trim" | "pocket" | "hood";
   svgPath: string;
   widthMM: number;
   heightMM: number;
-  seamAllowanceMM: number;
-  grainDirection: "lengthwise" | "crosswise" | "bias";
-  foldLine?: boolean;
-  cutOnFold?: boolean;
+  seamAllowanceMM: string;
+  instructions?: string;
   quantity: number;
 }
 export interface FabricDimensions {
@@ -88,13 +85,14 @@ export interface CanvasPanel {
 export interface PatternLibraryProps {
   onSelectPieces: (pieces: PatternPiece[], size: Size) => void;
   onSizeChange?: (pieces: PatternPiece[], size: Size) => void;
-  templateType?: "shirt" | "hoodie" | null;
 }
 
 export interface NestingSettings {
   minItemSeparation: number;
   allowedRotations: number[];
   stripWidthMultiplier: number;
+  iterationLimit: number;
+  strikeLimit: number;
 }
 export type RotationPreset = {
   name: string;
@@ -110,11 +108,15 @@ export const ROTATION_PRESETS: RotationPreset[] = [
   { name: "10° Steps", angles: Array.from({ length: 36 }, (_, i) => i * 10) },
   { name: "5° Steps", angles: Array.from({ length: 72 }, (_, i) => i * 5) },
   { name: "1° Steps", angles: Array.from({ length: 360 }, (_, i) => i * 1) },
+  { name: "0.5° Steps", angles: Array.from({ length: 720 }, (_, i) => i * 0.5) },
+  { name: "0.1° Steps", angles: Array.from({ length: 3600 }, (_, i) => i * 0.1) },
 ];
 export const DEFAULT_NESTING_SETTINGS: NestingSettings = {
-  minItemSeparation: 1.0,
-  allowedRotations: [0, 180],
-  stripWidthMultiplier: 0.8,
+  minItemSeparation: 0.0,
+  allowedRotations: [0, 1],
+  stripWidthMultiplier: 5.0,
+  iterationLimit: 200,
+  strikeLimit: 3,
 };
 
 export type Size = "XS" | "S" | "M" | "L" | "XL" | "XXL" | "XXXL";

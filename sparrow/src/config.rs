@@ -56,7 +56,7 @@ pub const DEFAULT_SPARROW_CONFIG: SparrowConfig = SparrowConfig {
     rng_seed: None,
     expl_cfg: ExplorationConfig {
         shrink_step: 0.001,
-        time_limit: Duration::from_secs(9 * 60),
+        time_limit: Duration::from_secs(u64::MAX),
         max_conseq_failed_attempts: None,
         solution_pool_distribution_stddev: 0.25,
         separator_config: SeparatorConfig {
@@ -74,7 +74,7 @@ pub const DEFAULT_SPARROW_CONFIG: SparrowConfig = SparrowConfig {
     },
     cmpr_cfg: CompressionConfig {
         shrink_range: (0.0005, 0.00001),
-        time_limit: Duration::from_secs(1 * 60),
+        time_limit: Duration::from_secs(u64::MAX),
         shrink_decay: ShrinkDecayStrategy::TimeBased,
         separator_config: SeparatorConfig {
             iter_no_imprv_limit: 100,
@@ -99,5 +99,5 @@ pub const DEFAULT_SPARROW_CONFIG: SparrowConfig = SparrowConfig {
     },
     poly_simpl_tolerance: Some(0.001),
     narrow_concavity_cutoff_ratio: Some(0.01),
-    min_item_separation: None,
+    min_item_separation: Some(0.0),
 };

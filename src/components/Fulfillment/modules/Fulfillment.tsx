@@ -111,6 +111,7 @@ export default function Fulfillment() {
           getMaterialTypeForTemplate(selectedTemplate.template_type)
       )
     : MATERIALS;
+    
   if (!selectedLayer) {
     return (
       <div className="relative w-full h-full flex items-center justify-center">

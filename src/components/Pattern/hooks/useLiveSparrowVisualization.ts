@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { SparrowStats } from '../types/pattern.types';
 
-export const useLiveSparrowVisualization = (isNesting: boolean) => {
+export const useLiveSparrowVisualization = (isSparrowRunning: boolean, onComplete?: () => void) => {
   const [liveSvgContent, setLiveSvgContent] = useState<string | null>(null);
   const [sparrowStats, setSparrowStats] = useState<SparrowStats | null>(null);
   const [isPolling, setIsPolling] = useState(false);
   useEffect(() => {
-    if (isNesting) {
+    if (isSparrowRunning) {
       setIsPolling(true);
       const fetchSvg = async () => {
         try {
@@ -17,6 +17,9 @@ export const useLiveSparrowVisualization = (isNesting: boolean) => {
           ]);
           setLiveSvgContent(svgContent);
           setSparrowStats(stats);
+          if (stats.phase === "Complete" && onComplete) {
+            onComplete();
+          }
         } catch (error) {
         }
       };
@@ -28,7 +31,7 @@ export const useLiveSparrowVisualization = (isNesting: boolean) => {
     } else {
       setIsPolling(false);
     }
-  }, [isNesting]); 
+  }, [isSparrowRunning]); 
   return {
     liveSvgContent,
     sparrowStats,

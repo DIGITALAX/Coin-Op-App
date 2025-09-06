@@ -28,6 +28,8 @@ export default function InteractiveCanvas({
     isDragging,
     parsedSvgCache,
     createReactElement,
+    onImageLoad,
+    imageLoaded,
   } = useInteractive(templateChild);
 
   const isLarge = size === "large";
@@ -44,7 +46,7 @@ export default function InteractiveCanvas({
           </button>
         )}
         <ShowCanvas
-          key={isBackSide ? "back" : "front"}
+          key={`${isBackSide ? "back" : "front"}-${imageLoaded}-${templateChild?.uri || 'none'}`}
           canvasWidth={canvasWidth}
           templateChild={templateChild}
           size={size}
@@ -60,6 +62,7 @@ export default function InteractiveCanvas({
           canvasContainerRef={canvasContainerRef}
           parsedSvgCache={parsedSvgCache}
           createReactElement={createReactElement}
+          onImageLoad={onImageLoad}
         />
       </div>
     );
@@ -72,7 +75,8 @@ export default function InteractiveCanvas({
         left: `${position.x}px`,
         top: `${position.y}px`,
         userSelect: "none",
-        width: isCollapsed && canvasWidth ? `${canvasWidth}px` : "auto",
+        width: canvasWidth ? `${canvasWidth}px` : "auto",
+        zIndex: 50,
       }}
     >
       <div
@@ -107,9 +111,9 @@ export default function InteractiveCanvas({
           {isBackSide ? "Show Front" : "Show Back"}
         </button>
       )}
-      {!isCollapsed && (
+      <div style={{ display: isCollapsed ? "none" : "block" }}>
         <ShowCanvas
-          key={isBackSide ? "back" : "front"}
+          key={`${isBackSide ? "back" : "front"}-${imageLoaded}-${templateChild?.uri || 'none'}`}
           canvasWidth={canvasWidth}
           templateChild={templateChild}
           size={size}
@@ -125,8 +129,9 @@ export default function InteractiveCanvas({
           canvasContainerRef={canvasContainerRef}
           parsedSvgCache={parsedSvgCache}
           createReactElement={createReactElement}
+          onImageLoad={onImageLoad}
         />
-      )}
+      </div>
     </div>
   );
 }
@@ -147,7 +152,8 @@ const ShowCanvas = ({
   canvasWidth,
   templateChild,
   onChildClick,
-}: ShowCanvasProps) => {
+  onImageLoad,
+}: ShowCanvasProps & { onImageLoad: () => void }) => {
   const imageSrc = getImageSrc(baseTemplateChild?.child?.metadata?.image || "");
   
 
@@ -184,6 +190,7 @@ const ShowCanvas = ({
               setCanvasWidth(width);
             }
           }
+          onImageLoad();
         }}
         style={{
           height: "auto",
@@ -192,7 +199,8 @@ const ShowCanvas = ({
       />
       {(templateChild?.childReferences || [])
         .filter(
-          (child) => child.metadata?.x !== null && child.metadata?.y !== null
+          (child) => 
+       child.child.metadata.tags.includes("zone")
         )
         .map((child, index: number) => {
          
@@ -213,6 +221,10 @@ const ShowCanvas = ({
             finalFlip,
             finalRotation
           );
+
+          if (!pixelPosition) {
+            return null;
+          }
 
           const dims = imageDimensions[child.uri];
           if (!dims) {
@@ -306,7 +318,7 @@ const ShowCanvas = ({
                 )
             );
             return (
-              <>
+              <div key={`${child.uri}-${index}-container`}>
                 {child.child.metadata.image.startsWith("data:") && (
                   <img
                     key={`${child.uri}-${index}-data`}
@@ -340,7 +352,7 @@ const ShowCanvas = ({
                 >
                   {svgChildren}
                 </svg>
-              </>
+              </div>
             );
           }
         })}

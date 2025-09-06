@@ -88,7 +88,8 @@ export const useDesigns = () => {
           id: designId,
           name: request.name,
           templateId: request.templateId,
-          layerTemplateId: request.layerTemplateId,
+          frontLayerTemplateId: request.frontLayerTemplateId,
+          backLayerTemplateId: request.backLayerTemplateId,
           childUri: request.childUri,
           createdAt: now,
           lastModified: now,
@@ -121,7 +122,17 @@ export const useDesigns = () => {
         setIsLoading(true);
         const designData = await getItem(`design-${designId}`, undefined, null);
         if (designData && typeof designData === "object") {
-          const design = designData as Design;
+          let design = designData as Design;
+          
+          if ((design as any).layerTemplateId && !design.frontLayerTemplateId) {
+            design = {
+              ...design,
+              frontLayerTemplateId: (design as any).layerTemplateId,
+              backLayerTemplateId: undefined,
+            };
+            delete (design as any).layerTemplateId;
+          }
+          
           design.lastModified = new Date();
           await setItem(`design-${designId}`, design);
           setCurrentDesign(design);
@@ -130,12 +141,16 @@ export const useDesigns = () => {
           );
           if (groupedTemplate) {
             selectTemplate(groupedTemplate);
-            const layer = groupedTemplate.templates.find(
-              (template) => template.templateId === design.layerTemplateId
+            const frontLayer = groupedTemplate.templates.find(
+              (template) => template.templateId === design.frontLayerTemplateId
             );
-            if (layer) {
-              selectLayer(layer);
-              const patternChild = layer.childReferences.find(
+            const backLayer = design.backLayerTemplateId ? groupedTemplate.templates.find(
+              (template) => template.templateId === design.backLayerTemplateId
+            ) : undefined;
+            
+            if (frontLayer) {
+              selectLayer(frontLayer, backLayer);
+              const patternChild = frontLayer.childReferences.find(
                 (child) => child.uri === design.childUri
               );
               if (patternChild) {
@@ -245,19 +260,6 @@ export const useDesigns = () => {
   useEffect(() => {
     refreshDesigns();
   }, [refreshDesigns]);
-  useEffect(() => {
-    const loadLastDesign = async () => {
-      try {
-        const lastDesignId = await getItem("last-design-id", undefined, null);
-        if (lastDesignId && typeof lastDesignId === "string") {
-          await loadDesign(lastDesignId);
-        }
-      } catch (error) {}
-    };
-    if (availableDesigns.length > 0 && !currentDesign) {
-      loadLastDesign();
-    }
-  }, [availableDesigns, currentDesign, loadDesign, getItem]);
   useEffect(() => {
     if (currentDesign) {
       setItem("last-design-id", currentDesign.id);

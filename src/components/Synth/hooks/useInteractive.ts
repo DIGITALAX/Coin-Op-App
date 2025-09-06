@@ -11,6 +11,11 @@ const useInteractive = (templateChild: Template | null) => {
   >({});
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [canvasWidth, setCanvasWidth] = useState<number | undefined>(undefined);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  const onImageLoad = () => {
+    setImageLoaded(true);
+  };
 
   const [position, setPosition] = useState({
     x: window.innerWidth - 500,
@@ -46,6 +51,11 @@ const useInteractive = (templateChild: Template | null) => {
   >({});
 
   useEffect(() => {
+    setImageLoaded(false);
+    setParsedSvgCache({});
+  }, [currentTemplate, isBackSide]);
+
+  useEffect(() => {
     if (currentTemplate) {
       const fetchSvgContent = async () => {
         const cache: Record<string, string> = {};
@@ -70,6 +80,8 @@ const useInteractive = (templateChild: Template | null) => {
         setParsedSvgCache(parsedCache);
       };
       fetchSvgContent();
+    } else {
+      setParsedSvgCache({});
     }
   }, [currentTemplate, isBackSide]);
 
@@ -82,15 +94,21 @@ const useInteractive = (templateChild: Template | null) => {
     childFlip?: number,
     childRotation?: number
   ) => {
-    if (
-      !baseTemplateChild?.metadata?.ratio ||
-      !imageRef.current ||
-      !imageRef.current.complete
-    ) {
-      return { left: 0, top: 0, scale: 1, ratio: 1, flip: false, rotation: 0 };
+    if (!baseTemplateChild?.metadata?.ratio) {
+      return null;
     }
 
-    const baseNaturalWidth = imageRef.current.naturalWidth;
+    let baseNaturalWidth = 0;
+    
+    if (imageRef.current && imageRef.current.naturalWidth > 0) {
+      baseNaturalWidth = imageRef.current.naturalWidth;
+    } else if (imageRef.current && imageRef.current.offsetWidth > 0) {
+      baseNaturalWidth = imageRef.current.offsetWidth;
+    } else if (canvasWidth) {
+      baseNaturalWidth = canvasWidth;
+    } else {
+      return null;
+    }
     const realBaseWidthMM = baseTemplateChild.metadata.ratio;
     const realMmToPixelsRatio = baseNaturalWidth / realBaseWidthMM;
 
@@ -177,7 +195,39 @@ const useInteractive = (templateChild: Template | null) => {
         createReactElement(child, `${key || 'element'}-${index}`, onChildClick, childUri)
       );
       
-      const elementProps = { ...props, key: key || `${type}-${Math.random()}` };
+      const convertSvgPropsToReact = (svgProps: any) => {
+        const converted = { ...svgProps };
+        
+        const attributeMap: Record<string, string> = {
+          'stroke-width': 'strokeWidth',
+          'stroke-dasharray': 'strokeDasharray',
+          'stroke-linecap': 'strokeLinecap',
+          'stroke-linejoin': 'strokeLinejoin',
+          'fill-rule': 'fillRule',
+          'fill-opacity': 'fillOpacity',
+          'stroke-opacity': 'strokeOpacity',
+          'xmlns:xlink': 'xmlnsXlink',
+          'xlink:href': 'xlinkHref',
+          'text-anchor': 'textAnchor',
+          'dominant-baseline': 'dominantBaseline',
+          'font-size': 'fontSize',
+          'font-family': 'fontFamily',
+          'font-weight': 'fontWeight',
+          'text-decoration': 'textDecoration',
+          'clip-path': 'clipPath'
+        };
+        
+        Object.keys(attributeMap).forEach(kebabCase => {
+          if (converted[kebabCase] !== undefined) {
+            converted[attributeMap[kebabCase]] = converted[kebabCase];
+            delete converted[kebabCase];
+          }
+        });
+        
+        return converted;
+      };
+      
+      const elementProps = { ...convertSvgPropsToReact(props), key: key || `${type}-${Math.random()}` };
       
     
       if ((type === "path" || type === "g" || type === "polygon" || type === "circle" || type === "rect") && onChildClick && childUri) {
@@ -207,9 +257,9 @@ const useInteractive = (templateChild: Template | null) => {
   const baseTemplateChild = !currentTemplate
     ? null
     : (currentTemplate.childReferences || []).find((child) => {
-        return child.metadata?.x == null && child.metadata?.y == null;
+        return child.child.metadata.tags.includes("base");
       });
-
+  
   useEffect(() => {
     if (isDragging) {
       document.addEventListener("mousemove", handleMouseMove);
@@ -224,7 +274,7 @@ const useInteractive = (templateChild: Template | null) => {
     if (!isCollapsed) {
       setTimeout(() => {
         window.dispatchEvent(new Event("resize"));
-        if (canvasContainerRef.current) {
+        if (canvasContainerRef.current && !canvasWidth) {
           const width = canvasContainerRef.current.offsetWidth;
           if (width > 0) {
             setCanvasWidth(width);
@@ -232,7 +282,7 @@ const useInteractive = (templateChild: Template | null) => {
         }
       }, 100);
     }
-  }, [isCollapsed]);
+  }, [isCollapsed, canvasWidth]);
   useEffect(() => {
     const timer1 = setTimeout(() => {
       window.dispatchEvent(new Event("resize"));
@@ -268,6 +318,8 @@ const useInteractive = (templateChild: Template | null) => {
     isCollapsed,
     parsedSvgCache,
     createReactElement,
+    onImageLoad,
+    imageLoaded,
   };
 };
 export default useInteractive;

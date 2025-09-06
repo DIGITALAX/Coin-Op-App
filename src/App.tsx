@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Sidebar from "./components/Common/modules/Sidebar";
+import ProjectGuard from "./components/Common/modules/ProjectGuard";
 import Format from "./components/Format/modules/Format";
 import Layer from "./components/Layer/modules/Layer";
 import Synth from "./components/Synth/modules/Synth";
@@ -19,14 +20,14 @@ function App() {
           <Routes>
             <Route path="/" element={<Format />} />
             <Route path="/Layer" element={<Layer />} />
-            <Route path="/Synth" element={<Synth />} />
-            <Route path="/Composite" element={<Composite />} />
-            <Route path="/Fulfillment" element={<Fulfillment />} />
+            <Route path="/Synth" element={<ProjectGuard><Synth /></ProjectGuard>} />
+            <Route path="/Composite" element={<ProjectGuard><Composite /></ProjectGuard>} />
+            <Route path="/Fulfillment" element={<ProjectGuard><Fulfillment /></ProjectGuard>} />
             <Route path="/Purchase" element={<Purchase />} />
             <Route path="/Sell" element={<Sell />} />
             <Route path="/About" element={<About />} />
             <Route path="/Activity" element={<Activity />} />
-            <Route path="/Pattern" element={<Pattern />} />
+            <Route path="/Pattern" element={<ProjectGuard><Pattern /></ProjectGuard>} />
           </Routes>
         </div>
       </div>

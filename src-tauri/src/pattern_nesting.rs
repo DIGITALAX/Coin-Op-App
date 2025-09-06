@@ -2,13 +2,16 @@ use serde::{ Deserialize, Serialize };
 use serde_json::json;
 use tauri::command;
 use std::path::Path;
-use std::fs;
 use anyhow::Result;
 use regex::Regex;
 use std::sync::{ Arc, Mutex };
-use std::process::{ Child };
+use std::process::{ Child, Command };
+#[cfg(unix)]
+use std::os::unix::process::CommandExt;
 use once_cell::sync::Lazy;
+use reqwest;
 static SPARROW_PROCESS: Lazy<Arc<Mutex<Option<Child>>>> = Lazy::new(|| Arc::new(Mutex::new(None)));
+static SHOULD_ROTATE: Lazy<Arc<Mutex<bool>>> = Lazy::new(|| Arc::new(Mutex::new(false)));
 #[derive(Debug, Serialize, Deserialize)]
 pub struct NestingResult {
     pub placed_items: Vec<PlacedItem>,
@@ -36,7 +39,6 @@ pub struct PlacedItem {
 #[derive(Debug, Deserialize)]
 pub struct NestingRequest {
     pub pattern_pieces: Vec<PatternPiece>,
-    pub strip_width: f64,
     pub settings: NestingSettings,
 }
 #[derive(Debug, Deserialize)]
@@ -47,10 +49,13 @@ pub struct NestingSettings {
     pub allowed_rotations: Vec<f64>,
     #[serde(rename = "stripWidthMultiplier")]
     pub strip_width_multiplier: f64,
+    #[serde(rename = "iterationLimit")]
+    pub iteration_limit: u64,
+    #[serde(rename = "strikeLimit")]
+    pub strike_limit: u64,
 }
 #[derive(Debug, Deserialize)]
 pub struct PatternPiece {
-    pub name: String,
     pub svg_path: String,
     pub demand: i32,
 }
@@ -70,12 +75,21 @@ pub async fn nest_pattern_pieces(request: NestingRequest) -> Result<NestingResul
         );
     }
     let json_path = json_dest.to_string_lossy();
-    let child = std::process::Command
-        ::new("cargo")
+    let mut command = Command::new("cargo");
+    command
         .args(&["run", "--release", "--features=live_svg", "--", "-i", &json_path, "-t", "60"])
-        .current_dir("../sparrow")
+        .current_dir("../sparrow");
+    
+    #[cfg(unix)]
+    command.process_group(0);
+    
+    let child = command
         .spawn()
-        .map_err(|e| format!("Failed to start Sparrow: {}", e))?;
+        .map_err(|e| format!("Failed to start Sparrow binary: {} (Make sure to build with: cargo build --release --features=live_svg)", e))?;
+    
+    let pid = child.id();
+    eprintln!("DEBUG: Spawned Sparrow with PID: {}", pid);
+    
     {
         let mut process_guard = SPARROW_PROCESS.lock().unwrap();
         *process_guard = Some(child);
@@ -93,6 +107,7 @@ pub async fn get_live_sparrow_svg() -> Result<String, String> {
         let svg_content = std::fs
             ::read_to_string(live_svg_path)
             .map_err(|e| format!("Failed to read live SVG: {}", e))?;
+        
         Ok(svg_content)
     } else {
         Err("Live SVG not yet available".to_string())
@@ -105,26 +120,74 @@ pub async fn get_sparrow_stats() -> Result<SparrowStats, String> {
         let svg_content = std::fs
             ::read_to_string(live_svg_path)
             .map_err(|e| format!("Failed to read live SVG: {}", e))?;
-        if svg_content.contains("<text") {
-        } else {
-        }
-        if svg_content.contains("h:") || svg_content.contains("w:") || svg_content.contains("d:") {
-        } else {
-        }
         let stats = extract_stats_from_svg(&svg_content);
         Ok(stats)
     } else {
         Err("Live stats not yet available".to_string())
     }
 }
+
+#[command] 
+pub async fn is_sparrow_process_running() -> Result<bool, String> {
+    let mut process_guard = SPARROW_PROCESS.lock().unwrap();
+    if let Some(child) = process_guard.as_mut() {
+        match child.try_wait() {
+            Ok(Some(_exit_status)) => {
+                *process_guard = None;
+                Ok(false)
+            }
+            Ok(None) => Ok(true),
+            Err(_) => {
+                *process_guard = None;
+                Ok(false)
+            }
+        }
+    } else {
+        Ok(false)
+    }
+}
+
+#[command]
+pub async fn clear_sparrow_data() -> Result<String, String> {
+    let live_data_dir = Path::new("../sparrow/data/live/");
+    if live_data_dir.exists() {
+        if let Err(e) = std::fs::remove_dir_all(live_data_dir) {
+            return Err(format!("Failed to clear Sparrow data: {}", e));
+        }
+        if let Err(e) = std::fs::create_dir_all(live_data_dir) {
+            return Err(format!("Failed to recreate live data directory: {}", e));
+        }
+    }
+    Ok("Sparrow data cleared".to_string())
+}
+
 #[command]
 pub async fn cancel_sparrow_process() -> Result<String, String> {
     let mut process_guard = SPARROW_PROCESS.lock().unwrap();
-    if let Some(mut child) = process_guard.take() {
-        match child.kill() {
-            Ok(_) => { Ok("Sparrow optimization cancelled".to_string()) }
-            Err(e) => { Err(format!("Failed to cancel process: {}", e)) }
+    if let Some(child) = process_guard.take() {
+        let pid = child.id() as i32;
+        eprintln!("DEBUG: Attempting to kill process with PID: {}", pid);
+        
+        #[cfg(unix)]
+        {
+            unsafe {
+                let result = libc::kill(-pid, libc::SIGKILL);
+                eprintln!("DEBUG: kill(-{}, SIGKILL) returned: {}", pid, result);
+                
+                if result != 0 {
+                    let errno = *libc::__error();
+                    eprintln!("DEBUG: errno: {}", errno);
+                }
+            }
         }
+        
+        #[cfg(not(unix))]
+        {
+            let mut child = child;
+            let _ = child.kill();
+        }
+        
+        Ok(format!("Kill attempted for PID: {}", pid))
     } else {
         Ok("No Sparrow process running".to_string())
     }
@@ -132,14 +195,7 @@ pub async fn cancel_sparrow_process() -> Result<String, String> {
 async fn convert_svgs_to_sparrow_json(request: NestingRequest) -> Result<String> {
     let mut all_dimensions = Vec::new();
     for piece in &request.pattern_pieces {
-        let svg_path_str = piece.svg_path
-            .trim_start_matches("./public/")
-            .trim_start_matches("public/");
-        let svg_path = Path::new("../public").join(svg_path_str);
-        if !svg_path.exists() {
-            return Err(anyhow::anyhow!("SVG file not found: {}", svg_path.display()));
-        }
-        let svg_content = fs::read_to_string(&svg_path)?;
+        let svg_content = get_svg_content(&piece.svg_path).await?;
         let coordinates = parse_svg_to_coordinates(&svg_content)?;
         let mut min_x = coordinates[0][0];
         let mut max_x = coordinates[0][0];
@@ -165,14 +221,7 @@ async fn convert_svgs_to_sparrow_json(request: NestingRequest) -> Result<String>
     let mut items = Vec::new();
     let mut item_id = 0;
     for piece in request.pattern_pieces {
-        let svg_path_str = piece.svg_path
-            .trim_start_matches("./public/")
-            .trim_start_matches("public/");
-        let svg_path = Path::new("../public").join(svg_path_str);
-        if !svg_path.exists() {
-            return Err(anyhow::anyhow!("SVG file not found: {}", svg_path.display()));
-        }
-        let svg_content = fs::read_to_string(&svg_path)?;
+        let svg_content = get_svg_content(&piece.svg_path).await?;
         let coordinates = parse_svg_to_coordinates_with_scale(&svg_content, global_scale_factor)?;
         let item =
             json!({
@@ -191,13 +240,16 @@ async fn convert_svgs_to_sparrow_json(request: NestingRequest) -> Result<String>
     let pattern_count = items.len() as f64;
     let target_pattern_size = 30.0;
     let base_constraint = target_pattern_size * pattern_count.max(2.0);
+    
     let scaled_strip_width = base_constraint / request.settings.strip_width_multiplier;
     let sparrow_json =
         json!({
         "name": "custom_patterns", 
         "items": items,
         "strip_height": scaled_strip_width,  
-        "min_item_separation": request.settings.min_item_separation  
+        "min_item_separation": request.settings.min_item_separation,
+        "iteration_limit": request.settings.iteration_limit,
+        "strike_limit": request.settings.strike_limit
     });
     let json_string = serde_json::to_string_pretty(&sparrow_json)?;
     Ok(json_string)
@@ -210,12 +262,58 @@ fn parse_svg_to_coordinates_with_scale(
     scale_factor: f64
 ) -> Result<Vec<[f64; 2]>> {
     let path_regex = Regex::new(r#"<path[^>]*\sd="([^"]*)"[^>]*/?>"#).unwrap();
-    let path_data = if let Some(captures) = path_regex.captures(svg_content) {
-        let data = captures.get(1).unwrap().as_str();
-        data
+    let polygon_regex = Regex::new(r#"<polygon[^>]*\spoints="([^"]*)"[^>]*/?>"#).unwrap();
+    
+    let coordinates = if let Some(captures) = path_regex.captures(svg_content) {
+        let path_data = captures.get(1).unwrap().as_str();
+        parse_path_data(path_data)?
+    } else if let Some(captures) = polygon_regex.captures(svg_content) {
+        let points_data = captures.get(1).unwrap().as_str();
+        parse_polygon_points(points_data)?
     } else {
-        return Err(anyhow::anyhow!("No path element with d attribute found in SVG"));
+        return Err(anyhow::anyhow!("No path or polygon element found in SVG"));
     };
+    
+    if coordinates.is_empty() {
+        return Err(anyhow::anyhow!("No coordinates extracted from SVG"));
+    }
+    
+    let mut min_x = coordinates[0][0];
+    let mut max_x = coordinates[0][0];
+    let mut min_y = coordinates[0][1];
+    let mut max_y = coordinates[0][1];
+    for coord in &coordinates {
+        min_x = min_x.min(coord[0]);
+        max_x = max_x.max(coord[0]);
+        min_y = min_y.min(coord[1]);
+        max_y = max_y.max(coord[1]);
+    }
+    
+    let mut scaled_coordinates = Vec::new();
+    for coord in coordinates {
+        let scaled_x = (coord[0] - min_x) * scale_factor;
+        let scaled_y = (coord[1] - min_y) * scale_factor;
+        scaled_coordinates.push([scaled_x, scaled_y]);
+    }
+    Ok(scaled_coordinates)
+}
+
+fn parse_polygon_points(points_data: &str) -> Result<Vec<[f64; 2]>> {
+    let mut coordinates = Vec::new();
+    let coords: Vec<f64> = points_data
+        .split_whitespace()
+        .filter_map(|s| s.parse::<f64>().ok())
+        .collect();
+    
+    for i in (0..coords.len()).step_by(2) {
+        if i + 1 < coords.len() {
+            coordinates.push([coords[i], coords[i + 1]]);
+        }
+    }
+    Ok(coordinates)
+}
+
+fn parse_path_data(path_data: &str) -> Result<Vec<[f64; 2]>> {
     let mut coordinates = Vec::new();
     let mut current_x = 0.0;
     let mut current_y = 0.0;
@@ -359,84 +457,7 @@ fn parse_svg_to_coordinates_with_scale(
     if coordinates.is_empty() {
         return Err(anyhow::anyhow!("No coordinates extracted from path"));
     }
-    let mut min_x = coordinates[0][0];
-    let mut max_x = coordinates[0][0];
-    let mut min_y = coordinates[0][1];
-    let mut max_y = coordinates[0][1];
-    for coord in &coordinates {
-        min_x = min_x.min(coord[0]);
-        max_x = max_x.max(coord[0]);
-        min_y = min_y.min(coord[1]);
-        max_y = max_y.max(coord[1]);
-    }
-    let width = max_x - min_x;
-    let height = max_y - min_y;
-    let max_dimension = width.max(height);
-    let mut scaled_coordinates = Vec::new();
-    for coord in coordinates {
-        let scaled_x = (coord[0] - min_x) * scale_factor;
-        let scaled_y = (coord[1] - min_y) * scale_factor;
-        scaled_coordinates.push([scaled_x, scaled_y]);
-    }
-    coordinates = scaled_coordinates;
     Ok(coordinates)
-}
-fn remove_text_from_svg(svg_content: &str) -> String {
-    let text_regex = Regex::new(r"<text[^>]*>.*?</text>").unwrap();
-    let mut cleaned = text_regex.replace_all(svg_content, "").to_string();
-    let text_single_regex = Regex::new(r"<text[^>]*/>").unwrap();
-    cleaned = text_single_regex.replace_all(&cleaned, "").to_string();
-    let text_multiline_regex = Regex::new(r"(?s)<text[^>]*>.*?</text>").unwrap();
-    cleaned = text_multiline_regex.replace_all(&cleaned, "").to_string();
-    cleaned
-}
-fn extract_stats_from_text(stats_text: &str) -> SparrowStats {
-    let mut iteration = "0".to_string();
-    let mut strip_width = "0".to_string();
-    let mut phase = "starting".to_string();
-    let mut height = "0".to_string();
-    let mut width = "0".to_string();
-    let mut density = "0%".to_string();
-    let full_stats = stats_text.trim().to_string();
-    if let Some(h_cap) = Regex::new(r"h:\s*([0-9.]+)").unwrap().captures(stats_text) {
-        height = h_cap.get(1).unwrap().as_str().to_string();
-    }
-    if let Some(w_cap) = Regex::new(r"w:\s*([0-9.]+)").unwrap().captures(stats_text) {
-        width = w_cap.get(1).unwrap().as_str().to_string();
-    }
-    if let Some(d_cap) = Regex::new(r"d:\s*([0-9.]+%?)").unwrap().captures(stats_text) {
-        density = d_cap.get(1).unwrap().as_str().to_string();
-    }
-    if
-        let Some(filename_cap) = Regex::new(r"([0-9]+)_([0-9.]+)_([a-zA-Z_]+)")
-            .unwrap()
-            .captures(stats_text)
-    {
-        iteration = filename_cap.get(1).unwrap().as_str().to_string();
-        strip_width = filename_cap.get(2).unwrap().as_str().to_string();
-        let phase_part = filename_cap.get(3).unwrap().as_str();
-        phase = match phase_part {
-            p if p.starts_with("expl") => "Exploration".to_string(),
-            p if p.starts_with("cmpr") => "Compression".to_string(),
-            "final" => "Complete".to_string(),
-            _ => phase_part.to_string(),
-        };
-    }
-    let utilization = if let Some(percent_pos) = density.find('%') {
-        density[..percent_pos].parse::<f64>().unwrap_or(0.0) / 100.0
-    } else {
-        0.0
-    };
-    SparrowStats {
-        iteration,
-        strip_width,
-        phase,
-        utilization,
-        height,
-        width,
-        density,
-        full_stats,
-    }
 }
 fn extract_stats_from_svg(svg_content: &str) -> SparrowStats {
     let text_regex = Regex::new(r"<text[^>]*>(.*?)</text>").unwrap();
@@ -444,10 +465,6 @@ fn extract_stats_from_svg(svg_content: &str) -> SparrowStats {
     for cap in text_regex.captures_iter(svg_content) {
         let text = cap.get(1).unwrap().as_str().to_string();
         texts.push(text);
-    }
-    if let Some(stats_pos) = svg_content.find("h:") {
-        let stats_section =
-            &svg_content[stats_pos..std::cmp::min(stats_pos + 200, svg_content.len())];
     }
     let mut iteration = "0".to_string();
     let mut strip_width = "0".to_string();
@@ -512,4 +529,52 @@ fn extract_stats_from_svg(svg_content: &str) -> SparrowStats {
         density,
         full_stats,
     }
+}
+
+async fn get_svg_content(svg_path: &str) -> Result<String> {
+    let ipfs_url = if svg_path.starts_with("ipfs://") {
+        format!("https://thedial.infura-ipfs.io/ipfs/{}", svg_path.replace("ipfs://", ""))
+    } else if svg_path.starts_with("Qm") {
+        format!("https://thedial.infura-ipfs.io/ipfs/{}", svg_path)
+    } else {
+        return Err(anyhow::anyhow!("Invalid SVG path format. Expected IPFS URI but got: {}", svg_path));
+    };
+    
+    let response = reqwest::get(&ipfs_url).await?;
+    if response.status().is_success() {
+        let svg_content = response.text().await?;
+        Ok(svg_content)
+    } else {
+        Err(anyhow::anyhow!("Failed to fetch IPFS content from: {}", ipfs_url))
+    }
+}
+
+fn rotate_svg_90_degrees(svg_content: &str) -> String {
+    let viewbox_regex = Regex::new(r#"viewBox="([^"]+)""#).unwrap();
+    
+    if let Some(captures) = viewbox_regex.captures(svg_content) {
+        let viewbox = captures.get(1).unwrap().as_str();
+        let coords: Vec<f64> = viewbox.split_whitespace()
+            .filter_map(|s| s.parse().ok())
+            .collect();
+        
+        if coords.len() == 4 {
+            let (x, y, width, height) = (coords[0], coords[1], coords[2], coords[3]);
+            
+            let new_viewbox = format!("{} {} {} {}", -y - height, x, height, width);
+            let mut rotated_svg = viewbox_regex.replace(svg_content, &format!(r#"viewBox="{}""#, new_viewbox)).to_string();
+            
+            let svg_tag_regex = Regex::new(r#"<svg([^>]*)>"#).unwrap();
+            if let Some(svg_match) = svg_tag_regex.find(&rotated_svg) {
+                let svg_attrs = svg_match.as_str();
+                let transform_attr = r#" transform="rotate(90)""#;
+                let new_svg_tag = svg_attrs.replace(">", &format!("{}>", transform_attr));
+                rotated_svg = svg_tag_regex.replace(&rotated_svg, new_svg_tag).to_string();
+            }
+            
+            return rotated_svg;
+        }
+    }
+    
+    svg_content.to_string()
 }

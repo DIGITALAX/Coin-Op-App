@@ -13,16 +13,15 @@ export const usePatternNesting = () => {
     settings: NestingSettings
   ): Promise<NestingResult | null> => {
     setIsNesting(true);
-    setIsSparrowRunning(true);
     setError(null);
     try {
+      await invoke<string>('clear_sparrow_data');
+      setIsSparrowRunning(true);
       const request: NestingRequest = {
         pattern_pieces: patterns.map(pattern => ({
           id: pattern.id,
           name: pattern.name,
-          svg_path: pattern.svgPath.startsWith('/') ? 
-            `./public${pattern.svgPath}` : 
-            `./public/${pattern.svgPath}`,
+          svg_path: pattern.svgPath,
           demand: pattern.quantity
         })),
         strip_width: canvasWidth,
@@ -30,9 +29,6 @@ export const usePatternNesting = () => {
       };
       const result = await invoke<NestingResult>('nest_pattern_pieces', { request });
       setNestingResult(result);
-      setTimeout(() => {
-        setIsSparrowRunning(false);
-      }, 65000);
       return result;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
@@ -56,6 +52,9 @@ export const usePatternNesting = () => {
     } catch (err) {
     }
   }, []);
+  const handleSparrowComplete = useCallback(() => {
+    setIsSparrowRunning(false);
+  }, []);
   return {
     nestPatterns,
     isNesting,
@@ -63,6 +62,7 @@ export const usePatternNesting = () => {
     nestingResult,
     error,
     clearResult,
-    cancelNesting
+    cancelNesting,
+    handleSparrowComplete
   };
 };

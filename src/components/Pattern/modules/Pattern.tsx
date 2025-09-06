@@ -1,77 +1,31 @@
-import { useState, useCallback, FunctionComponent } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { FunctionComponent } from "react";
 import { PatternLibrary } from "./PatternLibrary";
 import { PackingCanvas } from "./PackingCanvas";
-import { usePatternExport } from "../../Synth/hooks/usePatternExport";
-import { useInteractiveCanvasCapture } from "../../Synth/hooks/useInteractiveCanvasCapture";
-import { useDesignContext } from "../../../context/DesignContext";
-import { useApp } from "../../../context/AppContext";
+import { NestingSettingsPanel } from "./NestingSettings";
+import { usePattern } from "../hooks/usePattern";
+import { usePackingCanvas } from "../hooks/usePackingCanvas";
 import PageNavigation from "../../Common/modules/PageNavigation";
-import { PatternPiece, Size } from "../types/pattern.types";
+
 const Pattern: FunctionComponent = () => {
-  const [selectedPieces, setSelectedPieces] = useState<PatternPiece[]>([]);
-  const [showExportDialog, setShowExportDialog] = useState(false);
-  const [showSewingExportDialog, setShowSewingExportDialog] = useState(false);
-  const [selectedSize, setSelectedSize] = useState<Size>("M");
-  const { currentDesign } = useDesignContext();
-  const { selectedTemplate } = useApp();
-  const { exportPatternSet, isExporting, exportProgress } = usePatternExport();
-  const { captureInteractiveCanvasAt300DPI } = useInteractiveCanvasCapture();
-  const isApplicableTemplate = () => {
-    return (
-      selectedTemplate?.template_type === "shirt" || selectedTemplate?.template_type === "hoodie"
-    );
-  };
+  const {
+    selectedPieces,
+    selectedSize,
+    showExportDialog,
+    showSewingExportDialog,
+    setShowExportDialog,
+    setShowSewingExportDialog,
+    isExporting,
+    exportProgress,
+    isApplicableTemplate,
+    handleSelectPieces,
+    handleSizeChange,
+    handleSewingPatternExport,
+    handleExportPattern,
+    currentDesign,
+    selectedTemplate
+  } = usePattern();
 
-  const handleSelectPieces = useCallback(
-    (pieces: PatternPiece[], size: Size) => {
-      setSelectedPieces(pieces);
-      setSelectedSize(size);
-    },
-    []
-  );
-
-  const handleSizeChange = useCallback((pieces: PatternPiece[], size: Size) => {
-    setSelectedPieces(pieces);
-    setSelectedSize(size);
-  }, []);
-
-  const handleSewingPatternExport = async () => {
-    if (!selectedPieces.length) return;
-    const garmentType = selectedTemplate?.template_type === "shirt" ? "tshirt" : "hoodie";
-    const projectName = currentDesign?.name || "pattern";
-    const pieces = selectedPieces.map((piece) => piece.name);
-    try {
-      const result = await invoke<string>("export_professional_pattern", {
-        request: {
-          garment_type: garmentType,
-          size: selectedSize,
-          pieces: pieces,
-          project_name: projectName,
-          seam_allowance_mm: 10.0,
-        },
-      });
-      alert(result);
-      setShowSewingExportDialog(false);
-    } catch (error) {
-      alert(`Export failed: ${error}`);
-    }
-  };
-  const handleExportPattern = async () => {
-    if (!captureInteractiveCanvasAt300DPI) return;
-    try {
-      const frontCanvasDataUrl = await captureInteractiveCanvasAt300DPI(3);
-      if (frontCanvasDataUrl) {
-        const baseName = currentDesign?.name || "pattern";
-        await exportPatternSet(frontCanvasDataUrl, null, baseName, {
-          widthInches: 8,
-          heightInches: 10,
-          dpi: 300,
-        });
-        setShowExportDialog(false);
-      }
-    } catch (error) {}
-  };
+  const { nestingSettings, setNestingSettings, isNesting, isSparrowRunning } = usePackingCanvas(selectedPieces, selectedSize);
   return (
     <div className="relative w-full h-full flex flex-col p-4 bg-black overflow-x-hidden">
       <div className="mb-6">
@@ -102,11 +56,15 @@ const Pattern: FunctionComponent = () => {
       </div>
       {isApplicableTemplate() ? (
         <div className="flex-1 flex overflow-y-scroll overflow-x-hidden">
-          <div className="w-80 flex-shrink-0 pr-4">
+          <div className="w-80 flex-shrink-0 pr-4 flex flex-col gap-6">
             <PatternLibrary
               onSelectPieces={handleSelectPieces}
               onSizeChange={handleSizeChange}
-              templateType={selectedTemplate?.template_type as "shirt" | "hoodie"}
+            />
+            <NestingSettingsPanel
+              settings={nestingSettings}
+              onSettingsChange={setNestingSettings}
+              disabled={isNesting || isSparrowRunning}
             />
           </div>
           <div className="flex-1 min-w-0 overflow-x-hidden">

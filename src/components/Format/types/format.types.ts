@@ -29,24 +29,28 @@ export interface Template {
 }
 
 export interface Child {
+  uri: string;
+  price: string;
+  childId: string;
+  metadata: {
+    ratio: number;
+    instructions?: string;
+    seamAllowance: string;
+    location: string;
+    scale: number;
+    flip: number;
+    rotation: number;
+    x: number;
+    y: number;
+  };
+  amount: number;
+  childContract: string;
+  child: {
     uri: string;
-    price: string;
-    childId: string;
     metadata: {
-      ratio: number;
-      location: string;
-      scale: number;
-      flip: number;
-      rotation: number;
-      x: number;
-      y: number;
+      tags: string[];
+      image: string;
+      title: string;
     };
-    childContract: string;
-    child: {
-      uri: string;
-      metadata: {
-        image: string;
-        title: string;
-      };
-    };
-  }
+  };
+}

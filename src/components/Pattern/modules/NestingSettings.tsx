@@ -42,7 +42,7 @@ export const NestingSettingsPanel: FunctionComponent<NestingSettingsProps> = ({
       )
   );
   return (
-    <div className="w-80 bg-oscuro/50 border border-white/10 rounded p-4 space-y-6">
+    <div className="w-80 bg-oscuro/50 rounded p-2 space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-white font-mana text-sm">NESTING SETTINGS</h3>
         <button
@@ -135,8 +135,8 @@ export const NestingSettingsPanel: FunctionComponent<NestingSettingsProps> = ({
           <div className="flex items-center gap-2">
             <input
               type="range"
-              min="0.5"
-              max="3.0"
+              min="1.0"
+              max="5.0"
               step="0.1"
               value={localSettings.stripWidthMultiplier}
               onChange={(e) =>
@@ -153,13 +153,65 @@ export const NestingSettingsPanel: FunctionComponent<NestingSettingsProps> = ({
             Higher values = wider layouts (less vertical stacking)
           </div>
         </div>
-        <div className="pt-2 border-t border-white/10">
-          <div className="text-white/50 text-xxxs space-y-1">
-            <div>• 0.0mm spacing = touching edges (max efficiency)</div>
-            <div>• More rotations = better optimization</div>
-            <div>• Higher layout width = wider, less tall results</div>
+
+        <div>
+          <label className="block text-white/70 text-xxxs font-mana mb-2">
+            ITERATION LIMIT
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="range"
+              min="50"
+              max="500"
+              step="25"
+              value={localSettings.iterationLimit}
+              onChange={(e) =>
+                setLocalSettings({
+                  ...localSettings,
+                  iterationLimit: parseInt(e.target.value),
+                })
+              }
+              disabled={disabled}
+              className={`flex-1 ${disabled ? "opacity-50" : ""}`}
+            />
+            <span className="text-ama text-xxxs font-mana w-12">
+              {localSettings.iterationLimit}
+            </span>
+          </div>
+          <div className="text-white/40 text-xxxs mt-1">
+            Higher = more patient optimization (slower but better results)
           </div>
         </div>
+
+        <div>
+          <label className="block text-white/70 text-xxxs font-mana mb-2">
+            STRIKE LIMIT
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="range"
+              min="1"
+              max="10"
+              step="1"
+              value={localSettings.strikeLimit}
+              onChange={(e) =>
+                setLocalSettings({
+                  ...localSettings,
+                  strikeLimit: parseInt(e.target.value),
+                })
+              }
+              disabled={disabled}
+              className={`flex-1 ${disabled ? "opacity-50" : ""}`}
+            />
+            <span className="text-ama text-xxxs font-mana w-12">
+              {localSettings.strikeLimit}
+            </span>
+          </div>
+          <div className="text-white/40 text-xxxs mt-1">
+            Higher = more persistent when stuck (tries harder before giving up)
+          </div>
+        </div>
+
       </div>
     </div>
   );
