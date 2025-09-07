@@ -87,6 +87,16 @@ export interface PatternLibraryProps {
   onSizeChange?: (pieces: PatternPiece[], size: Size) => void;
 }
 
+export interface PatternState {
+  autoResult: NestingResult | null;
+  manualPieces: CanvasPanel[] | null;
+  currentMode: 'auto' | 'manual';
+  settings: NestingSettings;
+  liveSvgContent: string | null;
+  selectedPieces: PatternPiece[];
+  selectedSize: Size;
+}
+
 export interface NestingSettings {
   minItemSeparation: number;
   allowedRotations: number[];

@@ -206,7 +206,6 @@ const useInteractive = (templateChild: Template | null) => {
           'fill-rule': 'fillRule',
           'fill-opacity': 'fillOpacity',
           'stroke-opacity': 'strokeOpacity',
-          'xmlns:xlink': 'xmlnsXlink',
           'xlink:href': 'xlinkHref',
           'text-anchor': 'textAnchor',
           'dominant-baseline': 'dominantBaseline',
@@ -223,6 +222,8 @@ const useInteractive = (templateChild: Template | null) => {
             delete converted[kebabCase];
           }
         });
+        
+        delete converted['xmlns:xlink'];
         
         return converted;
       };

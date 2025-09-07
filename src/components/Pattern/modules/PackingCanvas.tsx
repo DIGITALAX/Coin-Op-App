@@ -1,4 +1,4 @@
-import { FunctionComponent } from "react";
+import { FunctionComponent, useCallback, useEffect } from "react";
 import { usePackingCanvas } from "../hooks/usePackingCanvas";
 import { PackingCanvasProps } from "../types/pattern.types";
 
@@ -19,57 +19,267 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
     sparrowStats,
     handleNestClick,
     handleCancelNesting,
-    parseSparrowSVG
+    resetToAutoLayout,
+    manualPieces,
+    setManualPieces,
+    isDragging,
+    setIsDragging,
+    dragOffset,
+    setDragOffset,
+    selectedPanelId,
+    setSelectedPanelId,
+    isRotating,
+    setIsRotating,
+    rotationStart,
+    setRotationStart,
+    savePatternState,
   } = usePackingCanvas(selectedPieces, selectedSize);
 
-  const renderManualCanvas = () => {
-    if (!liveSvgContent) return null;
+  const drawCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    const sparrowPatterns = parseSparrowSVG(liveSvgContent);
-    if (sparrowPatterns.length === 0) return null;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-    let bboxWidth = 48.1;
-    let bboxHeight = 94.5;
-    let xMin = 0.0;
-    let yMin = -4.5;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const viewBoxMatch = liveSvgContent.match(/viewBox="([^"]+)"/);
-    if (viewBoxMatch) {
-      const viewBoxValues = viewBoxMatch[1].split(/[\s,]+/).map(parseFloat);
-      bboxWidth = viewBoxValues[2];
-      bboxHeight = viewBoxValues[3];
+    manualPieces.forEach((piece) => {
+      ctx.save();
+      ctx.translate(piece.x, piece.y);
+      if (piece.rotation !== 0) {
+        ctx.rotate((piece.rotation * Math.PI) / 180);
+      }
+      if (piece.scaleFactor) {
+        ctx.scale(piece.scaleFactor, piece.scaleFactor);
+      }
+
+      const path = new Path2D(piece.pathData);
+      ctx.fillStyle = piece.color;
+      ctx.globalAlpha = 0.7;
+      ctx.fill(path);
+
+      ctx.restore();
+
+      const handleRadius = 8;
+      const handleDistance = 30;
+      const handleX = piece.x;
+      const handleY = piece.y - handleDistance;
+
+      ctx.save();
+      ctx.fillStyle = "#FFA500";
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(handleX, handleY, handleRadius, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#000";
+      ctx.font = "12px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("↻", handleX, handleY);
+      ctx.restore();
+    });
+  }, [manualPieces]);
+
+  useEffect(() => {
+    if (isManualMode) {
+      drawCanvas();
     }
+  }, [isManualMode, manualPieces, drawCanvas]);
 
-    const targetWidth = canvasWidth - 40;
-    const targetHeight = canvasHeight - 40;
-    const scale = Math.min(targetWidth / bboxWidth, targetHeight / bboxHeight);
-    const margin = 20;
+  const findRotationHandleAtPoint = useCallback(
+    (x: number, y: number) => {
+      const handleRadius = 8;
+      const handleDistance = 30;
 
+      for (let i = manualPieces.length - 1; i >= 0; i--) {
+        const panel = manualPieces[i];
+        const handleX = panel.x;
+        const handleY = panel.y - handleDistance;
+
+        const distance = Math.sqrt((x - handleX) ** 2 + (y - handleY) ** 2);
+        if (distance <= handleRadius) {
+          return panel;
+        }
+      }
+      return null;
+    },
+    [manualPieces]
+  );
+
+  const findPanelAtPoint = useCallback(
+    (x: number, y: number) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return null;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return null;
+
+      for (let i = manualPieces.length - 1; i >= 0; i--) {
+        const panel = manualPieces[i];
+
+        ctx.save();
+        ctx.translate(panel.x, panel.y);
+        if (panel.rotation !== 0) {
+          ctx.rotate((panel.rotation * Math.PI) / 180);
+        }
+        if (panel.scaleFactor) {
+          ctx.scale(panel.scaleFactor, panel.scaleFactor);
+        }
+
+        const path = new Path2D(panel.pathData);
+
+        if (ctx.isPointInPath(path, x, y)) {
+          ctx.restore();
+          return panel;
+        }
+
+        ctx.restore();
+      }
+
+      return null;
+    },
+    [manualPieces]
+  );
+
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (!isManualMode) return;
+
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const rotationHandle = findRotationHandleAtPoint(x, y);
+      if (rotationHandle) {
+        setSelectedPanelId(rotationHandle.id);
+        setIsRotating(true);
+        const angle = Math.atan2(y - rotationHandle.y, x - rotationHandle.x);
+        setRotationStart((angle * 180) / Math.PI - rotationHandle.rotation);
+        return;
+      }
+
+      const clickedPanel = findPanelAtPoint(x, y);
+      if (clickedPanel) {
+        setSelectedPanelId(clickedPanel.id);
+        setIsDragging(true);
+        setDragOffset({
+          x: x - clickedPanel.x,
+          y: y - clickedPanel.y,
+        });
+      }
+    },
+    [
+      isManualMode,
+      findRotationHandleAtPoint,
+      findPanelAtPoint,
+      setSelectedPanelId,
+      setIsDragging,
+      setDragOffset,
+      setIsRotating,
+      setRotationStart,
+    ]
+  );
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (!isDragging && !isRotating) return;
+
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      if (isRotating) {
+        setManualPieces((prev) =>
+          prev.map((panel) => {
+            if (panel.id === selectedPanelId) {
+              const angle = Math.atan2(y - panel.y, x - panel.x);
+              let newRotation = ((angle * 180) / Math.PI - rotationStart) % 360;
+
+              if (!e.shiftKey) {
+                newRotation = Math.round(newRotation / 15) * 15;
+              }
+
+              return {
+                ...panel,
+                rotation: newRotation,
+              };
+            }
+            return panel;
+          })
+        );
+      } else if (isDragging) {
+        setManualPieces((prev) =>
+          prev.map((panel) => {
+            if (panel.id === selectedPanelId) {
+              return {
+                ...panel,
+                x: x - dragOffset.x,
+                y: y - dragOffset.y,
+              };
+            }
+            return panel;
+          })
+        );
+      }
+    },
+    [
+      isDragging,
+      isRotating,
+      dragOffset,
+      selectedPanelId,
+      rotationStart,
+      setManualPieces,
+    ]
+  );
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+    setIsRotating(false);
+    setSelectedPanelId(null);
+    setDragOffset({ x: 0, y: 0 });
+    setRotationStart(0);
+  }, [
+    setIsDragging,
+    setIsRotating,
+    setSelectedPanelId,
+    setDragOffset,
+    setRotationStart,
+  ]);
+
+  const renderManualCanvas = () => {
     return (
-      <div className="relative bg-gray-800 rounded border border-yellow-500 border-4">
+      <div
+        className="border border-yellow-500 rounded bg-white/10 overflow-visible relative"
+        style={{ width: canvasWidth, height: canvasHeight }}
+      >
         <div className="absolute top-2 left-2 text-yellow-500 font-mana text-xs bg-black px-2 py-1 rounded">
           MANUAL MODE
         </div>
-        <svg width={canvasWidth} height={canvasHeight}>
-          {sparrowPatterns.map((pattern, index) => {
-            const scaledX = (pattern.x - xMin) * scale + margin;
-            const scaledY = (pattern.y - yMin) * scale + margin;
-
-            return (
-              <g
-                key={`${pattern.id}-${index}`}
-                transform={`translate(${scaledX}, ${scaledY}) rotate(${pattern.rotation}) scale(${scale})`}
-                style={{ cursor: 'move' }}
-              >
-                <path
-                  d={pattern.pathData}
-                  fill={pattern.color}
-                  fillOpacity={0.7}
-                />
-              </g>
-            );
-          })}
-        </svg>
+        <canvas
+          ref={canvasRef}
+          width={canvasWidth}
+          height={canvasHeight}
+          className={`w-full h-full ${
+            isRotating
+              ? "cursor-grab"
+              : isDragging
+              ? "cursor-grabbing"
+              : "cursor-move"
+          }`}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+        />
       </div>
     );
   };
@@ -84,9 +294,17 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
           <div className="flex gap-2">
             <button
               onClick={handleNestClick}
-              disabled={isNesting || isSparrowRunning || selectedPieces.length === 0}
+              disabled={
+                isNesting ||
+                isSparrowRunning ||
+                selectedPieces.length === 0 ||
+                isManualMode
+              }
               className={`px-4 py-2 rounded font-mana text-xs ${
-                isNesting || isSparrowRunning || selectedPieces.length === 0
+                isNesting ||
+                isSparrowRunning ||
+                selectedPieces.length === 0 ||
+                isManualMode
                   ? "bg-gris/40 text-white/50 cursor-not-allowed"
                   : "bg-ama hover:opacity-70 text-black cursor-pointer"
               }`}
@@ -102,16 +320,26 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
               </button>
             )}
             {liveSvgContent && !isNesting && !isSparrowRunning && (
-              <button
-                onClick={() => setIsManualMode(!isManualMode)}
-                className={`px-4 py-2 rounded font-mana text-xs cursor-pointer ${
-                  isManualMode
-                    ? "bg-yellow-500 text-black"
-                    : "bg-gris hover:opacity-70 text-white"
-                }`}
-              >
-                {isManualMode ? "AUTO MODE" : "MANUAL NEST"}
-              </button>
+              <>
+                <button
+                  onClick={() => setIsManualMode(!isManualMode)}
+                  className={`px-4 py-2 rounded font-mana text-xs cursor-pointer ${
+                    isManualMode
+                      ? "bg-yellow-500 text-black"
+                      : "bg-gris hover:opacity-70 text-white"
+                  }`}
+                >
+                  {isManualMode ? "AUTO MODE" : "MANUAL NEST"}
+                </button>
+                {isManualMode && (
+                  <button
+                    onClick={resetToAutoLayout}
+                    className="px-4 py-2 bg-red-500 hover:opacity-70 text-white rounded font-mana text-xs cursor-pointer"
+                  >
+                    RESET TO AUTO
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -122,6 +350,13 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
           </div>
         )}
 
+        <button
+          onClick={() => savePatternState()}
+          className="mb-4 px-4 py-2 bg-verde hover:opacity-70 text-black rounded font-mana text-xs cursor-pointer"
+        >
+          SAVE
+        </button>
+
         {sparrowStats && (
           <div className="mb-4 p-3 bg-verde/20 border border-verde/50 rounded">
             <div className="text-verde font-mana text-xs mb-2">
@@ -130,9 +365,15 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
             <div className="text-white/70 font-mana text-xxxs space-y-1">
               <div>Phase: {sparrowStats.phase}</div>
               <div>Iteration: {sparrowStats.iteration}</div>
-              <div>Utilization: {(sparrowStats.utilization * 100).toFixed(1)}%</div>
-              <div>Waste: {((1 - sparrowStats.utilization) * 100).toFixed(1)}%</div>
-              <div>Strip Size: {sparrowStats.width} × {sparrowStats.height}</div>
+              <div>
+                Utilization: {(sparrowStats.utilization * 100).toFixed(1)}%
+              </div>
+              <div>
+                Waste: {((1 - sparrowStats.utilization) * 100).toFixed(1)}%
+              </div>
+              <div>
+                Strip Size: {sparrowStats.width} × {sparrowStats.height}
+              </div>
               <div>Density: {sparrowStats.density}</div>
             </div>
           </div>
@@ -143,19 +384,28 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
             isManualMode ? (
               renderManualCanvas()
             ) : (
-              <div className="border border-red-500 rounded bg-white/10 overflow-visible relative sparrow-svg-container"
-                   style={{ width: canvasWidth, height: canvasHeight }}>
-                <div className="w-full h-full"
-                     dangerouslySetInnerHTML={{ 
-                       __html: (() => {
-                         const viewBoxMatch = liveSvgContent.match(/viewBox="([^"]+)"/);
-                         const originalViewBox = viewBoxMatch ? viewBoxMatch[1] : "0 0 100 100";
-                         return liveSvgContent
-                           .replace(/<text[^>]*>.*?<\/text>/gs, '')
-                           .replace(/<svg[^>]*>/, 
-                             `<svg width="${canvasWidth}" height="${canvasHeight}" viewBox="${originalViewBox}" preserveAspectRatio="xMidYMid meet">`);
-                       })()
-                     }}/>
+              <div
+                className="border border-red-500 rounded bg-white/10 overflow-visible relative sparrow-svg-container"
+                style={{ width: canvasWidth, height: canvasHeight }}
+              >
+                <div
+                  className="w-full h-full"
+                  dangerouslySetInnerHTML={{
+                    __html: (() => {
+                      const viewBoxMatch =
+                        liveSvgContent.match(/viewBox="([^"]+)"/);
+                      const originalViewBox = viewBoxMatch
+                        ? viewBoxMatch[1]
+                        : "0 0 100 100";
+                      return liveSvgContent
+                        .replace(/<text[^>]*>.*?<\/text>/gs, "")
+                        .replace(
+                          /<svg[^>]*>/,
+                          `<svg width="${canvasWidth}" height="${canvasHeight}" viewBox="${originalViewBox}" preserveAspectRatio="xMidYMid meet">`
+                        );
+                    })(),
+                  }}
+                />
               </div>
             )
           ) : (

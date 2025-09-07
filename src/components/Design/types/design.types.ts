@@ -15,6 +15,18 @@ export interface Design {
     layoutCount?: number;
     lastWasteAnalysis?: Date;
   };
+  patternData?: {
+    autoResult: any;
+    manualPieces: any[];
+    autoBasePieces?: any[];
+    currentMode: 'auto' | 'manual';
+    settings: any;
+    liveSvgContent: string | null;
+    savedSvgContent?: string | null;
+    canvasWidth?: number;
+    canvasHeight?: number;
+    lastSvgFromNesting?: string | null;
+  };
 }
 export interface DesignMetadata {
   design: Design;
@@ -43,6 +55,7 @@ export interface DesignContextType {
   loadDesign: (designId: string) => Promise<void>;
   deleteDesign: (designId: string) => Promise<void>;
   updateDesignThumbnail: (designId: string, thumbnail: string) => Promise<void>;
+  updatePatternData: (designId: string, patternData: any) => Promise<void>;
   refreshDesigns: () => Promise<void>;
 }
 export interface DesignCreationModalProps {

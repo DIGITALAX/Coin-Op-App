@@ -26,6 +26,15 @@ const Pattern: FunctionComponent = () => {
   } = usePattern();
 
   const { nestingSettings, setNestingSettings, isNesting, isSparrowRunning } = usePackingCanvas(selectedPieces, selectedSize);
+  
+  if (!currentDesign) {
+    return (
+      <div className="relative w-full h-full flex items-center justify-center p-4 bg-black">
+        <div className="text-white font-mana">Loading design...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative w-full h-full flex flex-col p-4 bg-black overflow-x-hidden">
       <div className="mb-6">

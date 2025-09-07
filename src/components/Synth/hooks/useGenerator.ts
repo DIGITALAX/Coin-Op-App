@@ -245,7 +245,7 @@ const useGenerator = ({
   }, [aiProvider, mode, setItem]);
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      setItem("skyhunters-api-keys", apiKeys, mode).catch(() => {});
+      setItem("api-keys", apiKeys, mode).catch(() => {});
     }, 300);
     return () => clearTimeout(timeoutId);
   }, [apiKeys, mode, setItem]);
@@ -338,7 +338,7 @@ const useGenerator = ({
     };
     setApiKeys(newApiKeys);
     try {
-      await setItem("skyhunters-api-keys", newApiKeys);
+      await setItem("api-keys", newApiKeys);
     } catch (error) {
     }
   };
@@ -438,7 +438,7 @@ const useGenerator = ({
   }, [useCanvasAsInput, mode, aiProvider, selectedModel]);
   const loadApiKeys = async () => {
     try {
-      const savedKeys = await getItem("skyhunters-api-keys", mode, {
+      const savedKeys = await getItem("api-keys", mode, {
         openai: "",
         replicate: "",
         comfy: "",
