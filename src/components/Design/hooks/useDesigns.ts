@@ -259,55 +259,11 @@ export const useDesigns = () => {
     [getItem, setItem, currentDesign, refreshDesigns]
   );
 
-  const updatePatternData = useCallback(
-    async (designId: string, patternData: any) => {
-     
-      try {
-        const designData = await getItem(`design-${designId}`, undefined, null);
-        if (designData && typeof designData === "object") {
-          const design = {
-            ...(designData as Design),
-            patternData,
-            lastModified: new Date(),
-          };
-          await setItem(`design-${designId}`, design);
-          if (currentDesign?.id === designId) {
-            setCurrentDesign(design);
-          }
-          await refreshDesigns();
-        } else {
-          throw new Error(`Design ${designId} not found`);
-        }
-      } catch (error) {
-        throw error;
-      }
-    },
-    [getItem, setItem, currentDesign, refreshDesigns]
-  );
   useEffect(() => {
     refreshDesigns();
   }, [refreshDesigns]);
 
-  useEffect(() => {
-    const loadLastDesign = async () => {
-      if (!currentDesign) {
-        try {
-          const lastDesignId = await getItem("last-design-id", undefined, null);
-          if (lastDesignId && typeof lastDesignId === "string") {
-            await loadDesign(lastDesignId);
-          }
-        } catch (error) {
-          console.error('Failed to load last design:', error);
-        }
-      }
-    };
-    loadLastDesign();
-  }, [currentDesign, getItem, loadDesign]);
-  useEffect(() => {
-    if (currentDesign) {
-      setItem("last-design-id", currentDesign.id);
-    }
-  }, [currentDesign, setItem]);
+
   return {
     currentDesign,
     availableDesigns,
@@ -316,7 +272,6 @@ export const useDesigns = () => {
     loadDesign,
     deleteDesign,
     updateDesignThumbnail,
-    updatePatternData,
     refreshDesigns,
   };
 };

@@ -6,15 +6,17 @@ import {
   Material,
 } from "../types/fulfillment.types";
 import { getCurrentTemplate } from "../../Synth/utils/templateHelpers";
+import useMaterials from "./useMaterials";
 const useFulfillment = () => {
-  const { selectedLayer, isBackSide } = useApp();
+  const { selectedLayer, isBackSide, selectedTemplate } = useApp();
   const currentTemplate = getCurrentTemplate(selectedLayer, isBackSide);
+  const { materials, loading, filterMaterialsByTag } = useMaterials();
 
   const [fulfillmentSelection, setFulfillmentSelection] =
     useState<FulfillmentSelection>({
       fulfiller: null,
-      baseColor: null,
-      material: null,
+      baseColors: [],
+      materials: [],
     });
   const selectFulfiller = (fulfiller: Fulfiller) => {
     setFulfillmentSelection((prev) => ({
@@ -22,16 +24,20 @@ const useFulfillment = () => {
       fulfiller,
     }));
   };
-  const selectBaseColor = (color: string) => {
+  const toggleBaseColor = (color: string) => {
     setFulfillmentSelection((prev) => ({
       ...prev,
-      baseColor: color,
+      baseColors: prev.baseColors.includes(color)
+        ? prev.baseColors.filter(c => c !== color)
+        : [...prev.baseColors, color],
     }));
   };
-  const selectMaterial = (material: Material) => {
+  const toggleMaterial = (material: Material) => {
     setFulfillmentSelection((prev) => ({
       ...prev,
-      material,
+      materials: prev.materials.find(m => m.title === material.title)
+        ? prev.materials.filter(m => m.title !== material.title)
+        : [...prev.materials, material],
     }));
   };
   const calculateBaseTotal = useMemo(() => {
@@ -48,9 +54,11 @@ const useFulfillment = () => {
   const calculateTotal = useMemo(() => {
     if (!selectedLayer) return 0;
     const baseTotal = calculateBaseTotal;
-    const materialPrice = fulfillmentSelection.material?.price || 0;
-    return baseTotal + materialPrice;
-  }, [selectedLayer, fulfillmentSelection.material, calculateBaseTotal]);
+    const materialsPrice = fulfillmentSelection.materials.reduce(
+      (sum, material) => sum + material.price, 0
+    );
+    return baseTotal + materialsPrice;
+  }, [selectedLayer, fulfillmentSelection.materials, calculateBaseTotal]);
   const formatPrice = (price: number) => {
     return price.toFixed(2);
   };
@@ -66,31 +74,37 @@ const useFulfillment = () => {
   };
   const getMaterialTypeForTemplate = (templateType: string) => {
     if (templateType === "poster") {
-      return "poster";
+      return "print";
     }
     if (templateType === "sticker") {
-      return "sticker";
+      return "print";
     }
     return "apparel";
+  };
+
+  const getFilteredMaterials = () => {
+    if (!selectedTemplate) return [];
+    return filterMaterialsByTag(selectedTemplate.template_type);
   };
   const resetFulfillmentSelection = () => {
     setFulfillmentSelection({
       fulfiller: null,
-      baseColor: null,
-      material: null,
+      baseColors: [],
+      materials: [],
     });
   };
   return {
     fulfillmentSelection,
     selectFulfiller,
-    selectBaseColor,
-    selectMaterial,
+    toggleBaseColor,
+    toggleMaterial,
     calculateBaseTotal,
     calculateTotal,
     formatPrice,
     getColorName,
-    getMaterialTypeForTemplate,
     resetFulfillmentSelection,
+    loading,
+    getFilteredMaterials,
   };
 };
 export default useFulfillment;

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { usePatternNesting } from "./usePatternNesting";
 import { useLiveSparrowVisualization } from "./useLiveSparrowVisualization";
 import { useFileStorage } from "../../Activity/hooks/useFileStorage";
-import { useDesigns } from "../../Design/hooks/useDesigns";
+import { useDesignContext } from "../../../context/DesignContext";
 import {
   CanvasPanel,
   Size,
@@ -44,7 +44,7 @@ export const usePackingCanvas = (
   
   const liveSvgContent = liveSvgFromSparrow || savedSvgContent;
   const { setItem, getItem } = useFileStorage();
-  const { currentDesign, updatePatternData } = useDesigns();
+  const { currentDesign } = useDesignContext();
 
   const loadSavedSettings = useCallback(async () => {
     try {
@@ -395,28 +395,34 @@ export const usePackingCanvas = (
   
     
     try {
-      await updatePatternData(currentDesign.id, patternData);
+      await setItem("pattern", patternData, currentDesign.id);
       alert('Pattern saved successfully!');
     } catch (error) {
       alert(`Pattern save failed: ${error}`);
     }
-  }, [currentDesign, manualPieces, autoBasePieces, isManualMode, nestingSettings, liveSvgContent, savedSvgContent, canvasWidth, canvasHeight, lastSvgFromNesting, updatePatternData]);
+  }, [currentDesign, manualPieces, autoBasePieces, isManualMode, nestingSettings, liveSvgContent, savedSvgContent, canvasWidth, canvasHeight, lastSvgFromNesting]);
 
 
   const loadPatternState = useCallback(async () => {
-    if (!currentDesign?.patternData) {
+    if (!currentDesign) {
       return;
     }
     
-    const { 
-      manualPieces: savedManualPieces, 
-      autoBasePieces: savedAutoBasePieces,
-      currentMode, 
-      settings, 
-      liveSvgContent: savedLiveSvgContent,
-      savedSvgContent: savedSavedSvgContent,
-      lastSvgFromNesting: savedLastSvgFromNesting
-    } = currentDesign.patternData;
+    try {
+      const patternData = await getItem("pattern", currentDesign.id, null) as any;
+      if (!patternData) {
+        return;
+      }
+      
+      const { 
+        manualPieces: savedManualPieces, 
+        autoBasePieces: savedAutoBasePieces,
+        currentMode, 
+        settings, 
+        liveSvgContent: savedLiveSvgContent,
+        savedSvgContent: savedSavedSvgContent,
+        lastSvgFromNesting: savedLastSvgFromNesting
+      } = patternData;
     
     if (savedManualPieces && savedManualPieces.length > 0) {
       setManualPieces(savedManualPieces);
@@ -441,7 +447,10 @@ export const usePackingCanvas = (
     if (savedLastSvgFromNesting) {
       setLastSvgFromNesting(savedLastSvgFromNesting);
     }
-  }, [currentDesign]);
+    } catch (error) {
+      console.error('Failed to load pattern state:', error);
+    }
+  }, [currentDesign, getItem]);
 
   useEffect(() => {
     if (currentDesign) {
@@ -450,7 +459,7 @@ export const usePackingCanvas = (
   }, [currentDesign?.id]);
 
   useEffect(() => {
-    if (currentDesign?.patternData && !hasLoadedInitialState) {
+    if (currentDesign && !hasLoadedInitialState) {
       loadPatternState();
       setHasLoadedInitialState(true);
     }
@@ -495,5 +504,6 @@ export const usePackingCanvas = (
     calculatePathBounds,
     parseSparrowSVG,
     savePatternState,
+    autoBasePieces,
   };
 };

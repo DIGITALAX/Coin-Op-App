@@ -145,7 +145,9 @@ const useInteractive = (templateChild: Template | null) => {
     
     const props: any = {};
     Array.from(svgElement.attributes).forEach(attr => {
-      props[attr.name] = attr.value;
+      if (attr.name !== 'xmlns:xlink') {
+        props[attr.name] = attr.value;
+      }
     });
     
     const parseElement = (element: Element): any => {
@@ -153,7 +155,9 @@ const useInteractive = (templateChild: Template | null) => {
       const elementProps: any = {};
       
       Array.from(element.attributes).forEach(attr => {
-        elementProps[attr.name] = attr.value;
+        if (attr.name !== 'xmlns:xlink') {
+          elementProps[attr.name] = attr.value;
+        }
       });
       
       const children: any[] = [];

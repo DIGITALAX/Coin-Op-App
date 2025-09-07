@@ -1,16 +1,36 @@
 export interface Fulfiller {
   title: string;
   uri: string;
+  address: string;
+  base: number;
+  vig: number;
 }
+
 export interface Material {
   title: string;
   description: string;
   price: number;
-  type: "apparel" | "poster" | "sticker";
-  id: number;
+  type: string;
+  tags?: string[];
 }
+
 export interface FulfillmentSelection {
   fulfiller: Fulfiller | null;
-  baseColor: string | null;
-  material: Material | null;
+  baseColors: string[];
+  materials: Material[];
 }
+
+export interface ChildData {
+  price: string;
+  child_type: string;
+  child_contract: string;
+  child_id: string;
+  currency: string;
+  metadata?: {
+    title?: string;
+    image?: string;
+    tags?: string[];
+  };
+  uri: string;
+}
+

@@ -19,7 +19,6 @@ const Pattern: FunctionComponent = () => {
     isApplicableTemplate,
     handleSelectPieces,
     handleSizeChange,
-    handleSewingPatternExport,
     handleExportPattern,
     currentDesign,
     selectedTemplate
@@ -42,20 +41,6 @@ const Pattern: FunctionComponent = () => {
           <h2 className="text-lg font-satB text-white tracking-wider">
             SEWING PATTERNS
           </h2>
-          <div className="flex gap-3">
-            <div
-              onClick={() => setShowSewingExportDialog(true)}
-              className="px-4 py-2 bg-ama hover:opacity-70 text-black rounded font-mana text-xs cursor-pointer"
-            >
-              EXPORT TO SEW
-            </div>
-            <div
-              onClick={() => setShowExportDialog(true)}
-              className="px-4 py-2 bg-gris hover:opacity-70 text-white rounded font-mana text-xs cursor-pointer"
-            >
-              EXPORT TO PRINT
-            </div>
-          </div>
         </div>
         {currentDesign && (
           <p className="text-ama font-mana text-xxxs mb-2">
@@ -117,7 +102,7 @@ const Pattern: FunctionComponent = () => {
               </p>
               <div className="space-y-2">
                 <div
-                  onClick={() => handleSewingPatternExport()}
+              
                   className="px-4 py-3 bg-verde/20 hover:bg-verde/30 border border-verde/50 rounded cursor-pointer text-white text-xs font-mana"
                 >
                   <div className="font-bold">

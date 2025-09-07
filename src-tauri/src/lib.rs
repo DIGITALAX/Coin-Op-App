@@ -2,13 +2,11 @@ use base64::{ engine::general_purpose, Engine as _ };
 use serde::{ Deserialize, Serialize };
 use std::collections::HashMap;
 use std::fs;
-use ::image::{ ImageFormat, load_from_memory, imageops };
-use printpdf::*;
-use std::fs::File;
-use std::io::BufWriter; 
 mod pattern_nesting;
-mod professional_patterns;
+mod pattern_export;
 mod subgraph;
+
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComfyUINode {
     pub id: String,
@@ -262,113 +260,14 @@ async fn write_image_file(image_data: String, file_path: String) -> Result<Strin
     fs::write(&file_path, image_bytes).map_err(|e| format!("Failed to write file: {}", e))?;
     Ok(format!("Image saved successfully: {}", file_path))
 }
-#[tauri::command]
-async fn export_pattern_to_tiff(
-    image_data: String,
-    file_path: String,
-    width_inches: f32,
-    height_inches: f32,
-    dpi: u32
-) -> Result<String, String> {
-    let base64_data = if image_data.starts_with("data:image") {
-        image_data.split(',').nth(1).ok_or("Invalid base64 image data")?
-    } else {
-        &image_data
-    };
-    let image_bytes = general_purpose::STANDARD
-        .decode(base64_data)
-        .map_err(|e| format!("Failed to decode base64: {}", e))?;
-    let img = load_from_memory(&image_bytes).map_err(|e| format!("Failed to load image: {}", e))?;
-    let width_pixels = (width_inches * (dpi as f32)) as u32;
-    let height_pixels = (height_inches * (dpi as f32)) as u32;
-    let resized = imageops::resize(
-        &img,
-        width_pixels,
-        height_pixels,
-        imageops::FilterType::Lanczos3
-    );
-    let output = File::create(&file_path).map_err(|e| format!("Failed to create file: {}", e))?;
-    let mut writer = BufWriter::new(output);
-    resized
-        .write_to(&mut writer, ImageFormat::Tiff)
-        .map_err(|e| format!("Failed to write TIFF: {}", e))?;
-    Ok(format!("TIFF exported successfully: {}", file_path))
-}
-#[tauri::command]
 
-async fn export_pattern_to_pdf(
-    image_data: String,
-    file_path: String,
-    width_inches: f32,
-    height_inches: f32,
-    dpi: u32
-) -> Result<String, String> {
-    let base64_data = if image_data.starts_with("data:image") {
-        image_data.split(',').nth(1).ok_or("Invalid base64 image data")?
-    } else {
-        &image_data
-    };
-    let image_bytes = general_purpose::STANDARD
-        .decode(base64_data)
-        .map_err(|e| format!("Failed to decode base64: {}", e))?;
-    let img = load_from_memory(&image_bytes).map_err(|e| format!("Failed to load image: {}", e))?;
-    let width_pixels = (width_inches * (dpi as f32)) as u32;
-    let height_pixels = (height_inches * (dpi as f32)) as u32;
-    let resized = imageops::resize(
-        &img,
-        width_pixels,
-        height_pixels,
-        imageops::FilterType::Lanczos3
-    );
-    let dyn_image = ::image::DynamicImage::ImageRgba8(resized);
-    let rgb_image = dyn_image.to_rgb8();
-    let (img_width, img_height) = rgb_image.dimensions();
-    let image_aspect_ratio = (img_width as f32) / (img_height as f32);
-    let page_aspect_ratio = width_inches / height_inches;
-    let (page_width_mm, page_height_mm) = if image_aspect_ratio > page_aspect_ratio {
-        let width_mm = width_inches * 25.4;
-        let height_mm = width_mm / image_aspect_ratio;
-        (width_mm, height_mm)
-    } else {
-        let height_mm = height_inches * 25.4;
-        let width_mm = height_mm * image_aspect_ratio;
-        (width_mm, height_mm)
-    };
-    let (doc, page1, layer1) = PdfDocument::new(
-        "Pattern Export",
-        Mm(page_width_mm),
-        Mm(page_height_mm),
-        "Layer 1"
-    );
-    let current_layer = doc.get_page(page1).get_layer(layer1);
-    let raw_pixels: Vec<u8> = rgb_image.into_raw();
-    let image = Image::from(ImageXObject {
-        width: Px(img_width as usize),
-        height: Px(img_height as usize),
-        color_space: ColorSpace::Rgb,
-        bits_per_component: ColorBits::Bit8,
-        interpolate: true,
-        image_data: raw_pixels,
-        image_filter: None,
-        clipping_bbox: None,
-        smask: None,
-    });
-    image.add_to_layer(current_layer.clone(), ImageTransform {
-        translate_x: Some(Mm(0.0)),
-        translate_y: Some(Mm(0.0)),
-        scale_x: Some(page_width_mm / (((img_width as f32) * 25.4) / (dpi as f32))),
-        scale_y: Some(page_height_mm / (((img_height as f32) * 25.4) / (dpi as f32))),
-        ..Default::default()
-    });
-    doc
-        .save(
-            &mut BufWriter::new(
-                File::create(&file_path).map_err(|e| format!("Failed to create PDF: {}", e))?
-            )
-        )
-        .map_err(|e| format!("Failed to save PDF: {}", e))?;
-    Ok(format!("PDF exported successfully: {}", file_path))
+#[tauri::command]
+async fn write_file_bytes(path: String, contents: Vec<u8>) -> Result<String, String> {
+    fs::write(&path, contents).map_err(|e| format!("Failed to write file: {}", e))?;
+    Ok(format!("File saved successfully: {}", path))
 }
+
+
 #[tauri::command]
 async fn parse_comfyui_workflow(workflow_json: String) -> Result<ComfyUIWorkflow, String> {
     let raw_workflow: HashMap<String, serde_json::Value> = serde_json
@@ -594,35 +493,16 @@ async fn get_node_info(class_type: String) -> Result<serde_json::Value, String> 
     };
     Ok(node_info)
 }
-#[derive(Debug, Serialize, Deserialize)]
-pub struct PatternPieceExport {
-    pub id: String,
-    pub name: String,
-    pub x: f64,
-    pub y: f64,
-    pub rotation: f64,
-    pub path_data: String,
-    pub seam_allowance_mm: f64,
-    pub grain_direction: String,
-    pub width_mm: f64,
-    pub height_mm: f64,
-}
-#[derive(Debug, Serialize, Deserialize)]
-pub struct PatternExportRequest {
-    pub pieces: Vec<PatternPieceExport>,
-    pub garment_type: String,
-    pub size: String,
-    pub canvas_width_mm: f64,
-    pub canvas_height_mm: f64,
-    pub is_manual_mode: bool,
-    pub project_name: String,
-    pub chest_mm: f64,
-    pub length_mm: f64,
-}
+
 
 #[tauri::command]
 async fn fetch_template_children() -> Result<Vec<subgraph::GroupedTemplate>, String> {
     subgraph::fetch_grouped_templates().await
+}
+
+#[tauri::command]
+async fn fetch_children_materials() -> Result<Vec<subgraph::ChildData>, String> {
+    subgraph::fetch_children_materials().await
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -639,6 +519,7 @@ pub fn run() {
             tauri::generate_handler![
                 save_image_with_dialog,
                 write_image_file,
+                write_file_bytes,
                 replicate_create_prediction,
                 replicate_get_prediction,
                 download_image_as_base64,
@@ -649,15 +530,15 @@ pub fn run() {
                 parse_comfyui_workflow,
                 get_node_info,
                 comfyui_get_models,
-                export_pattern_to_tiff,
+                pattern_export::export_multi_page_pattern_print,
                 pattern_nesting::nest_pattern_pieces,
                 pattern_nesting::get_live_sparrow_svg,
                 pattern_nesting::get_sparrow_stats,
                 pattern_nesting::is_sparrow_process_running,
                 pattern_nesting::clear_sparrow_data,
                 pattern_nesting::cancel_sparrow_process,
-                professional_patterns::export_professional_pattern,
-                fetch_template_children
+                fetch_template_children,
+                fetch_children_materials
             ]
         )
         .run(tauri::generate_context!())

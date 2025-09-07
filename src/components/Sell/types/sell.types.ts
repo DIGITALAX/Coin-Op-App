@@ -3,6 +3,7 @@ import { Design } from "../../Design/types/design.types";
 export interface Market {
   title: string;
   uri: string;
+  address: string;
 }
 
 export interface UseSellReturn {

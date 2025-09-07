@@ -1,17 +1,41 @@
 import { ReactNode } from "react";
-import { Child, Template, TemplateChoice, GroupedTemplate } from "../../Format/types/format.types";
+import {
+  Child,
+  Template,
+  TemplateChoice,
+  GroupedTemplate,
+} from "../../Format/types/format.types";
 import { FulfillmentSelection } from "../../Fulfillment/types/fulfillment.types";
-import { ComfyUIWorkflow, CompositePrompt, CreateLibraryItemRequest, LibraryStats, SynthPrompt } from "../../Activity/types/activity.types";
+import {
+  ComfyUIWorkflow,
+  CompositePrompt,
+  CreateLibraryItemRequest,
+  LibraryStats,
+  SynthPrompt,
+} from "../../Activity/types/activity.types";
 
 export enum Walkthrough {
   Format = "Format",
   Layer = "Layer",
   Synth = "Synth",
-  Pattern = "Pattern",
   Composite = "Composite",
+  Pattern = "Pattern",
   Fulfillment = "Fulfillment",
-  Purchase = "Purchase",
   Sell = "Sell",
+}
+
+
+export interface NetworkConfig {
+  chainId: number;
+  rpcUrl: string;
+  name: string;
+  contracts: {
+    fulfiller: `0x${string}`;
+    splits: `0x${string}`;
+  };
+  tokens: {
+    mona: `0x${string}`;
+  };
 }
 
 export interface PageNavigationProps {
@@ -21,7 +45,7 @@ export interface PageNavigationProps {
 export interface AppContextType {
   selectedTemplate: GroupedTemplate | undefined;
   selectTemplate: (templateChoice: GroupedTemplate) => void;
-  selectedLayer: {front: Template, back?: Template};
+  selectedLayer: { front: Template; back?: Template };
   selectLayer: (front: Template, back?: Template) => void;
   selectedPatternChild: Child;
   setSelectedPatternChild: (child: Child) => void;
@@ -33,6 +57,10 @@ export interface AppContextType {
 }
 
 export interface AppProviderProps {
+  children: ReactNode;
+}
+
+export interface ProjectGuardProps {
   children: ReactNode;
 }
 

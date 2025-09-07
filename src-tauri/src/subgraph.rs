@@ -108,6 +108,20 @@ pub struct ChildMetadata {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ChildData {
+    pub price: String,
+    #[serde(rename = "childType")]
+    pub child_type: String,
+    #[serde(rename = "childContract")]
+    pub child_contract: String,
+    #[serde(rename = "childId")]
+    pub child_id: String,
+    pub currency: String,
+    pub metadata: Option<ChildMetadata>,
+    pub uri: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Metadata {
     pub title: Option<String>,
     pub image: Option<String>,
@@ -270,14 +284,14 @@ pub async fn fetch_templates() -> Result<Vec<TemplateData>, String> {
       templates(where: {templateContract: "0x98bae4366734b121e1a4bbcf61cc514527e456a7"}) {
         templateContract
         templateId
-        digitalPrice
+        physicalPrice
         childReferences {
           uri
           childId
           amount
           childContract
           child { 
-            digitalPrice
+            physicalPrice
             metadata {
               title
               image
@@ -350,8 +364,8 @@ pub async fn fetch_templates() -> Result<Vec<TemplateData>, String> {
             .unwrap_or("")
             .to_string();
 
-        let digital_price = template
-            .get("digitalPrice")
+        let physical_price = template
+            .get("physicalPrice")
             .and_then(|v| v.as_str())
             .unwrap_or("")
             .to_string();
@@ -403,9 +417,9 @@ pub async fn fetch_templates() -> Result<Vec<TemplateData>, String> {
                     }
                 });
 
-                let (child, digital_price) = if let Some(child_data) = child_ref.get("child") {
-                    let digital_price = child_data
-                        .get("digitalPrice")
+                let (child, physical_price) = if let Some(child_data) = child_ref.get("child") {
+                    let physical_price = child_data
+                        .get("physicalPrice")
                         .and_then(|v| v.as_str())
                         .unwrap_or("")
                         .to_string();
@@ -436,7 +450,7 @@ pub async fn fetch_templates() -> Result<Vec<TemplateData>, String> {
                         None
                     };
 
-                    (Some(Child { metadata }), digital_price)
+                    (Some(Child { metadata }), physical_price)
                 } else {
                     (None, String::new())
                 };
@@ -448,7 +462,7 @@ pub async fn fetch_templates() -> Result<Vec<TemplateData>, String> {
                     child_id,
                     child_contract,
                     amount,
-                    price: digital_price,
+                    price: physical_price,
                     child,
                     metadata: parsed_metadata,
                 });
@@ -488,7 +502,7 @@ pub async fn fetch_templates() -> Result<Vec<TemplateData>, String> {
         };
 
         template_data.push(TemplateData {
-            price: digital_price,
+            price: physical_price,
             child_type,
             template_contract,
             template_id,
@@ -500,4 +514,147 @@ pub async fn fetch_templates() -> Result<Vec<TemplateData>, String> {
     }
 
     Ok(template_data)
+}
+
+
+
+pub async fn fetch_children_materials() -> Result<Vec<ChildData>, String> {
+    // let api_key = "";
+
+    let client = reqwest::Client::new();
+
+    let query =
+        r#"
+    {
+      childs(where: {childContract: "0xf38d630c6f90adf72765408cf725119fb183d136"}) {
+        childContract
+        childId
+        physicalPrice
+        childType
+        infraCurrency
+        metadata {
+          title
+          image
+          tags
+        }
+        uri
+      }
+    }
+    "#;
+
+    let query_body = serde_json::json!({
+        "query": query
+    });
+
+    let url = format!(
+        "https://api.studio.thegraph.com/query/109132/fractional-garment-ownership/version/latest"
+    );
+
+    let response = client
+        .post(&url)
+        // .header("Authorization", format!("Bearer {}", api_key))
+        .header("Content-Type", "application/json")
+        .json(&query_body)
+        .send().await
+        .map_err(|e| format!("Request failed: {}", e))?;
+
+    if !response.status().is_success() {
+        return Err(format!("HTTP error: {}", response.status()));
+    }
+
+    let response_text = response
+        .text().await
+        .map_err(|e| format!("Failed to read response: {}", e))?;
+
+    let parsed: serde_json::Value = serde_json
+        ::from_str(&response_text)
+        .map_err(|e| format!("Failed to parse JSON: {}", e))?;
+
+    if let Some(errors) = parsed.get("errors") {
+        return Err(format!("GraphQL errors: {}", errors));
+    }
+
+    let childs = parsed
+        .get("data")
+        .and_then(|data| data.get("childs"))
+        .and_then(|childs| childs.as_array())
+        .ok_or("Invalid response structure")?;
+
+    let mut materials_data = Vec::new();
+
+    for child in childs {
+        let child_contract = child
+            .get("childContract")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+
+        let child_id = child
+            .get("childId")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+
+        let physical_price = child
+            .get("physicalPrice")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+
+        let infra_currency = child
+            .get("infraCurrency")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+
+        let uri = child
+            .get("uri")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+
+        let child_type = child
+            .get("childType")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+
+        let metadata = if let Some(meta) = child.get("metadata") {
+            let title = meta
+                .get("title")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string());
+            let image = meta
+                .get("image")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string());
+            let tags = meta
+                .get("tags")
+                .and_then(|v| v.as_array())
+                .map(|arr| {
+                    arr.iter()
+                        .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                        .collect()
+                });
+            Some(ChildMetadata {
+                title,
+                image,
+                tags,
+            })
+        } else {
+            None
+        };
+
+        materials_data.push(ChildData {
+            price: physical_price,
+            child_type,
+            child_contract,
+            child_id,
+            currency: infra_currency,
+            metadata,
+            uri,
+        });
+    }
+
+    Ok(materials_data)
 }

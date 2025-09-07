@@ -1,4 +1,4 @@
-export  interface SparrowStats {
+export interface SparrowStats {
   iteration: string;
   strip_width: string;
   phase: string;
@@ -90,7 +90,7 @@ export interface PatternLibraryProps {
 export interface PatternState {
   autoResult: NestingResult | null;
   manualPieces: CanvasPanel[] | null;
-  currentMode: 'auto' | 'manual';
+  currentMode: "auto" | "manual";
   settings: NestingSettings;
   liveSvgContent: string | null;
   selectedPieces: PatternPiece[];
@@ -113,13 +113,22 @@ export const ROTATION_PRESETS: RotationPreset[] = [
   { name: "180° Only", angles: [0, 180] },
   { name: "90° Steps", angles: [0, 90, 180, 270] },
   { name: "45° Steps", angles: [0, 45, 90, 135, 180, 225, 270, 315] },
-  { name: "30° Steps", angles: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330] },
+  {
+    name: "30° Steps",
+    angles: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
+  },
   { name: "15° Steps", angles: Array.from({ length: 24 }, (_, i) => i * 15) },
   { name: "10° Steps", angles: Array.from({ length: 36 }, (_, i) => i * 10) },
   { name: "5° Steps", angles: Array.from({ length: 72 }, (_, i) => i * 5) },
   { name: "1° Steps", angles: Array.from({ length: 360 }, (_, i) => i * 1) },
-  { name: "0.5° Steps", angles: Array.from({ length: 720 }, (_, i) => i * 0.5) },
-  { name: "0.1° Steps", angles: Array.from({ length: 3600 }, (_, i) => i * 0.1) },
+  {
+    name: "0.5° Steps",
+    angles: Array.from({ length: 720 }, (_, i) => i * 0.5),
+  },
+  {
+    name: "0.1° Steps",
+    angles: Array.from({ length: 3600 }, (_, i) => i * 0.1),
+  },
 ];
 export const DEFAULT_NESTING_SETTINGS: NestingSettings = {
   minItemSeparation: 0.0,
@@ -140,117 +149,150 @@ export interface SizeGrading {
 }
 export const UNISEX_T_SHIRT_SIZING: Record<Size, SizeGrading> = {
   XS: {
-    chest: 864,      
-    length: 635,     
-    shoulder: 406,   
-    sleeveLength: 190, 
-    sleeveWidth: 165,  
-    neckWidth: 165,    
+    chest: 460,
+    length: 610,
+    shoulder: 380,
+    sleeveLength: 200,
+    sleeveWidth: 150,
+    neckWidth: 160,
   },
   S: {
-    chest: 914,      
-    length: 660,     
-    shoulder: 432,   
-    sleeveLength: 203, 
-    sleeveWidth: 178,  
-    neckWidth: 178,    
+    chest: 510,
+    length: 640,
+    shoulder: 410,
+    sleeveLength: 210,
+    sleeveWidth: 160,
+    neckWidth: 170,
   },
   M: {
-    chest: 965,      
-    length: 686,     
-    shoulder: 457,   
-    sleeveLength: 216, 
-    sleeveWidth: 191,  
-    neckWidth: 191,    
+    chest: 540,
+    length: 670,
+    shoulder: 440,
+    sleeveLength: 220,
+    sleeveWidth: 170,
+    neckWidth: 180,
   },
   L: {
-    chest: 1067,     
-    length: 711,     
-    shoulder: 483,   
-    sleeveLength: 229, 
-    sleeveWidth: 203,  
-    neckWidth: 203,    
+    chest: 580,
+    length: 700,
+    shoulder: 470,
+    sleeveLength: 230,
+    sleeveWidth: 180,
+    neckWidth: 190,
   },
   XL: {
-    chest: 1168,     
-    length: 737,     
-    shoulder: 508,   
-    sleeveLength: 241, 
-    sleeveWidth: 216,  
-    neckWidth: 216,    
+    chest: 610,
+    length: 730,
+    shoulder: 500,
+    sleeveLength: 240,
+    sleeveWidth: 190,
+    neckWidth: 200,
   },
   XXL: {
-    chest: 1270,     
-    length: 762,     
-    shoulder: 533,   
-    sleeveLength: 254, 
-    sleeveWidth: 229,  
-    neckWidth: 229,    
+    chest: 650,
+    length: 760,
+    shoulder: 530,
+    sleeveLength: 250,
+    sleeveWidth: 200,
+    neckWidth: 210,
   },
   XXXL: {
-    chest: 1372,     
-    length: 787,     
-    shoulder: 559,   
-    sleeveLength: 267, 
-    sleeveWidth: 241,  
-    neckWidth: 241,    
+    chest: 690,
+    length: 790,
+    shoulder: 560,
+    sleeveLength: 260,
+    sleeveWidth: 210,
+    neckWidth: 220,
   },
 };
-export const UNISEX_HOODIE_SIZING: Record<Size, SizeGrading & { hoodDepth: number; pocketWidth: number }> = {
+export const UNISEX_HOODIE_SIZING: Record<
+  Size,
+  SizeGrading & { hoodDepth: number; pocketWidth: number }
+> = {
   XS: {
-    ...UNISEX_T_SHIRT_SIZING.XS,
-    length: 635,       
-    sleeveLength: 635, 
-    hoodDepth: 330,    
-    pocketWidth: 330,  
+    chest: 520,
+    length: 660,
+    shoulder: 410,
+    sleeveLength: 350,
+    sleeveWidth: 180,
+    neckWidth: 190,
+    hoodDepth: 320,
+    pocketWidth: 280,
   },
   S: {
-    ...UNISEX_T_SHIRT_SIZING.S,
-    length: 660,
-    sleeveLength: 660,
-    hoodDepth: 343,    
-    pocketWidth: 343,
+    chest: 570,
+    length: 690,
+    shoulder: 440,
+    sleeveLength: 360,
+    sleeveWidth: 190,
+    neckWidth: 200,
+    hoodDepth: 340,
+    pocketWidth: 300,
   },
   M: {
-    ...UNISEX_T_SHIRT_SIZING.M,
-    length: 686,
-    sleeveLength: 686, 
-    hoodDepth: 356,    
-    pocketWidth: 356,
+    chest: 600,
+    length: 720,
+    shoulder: 470,
+    sleeveLength: 370,
+    sleeveWidth: 200,
+    neckWidth: 210,
+    hoodDepth: 360,
+    pocketWidth: 320,
   },
   L: {
-    ...UNISEX_T_SHIRT_SIZING.L,
-    length: 711,
-    sleeveLength: 711,
-    hoodDepth: 381,    
-    pocketWidth: 381,
+    chest: 640,
+    length: 750,
+    shoulder: 500,
+    sleeveLength: 380,
+    sleeveWidth: 210,
+    neckWidth: 220,
+    hoodDepth: 380,
+    pocketWidth: 340,
   },
   XL: {
-    ...UNISEX_T_SHIRT_SIZING.XL,
-    length: 737,
-    sleeveLength: 737,
-    hoodDepth: 406,    
-    pocketWidth: 406,
+    chest: 680,
+    length: 780,
+    shoulder: 530,
+    sleeveLength: 390,
+    sleeveWidth: 220,
+    neckWidth: 230,
+    hoodDepth: 400,
+    pocketWidth: 360,
   },
   XXL: {
-    ...UNISEX_T_SHIRT_SIZING.XXL,
-    length: 762,
-    sleeveLength: 762,
-    hoodDepth: 432,    
-    pocketWidth: 432,
+    chest: 720,
+    length: 810,
+    shoulder: 560,
+    sleeveLength: 400,
+    sleeveWidth: 230,
+    neckWidth: 240,
+    hoodDepth: 420,
+    pocketWidth: 380,
   },
   XXXL: {
-    ...UNISEX_T_SHIRT_SIZING.XXXL,
-    length: 787,
-    sleeveLength: 787,
-    hoodDepth: 457,    
-    pocketWidth: 457,
+    chest: 760,
+    length: 840,
+    shoulder: 590,
+    sleeveLength: 410,
+    sleeveWidth: 240,
+    neckWidth: 250,
+    hoodDepth: 440,
+    pocketWidth: 400,
   },
 };
 export const BASE_SIZE: Size = "M";
-export const calculateScaleFactor = (targetSize: Size, garmentType: "tshirt" | "hoodie"): { width: number; height: number } => {
-  const baseSizing = garmentType === "tshirt" ? UNISEX_T_SHIRT_SIZING[BASE_SIZE] : UNISEX_HOODIE_SIZING[BASE_SIZE];
-  const targetSizing = garmentType === "tshirt" ? UNISEX_T_SHIRT_SIZING[targetSize] : UNISEX_HOODIE_SIZING[targetSize];
+export const calculateScaleFactor = (
+  targetSize: Size,
+  garmentType: "tshirt" | "hoodie"
+): { width: number; height: number } => {
+  const baseSizing =
+    garmentType === "tshirt"
+      ? UNISEX_T_SHIRT_SIZING[BASE_SIZE]
+      : UNISEX_HOODIE_SIZING[BASE_SIZE];
+  const targetSizing =
+    garmentType === "tshirt"
+      ? UNISEX_T_SHIRT_SIZING[targetSize]
+      : UNISEX_HOODIE_SIZING[targetSize];
   return {
     width: targetSizing.chest / baseSizing.chest,
     height: targetSizing.length / baseSizing.length,
@@ -277,4 +319,32 @@ export interface NestingResult {
   placed_items: PlacedItem[];
   strip_height: number;
   utilization: number;
+}
+
+export interface PrintExportOptions {
+  selectedSize: Size;
+  garmentType: "tshirt" | "hoodie";
+  isManualMode: boolean;
+  manualPieces: CanvasPanel[];
+  autoBasePieces: CanvasPanel[];
+  canvasWidth: number;
+  canvasHeight: number;
+}
+
+export interface LayoutBounds {
+  min_x: number;
+  min_y: number;
+  max_x: number;
+  max_y: number;
+  width: number;
+  height: number;
+}
+
+export interface PrintTile {
+  row: number;
+  col: number;
+  page_x: number;
+  page_y: number;
+  grid_ref: string;
+  pieces_on_page: CanvasPanel[];
 }

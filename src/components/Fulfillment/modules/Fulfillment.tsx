@@ -5,7 +5,6 @@ import { useDesignContext } from "../../../context/DesignContext";
 import {
   FULFILLERS,
   BASE_COLORS,
-  MATERIALS,
   INFURA_GATEWAY,
 } from "../../../lib/constants";
 import PageNavigation from "../../Common/modules/PageNavigation";
@@ -22,22 +21,21 @@ export default function Fulfillment() {
   const { getItem, setItem } = useDesignStorage();
   const {
     fulfillmentSelection,
-    selectFulfiller,
-    selectBaseColor,
-    selectMaterial,
+    toggleBaseColor,
+    toggleMaterial,
     calculateTotal,
     formatPrice,
     getColorName,
-    getMaterialTypeForTemplate,
     resetFulfillmentSelection,
+    loading,
+    getFilteredMaterials,
   } = useFulfillment();
-  const handleProceedToPurchase = async () => {
+  const handleProceedToSell = async () => {
     if (
       !selectedTemplate ||
       !selectedLayer ||
-      !fulfillmentSelection.fulfiller ||
-      !fulfillmentSelection.material ||
-      !fulfillmentSelection.baseColor
+      fulfillmentSelection.materials.length === 0 ||
+      fulfillmentSelection.baseColors.length === 0
     ) {
       return;
     }
@@ -102,15 +100,9 @@ export default function Fulfillment() {
       childrenCanvasData,
     });
     resetFulfillmentSelection();
-    navigate("/Purchase");
+    navigate("/Sell");
   };
-  const filteredMaterials = selectedTemplate
-    ? MATERIALS.filter(
-        (material) =>
-          material.type ===
-          getMaterialTypeForTemplate(selectedTemplate.template_type)
-      )
-    : MATERIALS;
+  const filteredMaterials = getFilteredMaterials();
     
   if (!selectedLayer) {
     return (
@@ -128,254 +120,214 @@ export default function Fulfillment() {
     );
   }
   return (
-    <div className="relative w-full h-full flex flex-col p-6 bg-black overflow-y-auto">
-      <div className="mb-8">
-        <h2 className="text-lg font-satB text-white tracking-wider mb-2">
-          FULFILLMENT SETUP
-        </h2>
-        {currentDesign && (
-          <p className="text-ama font-mana text-xxxs mb-2">
-            Project: {currentDesign.name}
+    <div className="relative w-full h-full flex flex-col">
+      <div className="flex-1 overflow-y-auto">
+        <div className="w-full max-w-4xl mx-auto p-6">
+        <div className="mb-6">
+          <h2 className="text-lg font-satB text-white tracking-wider mb-4">
+            FULFILLMENT
+          </h2>
+          {currentDesign && (
+            <p className="text-ama font-mana text-xs mb-2">
+              Project: {currentDesign.name}
+            </p>
+          )}
+          <p className="text-white font-mana text-xs mb-6">
+            {selectedTemplate?.name} - TID-{currentTemplate?.templateId}
           </p>
-        )}
-        <p className="text-white font-mana text-xxxs mb-4">
-          Configure your fulfillment options for {selectedTemplate?.name} - TID-
-          {currentTemplate?.templateId}
-        </p>
-        <div className="bg-ama/20 border border-ama rounded-lg p-4 mb-6">
-          <div className="flex justify-between items-center">
-            <span className="text-white font-satB text-sm">TOTAL PRICE:</span>
-            <span className="text-ama font-satB text-lg">
-              ${formatPrice(calculateTotal)}
-            </span>
-          </div>
-          <div className="text-white font-mana text-xxxs mt-2 space-y-1">
-            <div className="flex justify-between">
-              <span>Base Price:</span>
-              <span>
-                ${formatPrice(parseFloat(currentTemplate?.price!) / 1e18)}
+          
+          <div className="border border-ama rounded-md p-4 mb-8">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-white font-satB text-sm">SUPPLIER + FULFILLER TOTAL COSTS:</span>
+              <span className="text-ama font-satB text-lg">
+                {formatPrice(calculateTotal + FULFILLERS[0].base)} MONA
               </span>
             </div>
-            <div className="flex justify-between">
-              <span>
-                Children ({(currentTemplate?.childReferences || []).length}):
-              </span>
-              <span>
-                $
-                {formatPrice(
-                  (currentTemplate?.childReferences || []).reduce(
-                    (sum, child) => sum + parseFloat(child.price) / 1e18,
-                    0
-                  )
-                )}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span>Material:</span>
-              <span>
-                +${formatPrice(fulfillmentSelection.material?.price || 0)}
-              </span>
+            <div className="text-white font-mana text-xs space-y-1">
+              <div className="flex justify-between">
+                <span>Template:</span>
+                <span>{formatPrice(parseFloat(currentTemplate?.price!) / 1e18)} MONA</span>
+              </div>
+              
+              {(currentTemplate?.childReferences || []).length > 0 && (
+                <>
+                  <div className="flex justify-between">
+                    <span>Template Children:</span>
+                    <span></span>
+                  </div>
+                  {(currentTemplate?.childReferences || []).map((child, index) => (
+                    <div key={index} className="flex justify-between pl-4">
+                      <span>• {child.child?.metadata?.title || `Child ${index + 1}`}:</span>
+                      <span>{formatPrice(parseFloat(child.price) / 1e18)} MONA</span>
+                    </div>
+                  ))}
+                </>
+              )}
+              
+              {fulfillmentSelection.materials.length > 0 && (
+                <>
+                  <div className="flex justify-between">
+                    <span>Material Children:</span>
+                    <span></span>
+                  </div>
+                  {fulfillmentSelection.materials.map((material, index) => (
+                    <div key={index} className="flex justify-between">
+                      <span>• {material.title}:</span>
+                      <span>{formatPrice(material.price)} MONA</span>
+                    </div>
+                  ))}
+                </>
+              )}
+              
+              <div className="flex justify-between">
+                <span>Fulfiller Base:</span>
+                <span>{FULFILLERS[0].base} MONA (+ {FULFILLERS[0].vig}% vig)</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div className="space-y-8 pb-20">
-        <div className="bg-oscuro border border-oscurazul rounded-lg p-6">
-          <h3 className="text-white font-satB text-base mb-4 flex items-center">
-            <span className="bg-ama text-black w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mr-3">
-              1
-            </span>
-            CHOOSE FULFILLER
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {FULFILLERS.map((fulfiller, index) => (
-              <div
-                key={index}
-                onClick={() => selectFulfiller(fulfiller)}
-                className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all hover:scale-105 ${
-                  fulfillmentSelection.fulfiller?.title === fulfiller.title
-                    ? "border-ama bg-ama/10"
-                    : "border-gray-600 bg-gray-800"
-                }`}
-              >
-                <div className="text-center">
+        
+        <div className="space-y-6">
+          <div className="border border-ama rounded-md p-4 mb-6">
+            <h3 className="text-white font-satB text-sm mb-4 tracking-wider">
+              FULFILLER
+            </h3>
+            <div className="flex gap-4">
+              {FULFILLERS.map((fulfiller, index) => (
+                <div
+                  key={index}
+                  className="relative flex-1 border border-ama bg-black rounded-md p-4"
+                >
                   <img
-                    className="w-16 h-16 mx-auto mb-3 rounded-lg object-cover"
-                    src={`${INFURA_GATEWAY}/ipfs/${
-                      fulfiller.uri.split("ipfs://")[1]
-                    }`}
+                    className="w-full h-32 object-contain rounded-md mb-2"
+                    src={`${INFURA_GATEWAY}/ipfs/${fulfiller.uri.split("ipfs://")[1]}`}
                     alt={fulfiller.title}
                     draggable={false}
                   />
-                  <h4 className="text-white font-satB text-sm mb-1">
-                    {fulfiller.title}
-                  </h4>
-                  <p className="text-gray-400 font-mana text-xxxs">
-                    Premium Fulfillment
-                  </p>
-                </div>
-                {fulfillmentSelection.fulfiller?.title === fulfiller.title && (
-                  <div className="absolute top-2 right-2 w-4 h-4 bg-ama rounded-full flex items-center justify-center">
-                    <span className="text-black text-xs">✓</span>
+                  <div className="text-center">
+                    <h4 className="text-white font-mana text-xs mb-1">
+                      {fulfiller.title}
+                    </h4>
+                    <p className="text-white font-mana text-xxxs opacity-70 mb-2">
+                      Professional garment manufacturing with sustainable practices
+                    </p>
+                    <div className="text-ama font-mana text-xxxs">
+                      <div>Base: {fulfiller.base} MONA</div>
+                      <div>Vig: {fulfiller.vig}% of sale price</div>
+                    </div>
                   </div>
-                )}
-              </div>
-            ))}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-        {fulfillmentSelection.fulfiller && (
-          <div className="bg-oscuro border border-oscurazul rounded-lg p-6">
-            <h3 className="text-white font-satB text-base mb-4 flex items-center">
-              <span className="bg-ama text-black w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mr-3">
-                2
-              </span>
-              SELECT BASE COLOR
+          <div className="border border-ama rounded-md p-4 mb-6">
+            <h3 className="text-white font-satB text-sm mb-4 tracking-wider">
+              SELECT BASE COLORS
             </h3>
-            <p className="text-gray-400 font-mana text-xs mb-4">
-              Choose the base template color for production
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <div className="flex gap-3">
               {BASE_COLORS.map((color, index) => (
                 <div
                   key={index}
-                  onClick={() => selectBaseColor(color)}
-                  className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all hover:scale-105 ${
-                    fulfillmentSelection.baseColor === color
-                      ? "border-ama bg-ama/10"
-                      : "border-gray-600 bg-gray-800"
+                  onClick={() => toggleBaseColor(color)}
+                  className={`relative border rounded-md p-2 cursor-pointer hover:opacity-80 ${
+                    fulfillmentSelection.baseColors.includes(color)
+                      ? "border-ama bg-black"
+                      : "border-white opacity-60"
                   }`}
                 >
-                  <div className="text-center">
-                    <div
-                      className="w-12 h-12 mx-auto mb-2 rounded-lg border-2 border-gray-300"
-                      style={{ backgroundColor: color }}
-                    />
-                    <p className="text-white font-sat text-xs">
-                      {getColorName(color)}
-                    </p>
-                  </div>
-                  {fulfillmentSelection.baseColor === color && (
-                    <div className="absolute top-1 right-1 w-4 h-4 bg-ama rounded-full flex items-center justify-center">
-                      <span className="text-black text-xs">✓</span>
-                    </div>
-                  )}
+                  <div
+                    className="w-8 h-8 rounded-md border border-gray-300"
+                    style={{ backgroundColor: color }}
+                  />
+                  <p className="text-white font-mana text-xxxs mt-1 text-center">
+                    {getColorName(color)}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
-        )}
-        {fulfillmentSelection.fulfiller && fulfillmentSelection.baseColor && (
-          <div className="bg-oscuro border border-oscurazul rounded-lg p-6">
-            <h3 className="text-white font-satB text-base mb-4 flex items-center">
-              <span className="bg-ama text-black w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mr-3">
-                3
-              </span>
-              SELECT MATERIAL
+          <div className="border border-ama rounded-md p-4 mb-6">
+            <h3 className="text-white font-satB text-sm mb-4 tracking-wider">
+              SELECT MATERIALS
             </h3>
-            <p className="text-gray-400 font-mana text-xs mb-4">
-              Choose material type and quality level
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredMaterials.map((material, index) => (
+            {loading ? (
+              <div className="text-white font-mana text-xs text-center py-4">
+                Loading materials...
+              </div>
+            ) : filteredMaterials.length === 0 ? (
+              <div className="text-white font-mana text-xs text-center py-4">
+                No materials available for this template type
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredMaterials.map((material, index) => (
                 <div
                   key={index}
-                  onClick={() => selectMaterial(material)}
-                  className={`relative border-2 rounded-lg p-6 cursor-pointer transition-all hover:scale-102 ${
-                    fulfillmentSelection.material?.title === material.title
-                      ? "border-ama bg-ama/10"
-                      : "border-gray-600 bg-gray-800"
+                  onClick={() => toggleMaterial(material)}
+                  className={`relative border rounded-md p-3 cursor-pointer hover:opacity-80 ${
+                    fulfillmentSelection.materials.some(m => m.title === material.title)
+                      ? "border-ama bg-black"
+                      : "border-white opacity-60"
                   }`}
                 >
-                  <div className="flex justify-between items-start mb-3">
+                  <div className="flex justify-between items-center">
                     <div className="flex-1">
-                      <h4 className="text-white font-satB text-sm mb-1">
+                      <h4 className="text-white font-mana text-xs mb-1">
                         {material.title}
                       </h4>
-                      <p className="text-gray-400 font-mana text-xs mb-2">
+                      <p className="text-white font-mana text-xxxs opacity-80">
                         {material.description}
                       </p>
                     </div>
-                    <div className="text-right ml-4">
-                      <span
-                        className={`font-satB text-sm ${
-                          material.price === 0 ? "text-green-400" : "text-ama"
-                        }`}
-                      >
-                        {material.price === 0
-                          ? "BASE"
-                          : `+$${formatPrice(material.price)}`}
+                    <div className="text-right">
+                      <span className="text-ama font-mana text-xs">
+                        {material.price === 0 ? "BASE" : `${formatPrice(material.price)} MONA`}
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      {material.price >= 10 && (
-                        <span className="bg-green-600 text-white text-xxxs px-2 py-1 rounded">
-                          ECO-FRIENDLY
-                        </span>
-                      )}
-                      {material.price === 0 && (
-                        <span className="bg-blue-600 text-white text-xxxs px-2 py-1 rounded">
-                          STANDARD
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  {fulfillmentSelection.material?.title === material.title && (
-                    <div className="absolute top-3 right-3 w-5 h-5 bg-ama rounded-full flex items-center justify-center">
-                      <span className="text-black text-xs">✓</span>
-                    </div>
-                  )}
                 </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-        {fulfillmentSelection.fulfiller &&
-          fulfillmentSelection.baseColor &&
-          fulfillmentSelection.material && (
-            <div className="bg-green-900/20 border border-green-600 rounded-lg p-6">
-              <h3 className="text-green-400 font-satB text-base mb-4">
-                ✓ FULFILLMENT READY
-              </h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-300">Fulfiller:</span>
-                  <span className="text-white">
-                    {fulfillmentSelection.fulfiller.title}
-                  </span>
+          {fulfillmentSelection.baseColors.length > 0 &&
+            fulfillmentSelection.materials.length > 0 && (
+              <div className="border border-ama rounded-md p-4">
+                <h3 className="text-ama font-satB text-sm mb-4 tracking-wider">
+                  FULFILLMENT READY
+                </h3>
+                <div className="space-y-2 text-xs mb-4">
+                  <div className="flex justify-between">
+                    <span className="text-white font-mana">Colors:</span>
+                    <span className="text-white font-mana">
+                      {fulfillmentSelection.baseColors.map(color => getColorName(color)).join(", ")}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-white font-mana">Materials:</span>
+                    <span className="text-white font-mana">
+                      {fulfillmentSelection.materials.map(material => material.title).join(", ")}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-300">Color:</span>
-                  <span className="text-white">
-                    {fulfillmentSelection.baseColor
-                      ? getColorName(fulfillmentSelection.baseColor)
-                      : ""}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-300">Material:</span>
-                  <span className="text-white">
-                    {fulfillmentSelection.material.title}
-                  </span>
-                </div>
-                <div className="border-t border-gray-600 pt-2 mt-3">
-                  <div className="flex justify-between text-lg mb-4">
-                    <span className="text-white font-satB">TOTAL:</span>
-                    <span className="text-ama font-satB">
-                      ${formatPrice(calculateTotal)}
+                <div className="border-t border-ama pt-3 mb-4">
+                  <div className="flex justify-between mb-4">
+                    <span className="text-white font-satB text-sm">SUPPLIER + FULFILLER TOTAL COSTS:</span>
+                    <span className="text-ama font-satB text-sm">
+                      {formatPrice(calculateTotal + FULFILLERS[0].base)} MONA
                     </span>
                   </div>
                   <button
-                    onClick={handleProceedToPurchase}
-                    className="w-full bg-ama hover:bg-ama/90 text-black font-satB text-sm py-3 px-4 rounded-lg transition-all hover:scale-105 active:scale-95"
+                    onClick={handleProceedToSell}
+                    className="w-full bg-ama hover:bg-ama/90 text-black font-satB text-xs py-3 px-4 rounded-md hover:opacity-80"
                   >
-                    PROCEED TO PURCHASE
+                    PROCEED TO SELL
                   </button>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+        </div>
+        </div>
       </div>
       <PageNavigation currentPage="/Fulfillment" />
     </div>

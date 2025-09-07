@@ -1,11 +1,10 @@
+import { NetworkConfig } from "../components/Common/types/common.types";
 import {
   TemplateChoice,
 } from "../components/Format/types/format.types";
 import {
   Fulfiller,
-  Material,
 } from "../components/Fulfillment/types/fulfillment.types";
-import { NetworkConfig } from "../components/Purchase/types/purchase.types";
 import { Market } from "../components/Sell/types/sell.types";
 
 export const INFURA_GATEWAY: string = "https://thedial.infura-ipfs.io";
@@ -22,7 +21,6 @@ export const NETWORK_CONFIGS: Record<Environment, NetworkConfig> = {
     },
     tokens: {
       mona: "0x8b205CBd20417BF9a28078197A13528bcB584836",
-      wgho: "0x7F75c00bb659886a99a4eA8F2fEc02dd4ACbe49E",
     },
   },
   mainnet: {
@@ -35,7 +33,6 @@ export const NETWORK_CONFIGS: Record<Environment, NetworkConfig> = {
     },
     tokens: {
       mona: "0x0000000000000000000000000000000000000000",
-      wgho: "0x0000000000000000000000000000000000000000",
     },
   },
 };
@@ -46,88 +43,21 @@ export const CURRENT_NETWORK = NETWORK_CONFIGS[CURRENT_ENVIRONMENT];
 export const MARKETS: Market[] = [
   {
     title: "Coin Op",
-    uri: "ipfs://QmcoinopMarketUri",
+    uri: "ipfs://",
+    address: ""
   },
 ];
 export const FULFILLERS: Fulfiller[] = [
   {
     title: "The Manufactory",
-    uri: "ipfs://QmfulfillerUri",
+    uri: "ipfs://QmfCoKxKmrJw1fAgwqWh6a3MmJ1h8cv4jh2mQx15CrgyT5",
+    address: "0xdD35935C12E3748704C96492E5565d34daE73De7",
+    base: 1,
+    vig: 5
   },
 ];
 export const BASE_COLORS: string[] = ["#fff", "#000"];
-export const MATERIALS: Material[] = [
-  {
-    title: "Cotton/Poly Blend",
-    description: "(60% Cotton, 40% Polyester)",
-    price: 0,
-    type: "apparel",
-    id: 1,
-  },
-  {
-    title: "Standard Cotton",
-    description: "(100% Cotton)",
-    price: 2,
-    type: "apparel",
-    id: 2,
-  },
-  {
-    title: "Recycled Cotton Blend",
-    description: "(70% Recycled, 30% Organic)",
-    price: 7,
-    type: "apparel",
-    id: 3,
-  },
-  {
-    title: "Organic Cotton (GOTS Certified)",
-    description: "(100% organic cotton)",
-    price: 13,
-    type: "apparel",
-    id: 4,
-  },
-  {
-    title: "Standard Paper",
-    description: "(170gsm Matte Paper)",
-    price: 0,
-    type: "poster",
-    id: 5,
-  },
-  {
-    title: "Premium Paper",
-    description: "(300gsm Glossy Paper)",
-    price: 2,
-    type: "poster",
-    id: 6,
-  },
-  {
-    title: "Art Print Paper",
-    description: "(350gsm Textured Fine Art)",
-    price: 5,
-    type: "poster",
-    id: 7,
-  },
-  {
-    title: "Vinyl Sticker",
-    description: "(Weatherproof Vinyl)",
-    price: 1,
-    type: "sticker",
-    id: 8,
-  },
-  {
-    title: "Holographic Sticker",
-    description: "(Premium Holographic Vinyl)",
-    price: 3,
-    type: "sticker",
-    id: 9,
-  },
-  {
-    title: "Clear Sticker",
-    description: "(Transparent Vinyl)",
-    price: 2,
-    type: "sticker",
-    id: 10,
-  },
-];
+
 export const TEMPLATE_CHOICES: TemplateChoice[] = [
   {
     name: "Hoodie",
@@ -172,7 +102,6 @@ export const pageMap: { [key in string]: string } = {
   ["Synth"]: "/Synth",
   ["Pattern"]: "/Pattern",
   ["Composite"]: "/Composite",
-  ["Purchase"]: "/Purchase",
   ["Fulfillment"]: "/Fulfillment",
   ["Sell"]: "/Sell",
 };

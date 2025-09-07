@@ -11,7 +11,7 @@ use std::os::unix::process::CommandExt;
 use once_cell::sync::Lazy;
 use reqwest;
 static SPARROW_PROCESS: Lazy<Arc<Mutex<Option<Child>>>> = Lazy::new(|| Arc::new(Mutex::new(None)));
-static SHOULD_ROTATE: Lazy<Arc<Mutex<bool>>> = Lazy::new(|| Arc::new(Mutex::new(false)));
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct NestingResult {
     pub placed_items: Vec<PlacedItem>,
@@ -547,34 +547,4 @@ async fn get_svg_content(svg_path: &str) -> Result<String> {
     } else {
         Err(anyhow::anyhow!("Failed to fetch IPFS content from: {}", ipfs_url))
     }
-}
-
-fn rotate_svg_90_degrees(svg_content: &str) -> String {
-    let viewbox_regex = Regex::new(r#"viewBox="([^"]+)""#).unwrap();
-    
-    if let Some(captures) = viewbox_regex.captures(svg_content) {
-        let viewbox = captures.get(1).unwrap().as_str();
-        let coords: Vec<f64> = viewbox.split_whitespace()
-            .filter_map(|s| s.parse().ok())
-            .collect();
-        
-        if coords.len() == 4 {
-            let (x, y, width, height) = (coords[0], coords[1], coords[2], coords[3]);
-            
-            let new_viewbox = format!("{} {} {} {}", -y - height, x, height, width);
-            let mut rotated_svg = viewbox_regex.replace(svg_content, &format!(r#"viewBox="{}""#, new_viewbox)).to_string();
-            
-            let svg_tag_regex = Regex::new(r#"<svg([^>]*)>"#).unwrap();
-            if let Some(svg_match) = svg_tag_regex.find(&rotated_svg) {
-                let svg_attrs = svg_match.as_str();
-                let transform_attr = r#" transform="rotate(90)""#;
-                let new_svg_tag = svg_attrs.replace(">", &format!("{}>", transform_attr));
-                rotated_svg = svg_tag_regex.replace(&rotated_svg, new_svg_tag).to_string();
-            }
-            
-            return rotated_svg;
-        }
-    }
-    
-    svg_content.to_string()
 }

@@ -1,11 +1,15 @@
-import { FunctionComponent, useCallback, useEffect } from "react";
+import { FunctionComponent, useCallback, useEffect, useState } from "react";
 import { usePackingCanvas } from "../hooks/usePackingCanvas";
+import { usePrintExport } from "../hooks/usePrintExport";
 import { PackingCanvasProps } from "../types/pattern.types";
 
 export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
   selectedPieces,
   selectedSize,
 }) => {
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportStatus, setExportStatus] = useState<string | null>(null);
+
   const {
     canvasRef,
     canvasWidth,
@@ -33,7 +37,45 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
     rotationStart,
     setRotationStart,
     savePatternState,
+    autoBasePieces,
   } = usePackingCanvas(selectedPieces, selectedSize);
+
+  const { exportToMultiPagePrint } = usePrintExport();
+
+  const handlePrintExport = useCallback(async () => {
+    if (!liveSvgContent && !isManualMode) {
+      setExportStatus("No pattern to export - run nesting first");
+      setTimeout(() => setExportStatus(null), 3000);
+      return;
+    }
+
+    setIsExporting(true);
+    setExportStatus("Preparing print export...");
+
+    try {
+      const currentPieces = isManualMode ? manualPieces : autoBasePieces;
+      const garmentType = selectedPieces[0]?.garmentType || "tshirt";
+
+      const result = await exportToMultiPagePrint({
+        selectedSize,
+        garmentType,
+        isManualMode,
+        manualPieces: currentPieces,
+        autoBasePieces,
+        canvasWidth,
+        canvasHeight,
+      });
+
+      setExportStatus(`Print exported successfully! ${result.totalPages} pages, ${Math.round(result.realDimensions.width)}×${Math.round(result.realDimensions.height)}mm`);
+      setTimeout(() => setExportStatus(null), 5000);
+
+    } catch (error) {
+      setExportStatus(`Export failed: ${error}`);
+      setTimeout(() => setExportStatus(null), 5000);
+    } finally {
+      setIsExporting(false);
+    }
+  }, [liveSvgContent, isManualMode, manualPieces, autoBasePieces, selectedPieces, selectedSize, canvasWidth, canvasHeight, exportToMultiPagePrint]);
 
   const drawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -350,12 +392,35 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
           </div>
         )}
 
-        <button
-          onClick={() => savePatternState()}
-          className="mb-4 px-4 py-2 bg-verde hover:opacity-70 text-black rounded font-mana text-xs cursor-pointer"
-        >
-          SAVE
-        </button>
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => savePatternState()}
+            className="px-4 py-2 bg-verde hover:opacity-70 text-black rounded font-mana text-xs cursor-pointer"
+          >
+            SAVE
+          </button>
+          <button
+            onClick={handlePrintExport}
+            disabled={isExporting || (!liveSvgContent && !isManualMode)}
+            className={`px-4 py-2 rounded font-mana text-xs cursor-pointer ${
+              isExporting || (!liveSvgContent && !isManualMode)
+                ? "bg-gris/40 text-white/50 cursor-not-allowed"
+                : "bg-blue-500 hover:opacity-70 text-white"
+            }`}
+          >
+            {isExporting ? "EXPORTING..." : "EXPORT TO PRINT"}
+          </button>
+        </div>
+
+        {exportStatus && (
+          <div className={`mb-4 p-3 rounded font-mana text-xs ${
+            exportStatus.includes("success") 
+              ? "bg-verde/20 border border-verde/50 text-verde"
+              : "bg-red-500/20 border border-red-500/50 text-red-300"
+          }`}>
+            {exportStatus}
+          </div>
+        )}
 
         {sparrowStats && (
           <div className="mb-4 p-3 bg-verde/20 border border-verde/50 rounded">

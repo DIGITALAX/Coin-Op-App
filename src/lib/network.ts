@@ -1,4 +1,4 @@
-import { NetworkConfig } from "../components/Purchase/types/purchase.types";
+import { NetworkConfig } from "../components/Common/types/common.types";
 import {
   NETWORK_CONFIGS,
   CURRENT_ENVIRONMENT,

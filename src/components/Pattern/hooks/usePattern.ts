@@ -1,5 +1,4 @@
 import { useState, useCallback } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { useDesignContext } from "../../../context/DesignContext";
 import { useApp } from "../../../context/AppContext";
 import { usePatternExport } from "../../Synth/hooks/usePatternExport";
@@ -36,27 +35,7 @@ export const usePattern = () => {
     setSelectedSize(size);
   }, []);
 
-  const handleSewingPatternExport = useCallback(async () => {
-    if (!selectedPieces.length) return;
-    const garmentType = selectedTemplate?.template_type === "shirt" ? "tshirt" : "hoodie";
-    const projectName = currentDesign?.name || "pattern";
-    const pieces = selectedPieces.map((piece) => piece.name);
-    try {
-      const result = await invoke<string>("export_professional_pattern", {
-        request: {
-          garment_type: garmentType,
-          size: selectedSize,
-          pieces: pieces,
-          project_name: projectName,
-          seam_allowance_mm: 10.0,
-        },
-      });
-      alert(result);
-      setShowSewingExportDialog(false);
-    } catch (error) {
-      alert(`Export failed: ${error}`);
-    }
-  }, [selectedPieces, selectedTemplate, currentDesign, selectedSize]);
+  
 
   const handleExportPattern = useCallback(async () => {
     if (!captureInteractiveCanvasAt300DPI) return;
@@ -86,7 +65,6 @@ export const usePattern = () => {
     isApplicableTemplate,
     handleSelectPieces,
     handleSizeChange,
-    handleSewingPatternExport,
     handleExportPattern,
     currentDesign,
     selectedTemplate

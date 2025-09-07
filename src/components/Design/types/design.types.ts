@@ -55,7 +55,6 @@ export interface DesignContextType {
   loadDesign: (designId: string) => Promise<void>;
   deleteDesign: (designId: string) => Promise<void>;
   updateDesignThumbnail: (designId: string, thumbnail: string) => Promise<void>;
-  updatePatternData: (designId: string, patternData: any) => Promise<void>;
   refreshDesigns: () => Promise<void>;
 }
 export interface DesignCreationModalProps {

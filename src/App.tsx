@@ -6,7 +6,6 @@ import Layer from "./components/Layer/modules/Layer";
 import Synth from "./components/Synth/modules/Synth";
 import Composite from "./components/Composite/modules/Composite";
 import Fulfillment from "./components/Fulfillment/modules/Fulfillment";
-import Purchase from "./components/Purchase/modules/Purchase";
 import About from "./components/About/modules/About";
 import Activity from "./components/Activity/modules/Activity";
 import Sell from "./components/Sell/modules/Sell";
@@ -23,7 +22,6 @@ function App() {
             <Route path="/Synth" element={<ProjectGuard><Synth /></ProjectGuard>} />
             <Route path="/Composite" element={<ProjectGuard><Composite /></ProjectGuard>} />
             <Route path="/Fulfillment" element={<ProjectGuard><Fulfillment /></ProjectGuard>} />
-            <Route path="/Purchase" element={<Purchase />} />
             <Route path="/Sell" element={<Sell />} />
             <Route path="/About" element={<About />} />
             <Route path="/Activity" element={<Activity />} />
