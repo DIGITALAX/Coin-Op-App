@@ -7,6 +7,7 @@ import {
   useImperativeHandle,
   MouseEvent,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { INFURA_GATEWAY } from "../../../lib/constants";
 import Perspective from "perspectivejs";
 import { useDesignStorage } from "../../Activity/hooks/useDesignStorage";
@@ -33,6 +34,7 @@ const getImageUrl = (uri: string): string => {
 };
 const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
   ({ backgroundImage, onCanvasChange }, ref) => {
+    const { t } = useTranslation();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const { setItem, getItem } = useDesignStorage();
     const { selectedLayer, isBackSide } = useApp();
@@ -131,8 +133,8 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
         ctx.fillStyle = "#666";
         ctx.font = "16px Arial";
         ctx.textAlign = "center";
-        ctx.fillText(
-          "Generate a background image to start compositing",
+ctx.fillText(
+          t("generate_background_start_compositing"),
           canvas.width / 2,
           canvas.height / 2
         );
@@ -1085,7 +1087,7 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
                   : "bg-gray-600 text-gray-300 hover:bg-gray-500"
               }`}
             >
-              Normal Mode
+{t("normal_mode")}
             </button>
             <button
               onClick={() => handleModeChange("warp")}
@@ -1095,14 +1097,14 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
                   : "bg-gray-600 text-gray-300 hover:bg-gray-500"
               }`}
             >
-              Warp Mode
+{t("warp_mode")}
             </button>
             {selectedChildId !== null && (
               <button
                 onClick={deleteSelected}
                 className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors"
               >
-                Delete
+{t("delete")}
               </button>
             )}
           </div>

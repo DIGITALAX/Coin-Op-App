@@ -65,7 +65,6 @@ export interface NestingSettingsProps {
 
 export interface PackingCanvasProps {
   selectedPieces: PatternPiece[];
-  selectedSize: Size;
 }
 
 export interface CanvasPanel {
@@ -82,11 +81,6 @@ export interface CanvasPanel {
   scaleFactor?: number;
 }
 
-export interface PatternLibraryProps {
-  onSelectPieces: (pieces: PatternPiece[], size: Size) => void;
-  onSizeChange?: (pieces: PatternPiece[], size: Size) => void;
-}
-
 export interface PatternState {
   autoResult: NestingResult | null;
   manualPieces: CanvasPanel[] | null;
@@ -94,7 +88,7 @@ export interface PatternState {
   settings: NestingSettings;
   liveSvgContent: string | null;
   selectedPieces: PatternPiece[];
-  selectedSize: Size;
+  selectedSize: HoodieSize;
 }
 
 export interface NestingSettings {
@@ -108,6 +102,17 @@ export type RotationPreset = {
   name: string;
   angles: number[];
 };
+
+export interface SvgExportOptions {
+  sizePreset: SizePreset;
+  paper: PaperSize;
+  orientation: Orientation;
+  marginMm: number;
+  overlapMm: number;
+  includeCropMarks: boolean;
+  hoodieSize?: HoodieSize;
+}
+
 export const ROTATION_PRESETS: RotationPreset[] = [
   { name: "No Rotation", angles: [0] },
   { name: "180° Only", angles: [0, 180] },
@@ -138,166 +143,17 @@ export const DEFAULT_NESTING_SETTINGS: NestingSettings = {
   strikeLimit: 3,
 };
 
-export type Size = "XS" | "S" | "M" | "L" | "XL" | "XXL" | "XXXL";
-export interface SizeGrading {
-  chest: number;
-  length: number;
-  shoulder: number;
-  sleeveLength: number;
-  sleeveWidth: number;
-  neckWidth: number;
-}
-export const UNISEX_T_SHIRT_SIZING: Record<Size, SizeGrading> = {
-  XS: {
-    chest: 460,
-    length: 610,
-    shoulder: 380,
-    sleeveLength: 200,
-    sleeveWidth: 150,
-    neckWidth: 160,
-  },
-  S: {
-    chest: 510,
-    length: 640,
-    shoulder: 410,
-    sleeveLength: 210,
-    sleeveWidth: 160,
-    neckWidth: 170,
-  },
-  M: {
-    chest: 540,
-    length: 670,
-    shoulder: 440,
-    sleeveLength: 220,
-    sleeveWidth: 170,
-    neckWidth: 180,
-  },
-  L: {
-    chest: 580,
-    length: 700,
-    shoulder: 470,
-    sleeveLength: 230,
-    sleeveWidth: 180,
-    neckWidth: 190,
-  },
-  XL: {
-    chest: 610,
-    length: 730,
-    shoulder: 500,
-    sleeveLength: 240,
-    sleeveWidth: 190,
-    neckWidth: 200,
-  },
-  XXL: {
-    chest: 650,
-    length: 760,
-    shoulder: 530,
-    sleeveLength: 250,
-    sleeveWidth: 200,
-    neckWidth: 210,
-  },
-  XXXL: {
-    chest: 690,
-    length: 790,
-    shoulder: 560,
-    sleeveLength: 260,
-    sleeveWidth: 210,
-    neckWidth: 220,
-  },
-};
-export const UNISEX_HOODIE_SIZING: Record<
-  Size,
-  SizeGrading & { hoodDepth: number; pocketWidth: number }
-> = {
-  XS: {
-    chest: 520,
-    length: 660,
-    shoulder: 410,
-    sleeveLength: 350,
-    sleeveWidth: 180,
-    neckWidth: 190,
-    hoodDepth: 320,
-    pocketWidth: 280,
-  },
-  S: {
-    chest: 570,
-    length: 690,
-    shoulder: 440,
-    sleeveLength: 360,
-    sleeveWidth: 190,
-    neckWidth: 200,
-    hoodDepth: 340,
-    pocketWidth: 300,
-  },
-  M: {
-    chest: 600,
-    length: 720,
-    shoulder: 470,
-    sleeveLength: 370,
-    sleeveWidth: 200,
-    neckWidth: 210,
-    hoodDepth: 360,
-    pocketWidth: 320,
-  },
-  L: {
-    chest: 640,
-    length: 750,
-    shoulder: 500,
-    sleeveLength: 380,
-    sleeveWidth: 210,
-    neckWidth: 220,
-    hoodDepth: 380,
-    pocketWidth: 340,
-  },
-  XL: {
-    chest: 680,
-    length: 780,
-    shoulder: 530,
-    sleeveLength: 390,
-    sleeveWidth: 220,
-    neckWidth: 230,
-    hoodDepth: 400,
-    pocketWidth: 360,
-  },
-  XXL: {
-    chest: 720,
-    length: 810,
-    shoulder: 560,
-    sleeveLength: 400,
-    sleeveWidth: 230,
-    neckWidth: 240,
-    hoodDepth: 420,
-    pocketWidth: 380,
-  },
-  XXXL: {
-    chest: 760,
-    length: 840,
-    shoulder: 590,
-    sleeveLength: 410,
-    sleeveWidth: 240,
-    neckWidth: 250,
-    hoodDepth: 440,
-    pocketWidth: 400,
-  },
-};
-export const BASE_SIZE: Size = "M";
-export const calculateScaleFactor = (
-  targetSize: Size,
-  garmentType: "tshirt" | "hoodie"
-): { width: number; height: number } => {
-  const baseSizing =
-    garmentType === "tshirt"
-      ? UNISEX_T_SHIRT_SIZING[BASE_SIZE]
-      : UNISEX_HOODIE_SIZING[BASE_SIZE];
-  const targetSizing =
-    garmentType === "tshirt"
-      ? UNISEX_T_SHIRT_SIZING[targetSize]
-      : UNISEX_HOODIE_SIZING[targetSize];
-  return {
-    width: targetSizing.chest / baseSizing.chest,
-    height: targetSizing.length / baseSizing.length,
-  };
-};
+export type HoodieSize =
+  | "XXS"
+  | "XS"
+  | "S"
+  | "M"
+  | "L"
+  | "XL"
+  | "XXL"
+  | "3XL"
+  | "4XL"
+  | "5XL";
 
 export interface NestingRequest {
   pattern_pieces: {
@@ -322,7 +178,7 @@ export interface NestingResult {
 }
 
 export interface PrintExportOptions {
-  selectedSize: Size;
+  selectedSize: HoodieSize;
   garmentType: "tshirt" | "hoodie";
   isManualMode: boolean;
   manualPieces: CanvasPanel[];
@@ -348,3 +204,77 @@ export interface PrintTile {
   grid_ref: string;
   pieces_on_page: CanvasPanel[];
 }
+
+export interface ViewportPx {
+  width: number;
+  height: number;
+}
+
+export type PaperSize = "A4" | "A3" | "A2" | "A1" | "A0";
+export type Orientation = "portrait" | "landscape";
+export type SizePreset = "S" | "M" | "L" | "XL";
+
+export interface ExportOptions {
+  sizePreset: SizePreset;
+  scaleMultipliers: Record<SizePreset, number>;
+  paper: PaperSize;
+  orientation: Orientation;
+  marginMm: number;
+  overlapMm: number;
+  includeCropMarks: boolean;
+  includeLabels: boolean;
+  dpi: number;
+  hoodieSize?: HoodieSize;
+}
+
+export interface ExportPayload {
+  svgString: string;
+  viewportPx: ViewportPx;
+  options: ExportOptions;
+  outPath?: string;
+}
+
+export const DEFAULT_SCALE_MULTIPLIERS: Record<SizePreset, number> = {
+  S: 0.9,
+  M: 1.0,
+  L: 1.1,
+  XL: 1.2,
+};
+
+export const ISO_PAPER_SIZES_MM: Record<
+  PaperSize,
+  { width: number; height: number }
+> = {
+  A4: { width: 210, height: 297 },
+  A3: { width: 297, height: 420 },
+  A2: { width: 420, height: 594 },
+  A1: { width: 594, height: 841 },
+  A0: { width: 841, height: 1189 },
+};
+
+export const HOODIE_FRONT_PANEL_DIMENSIONS: Record<
+  HoodieSize,
+  { widthCm: number; heightCm: number }
+> = {
+  XXS: { widthCm: 31.2, heightCm: 61.0 },
+  XS: { widthCm: 32.4, heightCm: 62.6 },
+  S: { widthCm: 33.6, heightCm: 64.2 },
+  M: { widthCm: 34.8, heightCm: 65.8 },
+  L: { widthCm: 36.0, heightCm: 67.4 },
+  XL: { widthCm: 37.2, heightCm: 69.0 },
+  XXL: { widthCm: 38.4, heightCm: 70.6 },
+  "3XL": { widthCm: 39.6, heightCm: 72.2 },
+  "4XL": { widthCm: 40.8, heightCm: 73.8 },
+  "5XL": { widthCm: 40.2, heightCm: 79.4 },
+};
+
+export const PATTERN_COLORS: string[] = [
+  "#4ECDC4",
+  "#45B7AF",
+  "#96CEB4",
+  "#FFEAA7",
+  "#DDA0DD",
+  "#FFB6C1",
+  "#87CEEB",
+  "#98FB98",
+];

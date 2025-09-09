@@ -1,14 +1,21 @@
-import { FunctionComponent, useCallback, useEffect, useState } from "react";
+import {
+  FunctionComponent,
+  useCallback,
+  useEffect,
+  useState,
+  useRef,
+} from "react";
+import { useTranslation } from "react-i18next";
 import { usePackingCanvas } from "../hooks/usePackingCanvas";
-import { usePrintExport } from "../hooks/usePrintExport";
 import { PackingCanvasProps } from "../types/pattern.types";
+import { ExportDialog } from "./ExportDialog";
 
 export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
   selectedPieces,
-  selectedSize,
 }) => {
-  const [isExporting, setIsExporting] = useState(false);
-  const [exportStatus, setExportStatus] = useState<string | null>(null);
+  const { t } = useTranslation();
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const svgRef = useRef<SVGSVGElement>(null);
 
   const {
     canvasRef,
@@ -37,45 +44,105 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
     rotationStart,
     setRotationStart,
     savePatternState,
-    autoBasePieces,
-  } = usePackingCanvas(selectedPieces, selectedSize);
+  } = usePackingCanvas(selectedPieces);
 
-  const { exportToMultiPagePrint } = usePrintExport();
+  const generateExportSvg = useCallback(() => {
+    if (isManualMode && manualPieces.length > 0) {
+      const svgElement = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "svg"
+      );
+      svgElement.setAttribute("width", canvasWidth.toString());
+      svgElement.setAttribute("height", canvasHeight.toString());
+      svgElement.setAttribute("viewBox", `0 0 ${canvasWidth} ${canvasHeight}`);
+      svgElement.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
-  const handlePrintExport = useCallback(async () => {
-    if (!liveSvgContent && !isManualMode) {
-      setExportStatus("No pattern to export - run nesting first");
-      setTimeout(() => setExportStatus(null), 3000);
-      return;
-    }
+      manualPieces.forEach((piece) => {
+        const group = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "g"
+        );
+        group.setAttribute(
+          "transform",
+          `translate(${piece.x}, ${piece.y}) rotate(${piece.rotation})`
+        );
 
-    setIsExporting(true);
-    setExportStatus("Preparing print export...");
+        const path = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "path"
+        );
+        path.setAttribute("d", piece.pathData);
+        path.setAttribute("fill", piece.color);
+        path.setAttribute("fill-opacity", "0.7");
+        path.setAttribute("stroke", "#000000");
+        path.setAttribute("stroke-width", "1");
 
-    try {
-      const currentPieces = isManualMode ? manualPieces : autoBasePieces;
-      const garmentType = selectedPieces[0]?.garmentType || "tshirt";
-
-      const result = await exportToMultiPagePrint({
-        selectedSize,
-        garmentType,
-        isManualMode,
-        manualPieces: currentPieces,
-        autoBasePieces,
-        canvasWidth,
-        canvasHeight,
+        group.appendChild(path);
+        svgElement.appendChild(group);
       });
 
-      setExportStatus(`Print exported successfully! ${result.totalPages} pages, ${Math.round(result.realDimensions.width)}×${Math.round(result.realDimensions.height)}mm`);
-      setTimeout(() => setExportStatus(null), 5000);
-
-    } catch (error) {
-      setExportStatus(`Export failed: ${error}`);
-      setTimeout(() => setExportStatus(null), 5000);
-    } finally {
-      setIsExporting(false);
+      return svgElement;
     }
-  }, [liveSvgContent, isManualMode, manualPieces, autoBasePieces, selectedPieces, selectedSize, canvasWidth, canvasHeight, exportToMultiPagePrint]);
+
+    if (!isManualMode && liveSvgContent) {
+      return parseAutoSvgToPieces();
+    }
+
+    return null;
+  }, [isManualMode, manualPieces, canvasWidth, canvasHeight, liveSvgContent]);
+
+  const parseAutoSvgToPieces = useCallback(() => {
+    if (!liveSvgContent) return null;
+
+    const parser = new DOMParser();
+    const svgDoc = parser.parseFromString(liveSvgContent, "image/svg+xml");
+
+    const svgElement = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "svg"
+    );
+    svgElement.setAttribute("width", canvasWidth.toString());
+    svgElement.setAttribute("height", canvasHeight.toString());
+    svgElement.setAttribute("viewBox", `0 0 ${canvasWidth} ${canvasHeight}`);
+
+    const defsElement = svgDoc.querySelector("defs");
+    const useElements = svgDoc.querySelectorAll('use[href^="#item_"]');
+
+    if (defsElement && useElements.length > 0) {
+      useElements.forEach((useElement) => {
+        const href = useElement.getAttribute("href");
+        const transform = useElement.getAttribute("transform");
+
+        if (href && transform) {
+          const itemId = href.substring(1);
+          const pathElement = defsElement.querySelector(`#${itemId} path`);
+
+          if (pathElement) {
+            const group = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "g"
+            );
+            group.setAttribute("transform", transform);
+
+            const path = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "path"
+            );
+            path.setAttribute("d", pathElement.getAttribute("d") || "");
+            path.setAttribute("fill", "#7A7A7A");
+            path.setAttribute("fill-opacity", "0.7");
+            path.setAttribute("stroke", "#000000");
+            path.setAttribute("stroke-width", "1");
+
+            group.appendChild(path);
+            svgElement.appendChild(group);
+          }
+        }
+      });
+    }
+
+    return svgElement;
+  }, [liveSvgContent, canvasWidth, canvasHeight]);
 
   const drawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -331,27 +398,19 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
       <div className="flex-1">
         <div className="mb-4 flex justify-between items-center">
           <div className="text-white font-mana text-sm">
-            ZERO-WASTE PATTERN NESTING
+            {t("zero_waste_pattern_nesting")}
           </div>
           <div className="flex gap-2">
             <button
               onClick={handleNestClick}
-              disabled={
-                isNesting ||
-                isSparrowRunning ||
-                selectedPieces.length === 0 ||
-                isManualMode
-              }
+              disabled={isNesting || isSparrowRunning || isManualMode}
               className={`px-4 py-2 rounded font-mana text-xs ${
-                isNesting ||
-                isSparrowRunning ||
-                selectedPieces.length === 0 ||
-                isManualMode
+                isNesting || isSparrowRunning || isManualMode
                   ? "bg-gris/40 text-white/50 cursor-not-allowed"
                   : "bg-ama hover:opacity-70 text-black cursor-pointer"
               }`}
             >
-              {isNesting ? "NESTING..." : "NEST"}
+              {isNesting ? t("nesting") : t("nest")}
             </button>
             {(isNesting || isSparrowRunning) && (
               <button
@@ -371,7 +430,7 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
                       : "bg-gris hover:opacity-70 text-white"
                   }`}
                 >
-                  {isManualMode ? "AUTO MODE" : "MANUAL NEST"}
+                  {isManualMode ? t("auto_mode") : t("manual_nest")}
                 </button>
                 {isManualMode && (
                   <button
@@ -397,30 +456,20 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
             onClick={() => savePatternState()}
             className="px-4 py-2 bg-verde hover:opacity-70 text-black rounded font-mana text-xs cursor-pointer"
           >
-            SAVE
+            {t("save")}
           </button>
           <button
-            onClick={handlePrintExport}
-            disabled={isExporting || (!liveSvgContent && !isManualMode)}
+            onClick={() => setShowExportDialog(true)}
+            disabled={!liveSvgContent && !isManualMode}
             className={`px-4 py-2 rounded font-mana text-xs cursor-pointer ${
-              isExporting || (!liveSvgContent && !isManualMode)
+              !liveSvgContent && !isManualMode
                 ? "bg-gris/40 text-white/50 cursor-not-allowed"
                 : "bg-blue-500 hover:opacity-70 text-white"
             }`}
           >
-            {isExporting ? "EXPORTING..." : "EXPORT TO PRINT"}
+            {t("export_to_print")}
           </button>
         </div>
-
-        {exportStatus && (
-          <div className={`mb-4 p-3 rounded font-mana text-xs ${
-            exportStatus.includes("success") 
-              ? "bg-verde/20 border border-verde/50 text-verde"
-              : "bg-red-500/20 border border-red-500/50 text-red-300"
-          }`}>
-            {exportStatus}
-          </div>
-        )}
 
         {sparrowStats && (
           <div className="mb-4 p-3 bg-verde/20 border border-verde/50 rounded">
@@ -453,21 +502,23 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
                 className="border border-red-500 rounded bg-white/10 overflow-visible relative sparrow-svg-container"
                 style={{ width: canvasWidth, height: canvasHeight }}
               >
-                <div
+                <svg
+                  ref={svgRef}
+                  width={canvasWidth}
+                  height={canvasHeight}
+                  viewBox={(() => {
+                    const viewBoxMatch =
+                      liveSvgContent.match(/viewBox="([^"]+)"/);
+                    return viewBoxMatch ? viewBoxMatch[1] : "0 0 100 100";
+                  })()}
+                  preserveAspectRatio="xMidYMid meet"
                   className="w-full h-full"
                   dangerouslySetInnerHTML={{
                     __html: (() => {
-                      const viewBoxMatch =
-                        liveSvgContent.match(/viewBox="([^"]+)"/);
-                      const originalViewBox = viewBoxMatch
-                        ? viewBoxMatch[1]
-                        : "0 0 100 100";
                       return liveSvgContent
                         .replace(/<text[^>]*>.*?<\/text>/gs, "")
-                        .replace(
-                          /<svg[^>]*>/,
-                          `<svg width="${canvasWidth}" height="${canvasHeight}" viewBox="${originalViewBox}" preserveAspectRatio="xMidYMid meet">`
-                        );
+                        .replace(/<svg[^>]*>/, "")
+                        .replace(/<\/svg>$/, "");
                     })(),
                   }}
                 />
@@ -480,19 +531,19 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
                   <>
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ama mx-auto mb-4"></div>
                     <div className="text-ama font-mana text-sm mb-2">
-                      Optimizing Pattern Layout
+                      {t("optimizing_pattern_layout")}
                     </div>
                     <div className="text-white/50 font-mana text-xxxs">
-                      Sparrow algorithm finding best arrangement...
+                      {t("sparrow_algorithm_message")}
                     </div>
                   </>
                 ) : (
                   <>
                     <div className="text-white/50 font-mana text-sm mb-2">
-                      Ready for Pattern Nesting
+                      {t("ready_for_pattern_nesting")}
                     </div>
                     <div className="text-white/30 font-mana text-xxxs">
-                      Select pattern pieces and click NEST to begin
+                      {t("select_pattern_pieces_nest")}
                     </div>
                   </>
                 )}
@@ -508,6 +559,15 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
           className="hidden"
         />
       </div>
+
+      <ExportDialog
+        isOpen={showExportDialog}
+        onClose={() => setShowExportDialog(false)}
+        svgElement={generateExportSvg()}
+        viewportPx={{ width: canvasWidth, height: canvasHeight }}
+        patternPieces={selectedPieces}
+        liveSvgContent={liveSvgContent || undefined}
+      />
     </div>
   );
 };

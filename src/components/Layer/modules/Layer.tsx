@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useApp } from "../../../context/AppContext";
 import { useDesignContext } from "../../../context/DesignContext";
 import { INFURA_GATEWAY } from "../../../lib/constants";
@@ -10,6 +11,7 @@ import { CreateDesignRequest, Design } from "../../Design/types/design.types";
 import { Template } from "../../Format/types/format.types";
 
 export default function Layer() {
+  const { t } = useTranslation();
   const { formatPrice, getTotalChildrenPrice } = useLayer();
   const { selectedTemplate, selectedLayer, selectLayer, isLoadingTemplates } = useApp();
   const { createDesign } = useDesignContext();
@@ -23,9 +25,9 @@ export default function Layer() {
     setSelectedBack(null);
   }, [selectedTemplate]);
   const getTemplateType = () => {
-    if (!selectedTemplate) return null;
-    const tags = selectedTemplate.templates[0]?.metadata?.tags || [];
-    for (const tag of tags) {
+    if (!selectedTemplate || !selectedTemplate.templates.length) return null;
+    const allTags = selectedTemplate.templates.flatMap(template => template.metadata?.tags || []);
+    for (const tag of allTags) {
       const tagLower = tag.toLowerCase();
       if (tagLower === "t-shirt" || tagLower === "shirt") return "shirt";
       if (tagLower === "hoodie") return "hoodie";
@@ -87,7 +89,7 @@ export default function Layer() {
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ama"></div>
           <div className="text-white font-satB text-lg tracking-wider">
-            Cargando Templates...
+            {t('loading_templates')}
           </div>
         </div>
         <PageNavigation currentPage="/Layer" />
@@ -99,11 +101,11 @@ export default function Layer() {
     <div className="relative w-full h-full flex items-start justify-start">
       <div className="mb-6">
         <h2 className="text-lg font-satB text-white tracking-wider mb-4">
-          SELECT LAYER
+          {t('select_layer')}
         </h2>
         <div className="relative flex flex-col gap-2 mb-4">
           <h2 className="text-base font-sat text-white tracking-wider mb-4">
-            FRONT
+            {t('front')}
           </h2>
           <div className="relative w-full flex flex-wrap gap-8 items-center justify-start">
             {Number(selectedTemplate?.templates.length) > 0
@@ -183,7 +185,7 @@ export default function Layer() {
         {requiresBothSides() && (
           <div className="relative flex flex-col gap-2">
             <h2 className="text-base font-sat text-white tracking-wider mb-4">
-              BACK
+              {t('back')}
             </h2>
           <div className="relative w-full flex flex-wrap gap-8 items-center justify-start">
             {Number(selectedTemplate?.templates.length) > 0
@@ -284,8 +286,8 @@ export default function Layer() {
               }`}
             >
               {requiresBothSides() && (!selectedFront || !selectedBack)
-                ? `SELECT ${!selectedFront ? "FRONT" : "BACK"} TO CONTINUE`
-                : "CREATE DESIGN"
+                ? (!selectedFront ? t('select_front_to_continue') : t('select_back_to_continue'))
+                : t('create_design')
               }
             </button>
           </div>
@@ -296,11 +298,11 @@ export default function Layer() {
         <DesignCreationModal
           isOpen={showDesignModal}
           onClose={handleModalClose}
-          templateId={selectedTemplate?.templates[0]?.templateId || ""}
+          templateId={selectedTemplate?.name || ""}
           frontLayerTemplateId={selectedFront?.templateId || ""}
           backLayerTemplateId={selectedBack?.templateId}
           childUri={
-            ((selectedFront || selectedBack)?.childReferences || [])[0]?.child.metadata.image || ""
+            ((selectedFront || selectedBack)?.childReferences || []).find(ref => ref.child?.metadata?.image)?.child.metadata.image || ""
           }
           onDesignCreated={handleDesignCreated}
         />

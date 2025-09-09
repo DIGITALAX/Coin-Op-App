@@ -1,4 +1,5 @@
 import { useEffect, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import useGenerator from "../hooks/useGenerator";
 import LibrarySelector from "./LibrarySelector";
 import { useLibrary } from "../../../context/LibraryContext";
@@ -14,6 +15,7 @@ export default function Generator({
   onImageGenerated,
   getCanvasImage,
 }: GeneratorProps = {}) {
+  const { t } = useTranslation();
   const {
     aiProvider,
     comfySettings,
@@ -283,7 +285,7 @@ export default function Generator({
   return (
     <div className="mb-6">
       <h2 className="text-lg font-sat text-white tracking-wider mb-4">
-        AI IMAGE GENERATOR
+        {t("ai_image_generator")}
       </h2>
       <div className="bg-oscuro border border-gray-600 rounded p-6">
         <div className="space-y-6">
@@ -291,7 +293,7 @@ export default function Generator({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-sat text-gray-400">
-                  PROMPT
+                  {t("prompt")}
                 </label>
                 <LibrarySelector
                   type="prompt"
@@ -303,20 +305,20 @@ export default function Generator({
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Describe the image you want to generate..."
+                placeholder={t("describe_image_generate")}
                 maxLength={getPromptMaxLength()}
                 rows={3}
                 className="w-full px-3 py-2 border rounded font-sat text-sm resize-none bg-gray-700 border-gray-600 text-white"
               />
               <p className="text-xs font-sat text-gray-500 mt-1">
-                {prompt.length}/{getPromptMaxLength()} characters
+                {prompt.length}/{getPromptMaxLength()} {t("characters")}
               </p>
             </div>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-sat text-gray-400 mb-2">
-                API PROVIDER
+                {t("api_provider")}
               </label>
               <div className="relative">
                 <div
@@ -353,7 +355,7 @@ export default function Generator({
             {aiProvider !== "comfy" && (
               <div>
                 <label className="block text-sm font-sat text-gray-400 mb-2">
-                  API KEY (auto-saved)
+{t("api_key")} ({t("auto_saved")})
                 </label>
                 <div className="relative">
                   <input
@@ -366,7 +368,7 @@ export default function Generator({
                   <div
                     onClick={() => setShowApiKey(!showApiKey)}
                     className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white cursor-pointer"
-                    title={showApiKey ? "Hide API key" : "Show API key"}
+                    title={showApiKey ? t("hide_api_key") : t("show_api_key")}
                   >
                     {showApiKey ? (
                       <svg
@@ -411,7 +413,7 @@ export default function Generator({
               <>
                 <div>
                   <label className="block text-sm font-sat text-gray-400 mb-2">
-                    COMFYUI URL
+{t("comfyui_url")}
                   </label>
                   <input
                     type="text"
@@ -424,7 +426,7 @@ export default function Generator({
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="block text-sm font-sat text-gray-400">
-                      WORKFLOW JSON
+{t("workflow_json")}
                     </label>
                     <LibrarySelector
                       type="workflow"
@@ -444,7 +446,7 @@ export default function Generator({
                       htmlFor="workflow-upload"
                       className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-sat text-sm cursor-pointer"
                     >
-                      Upload Workflow
+{t("upload_workflow")}
                     </label>
                     {comfySettings.workflowFileName && (
                       <>
@@ -455,7 +457,7 @@ export default function Generator({
                           onClick={toggleNodeEditor}
                           className="px-3 py-2 bg-ama text-black rounded font-mana text-xxxs hover:opacity-70"
                         >
-                          {showNodeEditor ? "Hide" : "Edit"} Nodes
+                          {showNodeEditor ? t("hide") : t("edit")} {t("nodes")}
                         </div>
                       </>
                     )}
@@ -466,14 +468,14 @@ export default function Generator({
             {aiProvider !== "comfy" && (
               <div>
                 <label className="block text-sm font-sat text-gray-400 mb-2">
-                  MODEL
+                  {t("model")}
                 </label>
                 <div className="relative">
                   <div
                     onClick={() => setShowModelDropdown(!showModelDropdown)}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded font-sat text-sm cursor-pointer flex items-center justify-between"
                   >
-                    <span>{selectedModel || "SELECT MODEL"}</span>
+                    <span>{selectedModel || t("select_model")}</span>
                     <svg
                       className={`w-4 h-4 fill-current text-gray-400 transition-transform ${
                         showModelDropdown ? "rotate-180" : ""
@@ -546,7 +548,7 @@ export default function Generator({
               aiProvider === "replicate") && (
               <div>
                 <label className="block text-sm font-sat text-gray-400 mb-2">
-                  CANVAS INPUT
+{t("canvas_input")}
                 </label>
                 <div
                   className="flex items-center space-x-3 cursor-pointer"
@@ -562,28 +564,28 @@ export default function Generator({
                     </div>
                   </div>
                   <span className="font-sat text-white">
-                    USE CANVAS AS INPUT
+{t("use_canvas_as_input")}
                   </span>
                 </div>
                 <p className="text-xs font-sat text-gray-500 mt-2">
                   {useCanvasAsInput
                     ? aiProvider === "openai"
-                      ? "Canvas → PNG for image editing (dall-e-3 unavailable)"
+? t("canvas_png_dall_e_unavailable")
                       : aiProvider === "comfy"
-                      ? "Canvas → PNG sent to LoadImage nodes in workflow"
+  ? t("canvas_to_png")
                       : aiProvider === "replicate"
                       ? mode === "composite"
                         ? "Composite canvas → PNG for image-to-image (flux models only)"
                         : "Synth canvas → PNG for image-to-image (flux models only)"
-                      : "Current canvas will be converted to DataPNG for input"
-                    : "Generated image will be returned directly to canvas"}
+: t("current_canvas_converted")
+: t("generated_image_returned")}
                 </p>
               </div>
             )}
             {mode !== "composite" && (
               <div>
                 <label className="block text-sm font-sat text-gray-400 mb-2">
-                  CANVAS OUTPUT
+{t("canvas_output")}
                 </label>
                 <div
                   className="flex items-center space-x-3 cursor-pointer"
@@ -598,12 +600,12 @@ export default function Generator({
                       ></div>
                     </div>
                   </div>
-                  <span className="font-sat text-white">OVERWRITE CANVAS</span>
+<span className="font-sat text-white">{t("overwrite_canvas")}</span>
                 </div>
                 <p className="text-xs font-sat text-gray-500 mt-2">
                   {overwriteCanvas
-                    ? "Replace all canvas content with generated image"
-                    : "Add generated image to existing canvas content"}
+? t("replace_all_canvas")
+                    : t("add_generated_image")}
                 </p>
               </div>
             )}
@@ -620,19 +622,19 @@ export default function Generator({
                         !prompt.trim()
                   }
                 >
-                  GENERATE IMAGE
+                  {t("generate_image")}
                 </button>
               ) : (
                 <>
                   <div className="flex-1 px-3 py-2 bg-gray-600 text-white rounded font-sat text-sm text-center">
-                    GENERATING...
+{t("generating")}
                   </div>
                   <div
                     onClick={cancelGeneration}
                     className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-sat text-sm cursor-pointer transition-colors"
-                    title="Cancel generation"
+                    title={t("cancel_generation")}
                   >
-                    CANCEL
+{t("cancel")}
                   </div>
                 </>
               )}
@@ -642,16 +644,16 @@ export default function Generator({
             <div className="border-t border-gray-600 pt-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-md font-sat text-white tracking-wider">
-                  OPENAI SETTINGS
+                  {t("openai_settings")}
                 </h3>
                 <span className="text-xs font-sat px-2 py-1 rounded bg-blue-600/20 text-blue-400">
-                  {useCanvasAsInput ? "IMAGE EDIT MODE" : "GENERATION MODE"}
+                  {useCanvasAsInput ? t("image_edit_mode") : t("generation_mode")}
                 </span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-sm font-sat text-gray-400 mb-2">
-                    SIZE
+                    {t("size")}
                   </label>
                   <div className="relative">
                     <div
@@ -691,7 +693,7 @@ export default function Generator({
                 </div>
                 <div>
                   <label className="block text-sm font-sat text-gray-400 mb-2">
-                    QUALITY
+{t("quality")}
                   </label>
                   <div className="relative">
                     <div
@@ -865,8 +867,8 @@ export default function Generator({
                     </div>
                     <p className="text-xs font-sat text-gray-500 mt-1">
                       {openAiSettings.inputFidelity === "high"
-                        ? "Match input style/features closely"
-                        : "Allow more creative interpretation"}
+? t("match_input_style")
+: t("allow_creative_interpretation")}
                     </p>
                   </div>
                 )}

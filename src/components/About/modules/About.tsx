@@ -1,5 +1,18 @@
+import { useTranslation } from "react-i18next";
 import { INFURA_GATEWAY } from "../../../lib/constants";
+import { useLanguageContext } from "../../../context/LanguageContext";
+
 export default function About() {
+  const { t } = useTranslation();
+  const { currentLanguage, changeLanguage, isLoading } = useLanguageContext();
+  
+  const languages = [
+    { code: 'en', name: t('english') },
+    { code: 'es', name: t('spanish')},
+    { code: 'pt', name: t('portuguese') }
+  ];
+
+
   return (
     <div className="relative w-full h-full flex py-5 justify-center">
       <div className="relative max-w-3/4 items-center flex justify-between flex-col gap-5">
@@ -7,38 +20,54 @@ export default function About() {
           className="font-monu text-white text-5xl flex flex-col items-center justify-center w-3/4 h-fit break-words text-center pt-0"
           draggable={false}
         >
-          Made for a world that doesn't wait for attention.
+          {t('made_for_world')}
         </div>
         <div className="relative w-full h-fit flex flex-col text-white gap-4">
           <div className="font-monu text-2xl text-left w-fit h-fit flex justify-start items-center">
-            Tutorial.
+            {t('tutorial')}
           </div>
           <div
             className={`relative w-fit h-fit text-left justify-center break-all items-center text-sm whitespace-pre-line font-mana`}
           >
-            View the Coin Op tutorial.
+            {t('view_tutorial')}
+          </div>
+        </div>
+        
+        <div className="relative w-full h-fit flex flex-col text-white gap-4">
+          <div className="font-monu text-2xl text-left w-fit h-fit flex justify-start items-center">
+            {t('language')}.
+          </div>
+          <div className="relative w-fit h-fit flex flex-col gap-3">
+            <div className="text-sm font-mana text-left">
+              {t('select_language')}
+            </div>
+            {!isLoading && (
+              <div className="flex gap-2">
+                {languages.map((language) => (
+                  <button
+                    key={language.code}
+                    onClick={() => changeLanguage(language.code)}
+                    className={`px-4 py-2 rounded-md font-satB text-sm transition-colors ${
+                      currentLanguage === language.code
+                        ? 'bg-ama text-black'
+                        : 'bg-oscuro border border-oscurazul text-white hover:border-ama'
+                    }`}
+                  >
+                    {language.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
         <div className="relative w-full h-fit flex flex-col text-white gap-4">
           <div className="font-monu text-2xl text-left w-fit h-fit flex justify-start items-center">
-            Shipping & Returns.
+            {t('shipping_returns')}
           </div>
           <div
             className={`relative w-fit h-fit text-left justify-center break-all items-center text-sm whitespace-pre-line font-mana`}
           >
-            All orders are shipped expressed, domestic and international.
-            Shipping can take up to 7-14 business days for US domestic delivery
-            and more than 14-21 business days for international delivery. If
-            there are any issues with your shipment, including export
-            restrictions, you will be notified via your account page under order
-            status.\n\nIf you are unsatisfied with your purchase for any reason,
-            you can return eligible items within 30 days of confirmed delivery
-            for a full refund. Please reach out through Lens XMTP secure
-            on-chain messaging to initiate the process. Once received, we will
-            inspect the items and process your refund within 4-5 business days.
-            Refunds are issued to your wallet. If you experience any problems
-            with your order, feel free to reach out via our social media
-            channels for assistance.
+            {t('shipping_info')}
           </div>
         </div>
         <div className="relative w-3/4 h-fit items-center justify-center flex">
@@ -55,18 +84,16 @@ export default function About() {
               id="xScroll"
             >
               <div className="relative w-fit h-fit break-words items-center justify-center">
-                We know it's a lot to keep up with. How can you know if this is
-                the blend of instant convenience and purchasing power you've
-                been waiting for?
+                {t('know_keep_up')}
               </div>
             </div>
             <div className="relative w-1.5 h-full bg-black"></div>
             <div className="relative w-fit h-fit items-center justify-center flex flex-col text-center">
               <div className="relative w-fit h-fit items-center justify-center flex font-satB whitespace-nowrap">
-                Ask a machine
+                {t('ask_machine')}
               </div>
               <div className="relative w-fit h-fit items-center justify-center flex text-sm">
-                or, just start here
+                {t('start_here')}
               </div>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import PageNavigation from "../../Common/modules/PageNavigation";
 import { useDesignContext } from "../../../context/DesignContext";
 import { useCart } from "../../../context/CartContext";
@@ -8,6 +9,7 @@ import DesignCard from "./DesignCard";
 import LibraryCard from "./LibraryCard";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 export default function Activity() {
+  const { t } = useTranslation();
   const { availableDesigns, isLoading, loadDesign, deleteDesign } =
     useDesignContext();
   const { removeByDesignId } = useCart();
@@ -34,7 +36,7 @@ export default function Activity() {
       await loadDesign(designId);
       navigate("/Synth");
     } catch (error) {
-      alert("Failed to load design. It may have been corrupted or deleted.");
+      alert(t("failed_to_load_design"));
     }
   };
   const handleShowDeleteModal = (designId: string) => {
@@ -52,7 +54,7 @@ export default function Activity() {
       await deleteDesign(designId);
       removeByDesignId(designId);
     } catch (error) {
-      alert("Failed to delete design. Please try again.");
+      alert(t("failed_to_delete_design"));
     } finally {
       setIsDeleting(null);
     }
@@ -78,7 +80,7 @@ export default function Activity() {
           break;
       }
     } catch (error) {
-      alert("Failed to load library item. Please try again.");
+      alert(t("failed_to_load_library_item"));
     }
   };
   const handleDeleteLibraryItem = async (id: string, type: 'workflow' | 'synthPrompt' | 'compositePrompt') => {
@@ -96,7 +98,7 @@ export default function Activity() {
           break;
       }
     } catch (error) {
-      alert("Failed to delete library item. Please try again.");
+      alert(t("failed_to_delete_library_item"));
     } finally {
       setIsDeletingLibrary(null);
     }
@@ -105,7 +107,7 @@ export default function Activity() {
     <div className="relative w-full h-full flex flex-col p-4 bg-black">
       <div className="mb-6">
         <h2 className="text-lg font-satB text-white tracking-wider mb-4">
-          ACTIVITY
+          {t("activity")}
         </h2>
         <div className="flex items-center gap-4 mb-4">
           <button
@@ -116,7 +118,7 @@ export default function Activity() {
                 : 'bg-gris text-white hover:opacity-70'
             }`}
           >
-            PROJECTS ({availableDesigns.length})
+            {t("projects")} ({availableDesigns.length})
           </button>
           <button
             onClick={() => setActiveTab('library')}
@@ -126,13 +128,13 @@ export default function Activity() {
                 : 'bg-gris text-white hover:opacity-70'
             }`}
           >
-            LIBRARY ({stats.workflowsCount + stats.synthPromptsCount + stats.compositePromptsCount})
+            {t("library")} ({stats.workflowsCount + stats.synthPromptsCount + stats.compositePromptsCount})
           </button>
         </div>
         <p className="text-gray-400 font-mana text-xxxs">
           {activeTab === 'projects' 
-            ? 'Manage your saved designs and project history'
-            : 'Manage your saved workflows, synth prompts, and composite prompts'
+            ? t('manage_designs')
+            : t('manage_library')
           }
         </p>
       </div>
@@ -142,18 +144,16 @@ export default function Activity() {
             {isLoading ? (
               <div className="flex items-center justify-center h-64">
                 <div className="text-gray-400 font-sat text-sm">
-                  Loading designs...
+                  {t("loading_designs")}
                 </div>
               </div>
             ) : availableDesigns.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-center">
                 <div className="text-gray-500 font-sat text-lg mb-2">
-                  No Designs Yet
+                  {t("no_designs_yet")}
                 </div>
                 <div className="text-gray-400 font-mana text-sm max-w-md">
-                  Start creating by selecting a template and child pattern on the
-                  Format page. Your first design will appear here once you begin
-                  working.
+                  {t("start_creating_designs")}
                 </div>
               </div>
             ) : (
@@ -172,8 +172,7 @@ export default function Activity() {
             {availableDesigns.length > 0 && (
               <div className="mt-8 pt-4 border-t border-gray-700">
                 <div className="text-sm text-gray-400 font-sat">
-                  {availableDesigns.length} design
-                  {availableDesigns.length !== 1 ? "s" : ""} saved locally
+                  {availableDesigns.length} {availableDesigns.length !== 1 ? t("designs_saved_locally") : t("design_saved_locally")} {t("saved_locally")}
                 </div>
               </div>
             )}
@@ -183,16 +182,16 @@ export default function Activity() {
             {libraryLoading ? (
               <div className="flex items-center justify-center h-64">
                 <div className="text-gray-400 font-sat text-sm">
-                  Loading library...
+                  {t("loading_library")}
                 </div>
               </div>
             ) : workflows.length === 0 && synthPrompts.length === 0 && compositePrompts.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-center">
                 <div className="text-gray-500 font-sat text-lg mb-2">
-                  No Library Items Yet
+                  {t("no_library_items_yet")}
                 </div>
                 <div className="text-gray-400 font-mana text-sm max-w-md">
-                  Save workflows and prompts from the Synth and Composite pages to build your library.
+                  {t("save_workflows_prompts")}
                 </div>
               </div>
             ) : (
@@ -200,7 +199,7 @@ export default function Activity() {
                 {workflows.length > 0 && (
                   <div>
                     <h3 className="text-blue-400 font-satB text-sm mb-4 flex items-center gap-2">
-                      <span>ComfyUI Workflows</span>
+                      <span>{t("comfyui_workflows")}</span>
                       <span className="text-gray-400">({workflows.length})</span>
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -220,7 +219,7 @@ export default function Activity() {
                 {synthPrompts.length > 0 && (
                   <div>
                     <h3 className="text-green-400 font-satB text-sm mb-4 flex items-center gap-2">
-                      <span>Synth Prompts</span>
+                      <span>{t("synth_prompts")}</span>
                       <span className="text-gray-400">({synthPrompts.length})</span>
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -240,7 +239,7 @@ export default function Activity() {
                 {compositePrompts.length > 0 && (
                   <div>
                     <h3 className="text-purple-400 font-satB text-sm mb-4 flex items-center gap-2">
-                      <span>Composite Prompts</span>
+                      <span>{t("composite_prompts")}</span>
                       <span className="text-gray-400">({compositePrompts.length})</span>
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -262,8 +261,7 @@ export default function Activity() {
             {(workflows.length > 0 || synthPrompts.length > 0 || compositePrompts.length > 0) && (
               <div className="mt-8 pt-4 border-t border-gray-700">
                 <div className="text-sm text-gray-400 font-sat">
-                  {stats.workflowsCount + stats.synthPromptsCount + stats.compositePromptsCount} library item
-                  {(stats.workflowsCount + stats.synthPromptsCount + stats.compositePromptsCount) !== 1 ? "s" : ""} saved locally
+                  {stats.workflowsCount + stats.synthPromptsCount + stats.compositePromptsCount} {(stats.workflowsCount + stats.synthPromptsCount + stats.compositePromptsCount) !== 1 ? t("library_items_saved_locally") : t("library_item_saved_locally")} {t("saved_locally")}
                 </div>
               </div>
             )}

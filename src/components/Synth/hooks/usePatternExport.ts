@@ -8,23 +8,19 @@ export const usePatternExport = () => {
   const [exportProgress, setExportProgress] = useState("");
   const exportPattern = async (
     canvasDataUrl: string,
-    format: "tiff" | "pdf",
     options: ExportOptions,
     fileName: string,
     folderPath: string
   ) => {
     try {
-      setExportProgress(`Exporting ${format.toUpperCase()} at ${options.dpi} DPI...`);
+      setExportProgress(`Exporting at ${options.dpi} DPI...`);
       const filePath = `${folderPath}/${fileName}`;
-      const command = format === "tiff" 
-        ? "export_pattern_to_tiff"
-        : "export_pattern_to_pdf";
-      const result = await invoke(command, {
+      const result = await invoke("export_pattern_to_pdf", {
         imageData: canvasDataUrl,
         filePath,
         widthInches: options.widthInches,
         heightInches: options.heightInches,
-        dpi: options.dpi
+        dpi: options.dpi,
       });
       return result;
     } catch (error) {
@@ -43,26 +39,17 @@ export const usePatternExport = () => {
       const folderPath = await open({
         directory: true,
         multiple: false,
-        title: "Select Export Folder"
+        title: "Select Export Folder",
       });
       if (!folderPath) {
         setIsExporting(false);
         return [];
       }
       const results = [];
+
       results.push(
         await exportPattern(
           frontCanvasDataUrl,
-          "tiff",
-          options,
-          `${baseName}_front.tiff`,
-          folderPath
-        )
-      );
-      results.push(
-        await exportPattern(
-          frontCanvasDataUrl,
-          "pdf",
           options,
           `${baseName}_front.pdf`,
           folderPath
@@ -72,16 +59,6 @@ export const usePatternExport = () => {
         results.push(
           await exportPattern(
             backCanvasDataUrl,
-            "tiff",
-            options,
-            `${baseName}_back.tiff`,
-            folderPath
-          )
-        );
-        results.push(
-          await exportPattern(
-            backCanvasDataUrl,
-            "pdf",
             options,
             `${baseName}_back.pdf`,
             folderPath
@@ -100,6 +77,6 @@ export const usePatternExport = () => {
     exportPattern,
     exportPatternSet,
     isExporting,
-    exportProgress
+    exportProgress,
   };
 };

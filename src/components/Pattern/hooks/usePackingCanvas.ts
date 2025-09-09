@@ -5,16 +5,13 @@ import { useFileStorage } from "../../Activity/hooks/useFileStorage";
 import { useDesignContext } from "../../../context/DesignContext";
 import {
   CanvasPanel,
-  Size,
   NestingSettings,
   DEFAULT_NESTING_SETTINGS,
   PatternPiece,
+  PATTERN_COLORS,
 } from "../types/pattern.types";
 
-export const usePackingCanvas = (
-  selectedPieces: PatternPiece[],
-  selectedSize: Size
-) => {
+export const usePackingCanvas = (selectedPieces: PatternPiece[]) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [panels, setPanels] = useState<CanvasPanel[]>([]);
   const [selectedPanelId, setSelectedPanelId] = useState<string | null>(null);
@@ -34,14 +31,22 @@ export const usePackingCanvas = (
   const [isRotating, setIsRotating] = useState(false);
   const [rotationStart, setRotationStart] = useState(0);
   const [hasLoadedInitialState, setHasLoadedInitialState] = useState(false);
-  const [lastSvgFromNesting, setLastSvgFromNesting] = useState<string | null>(null);
+  const [lastSvgFromNesting, setLastSvgFromNesting] = useState<string | null>(
+    null
+  );
   const [savedSvgContent, setSavedSvgContent] = useState<string | null>(null);
 
-  const { nestPatterns, isNesting, isSparrowRunning, error, cancelNesting, handleSparrowComplete } =
-    usePatternNesting();
+  const {
+    nestPatterns,
+    isNesting,
+    isSparrowRunning,
+    error,
+    cancelNesting,
+    handleSparrowComplete,
+  } = usePatternNesting();
   const { liveSvgContent: liveSvgFromSparrow, sparrowStats } =
     useLiveSparrowVisualization(isSparrowRunning, handleSparrowComplete);
-  
+
   const liveSvgContent = liveSvgFromSparrow || savedSvgContent;
   const { setItem, getItem } = useFileStorage();
   const { currentDesign } = useDesignContext();
@@ -100,51 +105,14 @@ export const usePackingCanvas = (
     } catch (error) {
       alert("Nesting failed. Please try again.");
     }
-  }, [
-    selectedPieces,
-    selectedSize,
-    nestPatterns,
-    nestingSettings,
-    canvasWidth,
-  ]);
-
-  const handleCancelNesting = useCallback(() => {
-    cancelNesting();
-  }, [cancelNesting]);
-
-  const loadSVGPath = useCallback(async (svgPath: string): Promise<string> => {
-    try {
-      const publicPath = svgPath.startsWith("/patterns/")
-        ? svgPath
-        : svgPath.replace("/src/assets", "");
-      const response = await fetch(publicPath);
-      if (response.ok) {
-        const svgText = await response.text();
-        const parser = new DOMParser();
-        const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
-        const pathElement = svgDoc.querySelector("path");
-        return pathElement?.getAttribute("d") || "";
-      }
-    } catch (error) {}
-    return "";
-  }, []);
+  }, [selectedPieces, nestPatterns, nestingSettings, canvasWidth]);
 
   const getPatternColor = useCallback((patternName: string): string => {
-    const colors = [
-      "#4ECDC4",
-      "#45B7AF",
-      "#96CEB4",
-      "#FFEAA7",
-      "#DDA0DD",
-      "#FFB6C1",
-      "#87CEEB",
-      "#98FB98",
-    ];
     let hash = 0;
     for (let i = 0; i < patternName.length; i++) {
       hash = patternName.charCodeAt(i) + ((hash << 5) - hash);
     }
-    return colors[Math.abs(hash) % colors.length];
+    return PATTERN_COLORS[Math.abs(hash) % PATTERN_COLORS.length];
   }, []);
 
   const calculatePathBounds = useCallback((pathData: string) => {
@@ -230,87 +198,76 @@ export const usePackingCanvas = (
         color: string;
         bbox: { xMin: number; xMax: number; yMin: number; yMax: number };
       }> = [];
+
       const itemsGroup = svgDoc.querySelector("g#items");
-      const useElements = itemsGroup ? itemsGroup.querySelectorAll("use") : [];
-      if (useElements.length > 0) {
-        useElements.forEach((useElement, index) => {
-          const transform = useElement.getAttribute("transform");
-          const href =
-            useElement.getAttribute("href") ||
-            useElement.getAttribute("xlink:href");
-          let x = 0,
-            y = 0,
-            rotation = 0;
-          if (transform) {
-            const translateMatch = transform.match(/translate\(([^)]+)\)/);
-            const rotateMatch = transform.match(/rotate\(([^)]+)\)/);
-            if (translateMatch) {
-              const coords = translateMatch[1].split(/[\s,]+/).map(parseFloat);
-              x = coords[0] || 0;
-              y = coords[1] || 0;
-            }
-            if (rotateMatch) {
-              const rotParams = rotateMatch[1].split(/[\s,]+/).map(parseFloat);
-              rotation = rotParams[0] || 0;
-            }
-          }
-          if (href) {
-            const refId = href.replace("#", "");
-            const referencedElement = svgDoc.querySelector(`#${refId}`);
-            if (referencedElement) {
-              const pathElement =
-                referencedElement.querySelector("path") ||
-                referencedElement.querySelector("g path");
-              if (pathElement) {
-                const pathData = pathElement.getAttribute("d") || "";
-                if (pathData) {
-                  const pathInfo = calculatePathBounds(pathData);
-                  let patternName = "Unknown";
-                  let patternCategory = "body";
-                  const itemIndex = parseInt(refId.replace("item_", "")) || 0;
-                  if (itemIndex < selectedPieces.length) {
-                    const selectedPiece = selectedPieces[itemIndex];
-                    patternName = selectedPiece.name;
-                    patternCategory = selectedPiece.name;
-                  }
-                  patterns.push({
-                    id: `use-pattern-${index}`,
-                    name: patternName,
-                    pathData,
-                    x,
-                    y,
-                    rotation,
-                    color: getPatternColor(patternCategory),
-                    bbox: {
-                      xMin: pathInfo.xMin,
-                      xMax: pathInfo.xMax,
-                      yMin: pathInfo.yMin,
-                      yMax: pathInfo.yMax,
-                    },
-                  });
-                }
+      if (!itemsGroup) return patterns;
+
+      const useElements = itemsGroup.querySelectorAll('use[href^="#item_"]');
+      
+      useElements.forEach((useElement, index) => {
+        const transform = useElement.getAttribute("transform") || "";
+        const href = useElement.getAttribute("href");
+        
+        if (href) {
+          const itemId = href.substring(1);
+          const defsGroup = itemsGroup.querySelector("defs");
+          const itemGroup = defsGroup?.querySelector(`g#${itemId}`);
+          const pathElement = itemGroup?.querySelector("path");
+          
+          if (pathElement) {
+            const pathData = pathElement.getAttribute("d") || "";
+            if (pathData) {
+              let x = 0, y = 0, rotation = 0;
+              
+              const translateMatch = transform.match(/translate\(([^)]+)\)/);
+              const rotateMatch = transform.match(/rotate\(([^)]+)\)/);
+              
+              if (translateMatch) {
+                const coords = translateMatch[1].split(/[\s,]+/).map(parseFloat);
+                x = coords[0] || 0;
+                y = coords[1] || 0;
               }
+              
+              if (rotateMatch) {
+                const rotParams = rotateMatch[1].split(/[\s,]+/).map(parseFloat);
+                rotation = rotParams[0] || 0;
+              }
+              
+              const pathInfo = calculatePathBounds(pathData);
+              let patternName = "Unknown";
+              let patternCategory = "body";
+              
+              const itemIndex = parseInt(itemId.replace("item_", "")) || 0;
+              if (itemIndex < selectedPieces.length) {
+                const selectedPiece = selectedPieces[itemIndex];
+                patternName = selectedPiece.name;
+                patternCategory = selectedPiece.name;
+              }
+              
+              patterns.push({
+                id: `${itemId}-${index}`,
+                name: patternName,
+                pathData,
+                x,
+                y,
+                rotation,
+                color: getPatternColor(patternCategory),
+                bbox: {
+                  xMin: pathInfo.xMin,
+                  xMax: pathInfo.xMax,
+                  yMin: pathInfo.yMin,
+                  yMax: pathInfo.yMax,
+                },
+              });
             }
           }
-        });
-      }
+        }
+      });
+      
       return patterns;
     },
     [selectedPieces, calculatePathBounds, getPatternColor]
   );
-
-  const resetDragState = useCallback(() => {
-    setIsDragging(false);
-    setSelectedPanelId(null);
-    setDragOffset({ x: 0, y: 0 });
-    setRotationStart(0);
-  }, []);
-
-  const resetToAutoLayout = useCallback(() => {
-    if (autoBasePieces.length > 0) {
-      setManualPieces([...autoBasePieces]);
-    }
-  }, [autoBasePieces]);
 
   const updateAutoBase = useCallback((svgContent: string, isFromFreshNesting = false) => {
     if (!svgContent) return;
@@ -358,6 +315,43 @@ export const usePackingCanvas = (
     }
   }, [parseSparrowSVG, canvasWidth, canvasHeight, manualPieces.length]);
 
+  const handleCancelNesting = useCallback(() => {
+    if (liveSvgContent) {
+      updateAutoBase(liveSvgContent, true);
+    }
+    cancelNesting();
+  }, [cancelNesting, liveSvgContent, updateAutoBase]);
+
+  const loadSVGPath = useCallback(async (svgPath: string): Promise<string> => {
+    try {
+      const publicPath = svgPath.startsWith("/patterns/")
+        ? svgPath
+        : svgPath.replace("/src/assets", "");
+      const response = await fetch(publicPath);
+      if (response.ok) {
+        const svgText = await response.text();
+        const parser = new DOMParser();
+        const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
+        const pathElement = svgDoc.querySelector("path");
+        return pathElement?.getAttribute("d") || "";
+      }
+    } catch (error) {}
+    return "";
+  }, []);
+
+  const resetDragState = useCallback(() => {
+    setIsDragging(false);
+    setSelectedPanelId(null);
+    setDragOffset({ x: 0, y: 0 });
+    setRotationStart(0);
+  }, []);
+
+  const resetToAutoLayout = useCallback(() => {
+    if (autoBasePieces.length > 0) {
+      setManualPieces([...autoBasePieces]);
+    }
+  }, [autoBasePieces]);
+
   useEffect(() => {
     if (liveSvgFromSparrow) {
       setSavedSvgContent(liveSvgFromSparrow);
@@ -372,83 +366,101 @@ export const usePackingCanvas = (
         setLastSvgFromNesting(liveSvgContent);
       }
     }
-  }, [liveSvgContent, isNesting, isSparrowRunning, updateAutoBase, lastSvgFromNesting]);
+  }, [
+    liveSvgContent,
+    isNesting,
+    isSparrowRunning,
+    updateAutoBase,
+    lastSvgFromNesting,
+  ]);
 
   const savePatternState = useCallback(async () => {
-   
     if (!currentDesign) {
       return;
     }
-    
+
     const patternData = {
       autoResult: autoBasePieces.length > 0 ? { pieces: autoBasePieces } : null,
       manualPieces: manualPieces,
       autoBasePieces: autoBasePieces,
-      currentMode: isManualMode ? 'manual' : 'auto',
+      currentMode: isManualMode ? "manual" : "auto",
       settings: nestingSettings,
       liveSvgContent: liveSvgContent,
       savedSvgContent: savedSvgContent,
       canvasWidth: canvasWidth,
       canvasHeight: canvasHeight,
-      lastSvgFromNesting: lastSvgFromNesting
+      lastSvgFromNesting: lastSvgFromNesting,
     };
-  
-    
+
     try {
       await setItem("pattern", patternData, currentDesign.id);
-      alert('Pattern saved successfully!');
+      alert("Pattern saved successfully!");
     } catch (error) {
       alert(`Pattern save failed: ${error}`);
     }
-  }, [currentDesign, manualPieces, autoBasePieces, isManualMode, nestingSettings, liveSvgContent, savedSvgContent, canvasWidth, canvasHeight, lastSvgFromNesting]);
-
+  }, [
+    currentDesign,
+    manualPieces,
+    autoBasePieces,
+    isManualMode,
+    nestingSettings,
+    liveSvgContent,
+    savedSvgContent,
+    canvasWidth,
+    canvasHeight,
+    lastSvgFromNesting,
+  ]);
 
   const loadPatternState = useCallback(async () => {
     if (!currentDesign) {
       return;
     }
-    
+
     try {
-      const patternData = await getItem("pattern", currentDesign.id, null) as any;
+      const patternData = (await getItem(
+        "pattern",
+        currentDesign.id,
+        null
+      )) as any;
       if (!patternData) {
         return;
       }
-      
-      const { 
-        manualPieces: savedManualPieces, 
+
+      const {
+        manualPieces: savedManualPieces,
         autoBasePieces: savedAutoBasePieces,
-        currentMode, 
-        settings, 
+        currentMode,
+        settings,
         liveSvgContent: savedLiveSvgContent,
         savedSvgContent: savedSavedSvgContent,
-        lastSvgFromNesting: savedLastSvgFromNesting
+        lastSvgFromNesting: savedLastSvgFromNesting,
       } = patternData;
-    
-    if (savedManualPieces && savedManualPieces.length > 0) {
-      setManualPieces(savedManualPieces);
-    }
-    
-    if (savedAutoBasePieces && savedAutoBasePieces.length > 0) {
-      setAutoBasePieces(savedAutoBasePieces);
-    }
-    
-    if (currentMode) {
-      setIsManualMode(currentMode === 'manual');
-    }
-    
-    if (settings) {
-      setNestingSettings({ ...DEFAULT_NESTING_SETTINGS, ...settings });
-    }
-    
-    if (savedLiveSvgContent || savedSavedSvgContent) {
-      setSavedSvgContent(savedLiveSvgContent || savedSavedSvgContent || null);
-    }
-    
-    if (savedLastSvgFromNesting) {
-      setLastSvgFromNesting(savedLastSvgFromNesting);
-    }
+
+      if (savedManualPieces && savedManualPieces.length > 0) {
+        setManualPieces(savedManualPieces);
+      }
+
+      if (savedAutoBasePieces && savedAutoBasePieces.length > 0) {
+        setAutoBasePieces(savedAutoBasePieces);
+      }
+
+      if (currentMode) {
+        setIsManualMode(currentMode === "manual");
+      }
+
+      if (settings) {
+        setNestingSettings({ ...DEFAULT_NESTING_SETTINGS, ...settings });
+      }
+
+      if (savedLiveSvgContent || savedSavedSvgContent) {
+        setSavedSvgContent(savedLiveSvgContent || savedSavedSvgContent || null);
+      }
+
+      if (savedLastSvgFromNesting) {
+        setLastSvgFromNesting(savedLastSvgFromNesting);
+      }
     } catch (error) {
-      console.error('Failed to load pattern state:', error);
+      console.error("Failed to load pattern state:", error);
     }
   }, [currentDesign, getItem]);
 

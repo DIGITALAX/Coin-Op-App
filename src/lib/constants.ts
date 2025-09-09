@@ -1,11 +1,6 @@
 import { NetworkConfig } from "../components/Common/types/common.types";
-import {
-  TemplateChoice,
-} from "../components/Format/types/format.types";
-import {
-  Fulfiller,
-} from "../components/Fulfillment/types/fulfillment.types";
-import { Market } from "../components/Sell/types/sell.types";
+import { TemplateChoice } from "../components/Format/types/format.types";
+import { Fulfiller } from "../components/Fulfillment/types/fulfillment.types";
 
 export const INFURA_GATEWAY: string = "https://thedial.infura-ipfs.io";
 export type Environment = "testnet" | "mainnet";
@@ -40,20 +35,14 @@ export const CURRENT_ENVIRONMENT: Environment = (
   process.env.NODE_ENV === "production" ? "mainnet" : "testnet"
 ) as Environment;
 export const CURRENT_NETWORK = NETWORK_CONFIGS[CURRENT_ENVIRONMENT];
-export const MARKETS: Market[] = [
-  {
-    title: "Coin Op",
-    uri: "ipfs://",
-    address: ""
-  },
-];
+
 export const FULFILLERS: Fulfiller[] = [
   {
     title: "The Manufactory",
     uri: "ipfs://QmfCoKxKmrJw1fAgwqWh6a3MmJ1h8cv4jh2mQx15CrgyT5",
-    address: "0xdD35935C12E3748704C96492E5565d34daE73De7",
     base: 1,
-    vig: 5
+    vig: 5,
+    address: "0xdD35935C12E3748704C96492E5565d34daE73De7",
   },
 ];
 export const BASE_COLORS: string[] = ["#fff", "#000"];
@@ -102,6 +91,6 @@ export const pageMap: { [key in string]: string } = {
   ["Synth"]: "/Synth",
   ["Pattern"]: "/Pattern",
   ["Composite"]: "/Composite",
-  ["Fulfillment"]: "/Fulfillment",
+  ["Fulfill"]: "/Fulfill",
   ["Sell"]: "/Sell",
 };

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useApp } from "../../../context/AppContext";
 import { INFURA_GATEWAY } from "../../../lib/constants";
 import useChildren from "../hooks/useChildren";
@@ -7,6 +8,7 @@ import { useSynthCanvas } from "../hooks/useSynthCanvas";
 import { SynthCanvasProps } from "../types/synth.types";
 
 export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
+  const { t } = useTranslation();
   const { selectedLayer, selectedPatternChild, setSelectedPatternChild } =
     useApp();
   const {
@@ -50,7 +52,7 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
   if (!selectedLayer) {
     return (
       <div className="w-full h-full flex items-center justify-center border border-ama rounded">
-        <p className="text-white font-mana text-sm">No layer selected</p>
+        <p className="text-white font-mana text-sm">{t("no_layer_selected")}</p>
       </div>
     );
   }
@@ -66,7 +68,7 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
                 : "bg-gris text-white hover:opacity-70"
             }`}
           >
-            BRUSH
+            {t("brush")}
           </div>
           <div
             onClick={() => setTool("erase")}
@@ -76,10 +78,10 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
                 : "bg-gris text-white hover:opacity-70"
             }`}
           >
-            ERASER
+            {t("eraser")}
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-white font-mana text-xxxs">SIZE:</span>
+            <span className="text-white font-mana text-xxxs">{t("size")}:</span>
             <input
               type="range"
               min="1"
@@ -93,7 +95,7 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-white font-mana text-xxxs">COLOR:</span>
+            <span className="text-white font-mana text-xxxs">{t("color")}:</span>
             <input
               type="color"
               value={hex}
@@ -107,13 +109,13 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
             onClick={recenterCanvas}
             className="px-3 py-1.5 bg-gris hover:opacity-70 text-white rounded font-mana text-xxxs cursor-pointer"
           >
-            RECENTER
+            {t("recenter")}
           </div>
           <div
             onClick={saveCanvasToHistory}
             className="px-3 py-1.5 bg-gris hover:opacity-70 text-white rounded font-mana text-xxxs cursor-pointer"
           >
-            SAVE
+            {t("save")}
           </div>
           <div
             onClick={() => {
@@ -130,13 +132,13 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
             }}
             className="px-3 py-1.5 bg-gris hover:opacity-70 text-white rounded font-mana text-xxxs cursor-pointer"
           >
-            LOAD IMAGE
+            {t("load_image")}
           </div>
           <div
             onClick={clearCanvas}
             className="px-3 py-1.5 bg-gris hover:opacity-70 text-white rounded font-mana text-xxxs cursor-pointer"
           >
-            CLEAR
+            {t("clear")}
           </div>
           <div
             onClick={() => undoHistory.length > 0 && undo()}
@@ -147,7 +149,7 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
             }`}
             title="Undo (Ctrl+Z)"
           >
-            UNDO
+            {t("undo")}
           </div>
           <div
             onClick={() => redoHistory.length > 0 && redo()}
@@ -158,12 +160,12 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
             }`}
             title="Redo (Ctrl+Y)"
           >
-            REDO
+            {t("redo")}
           </div>
         </div>
         {selectedImageElement && (
           <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-ama">
-            <span className="text-white font-mana text-xxxs">SIZE:</span>
+            <span className="text-white font-mana text-xxxs">{t("size")}:</span>
             <HoldButton
               onAction={() => {
                 if (adjustImageWidth) adjustImageWidth(-5);
@@ -196,7 +198,7 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
             >
               H+
             </HoldButton>
-            <span className="text-white font-mana text-xxxs ml-2">MOVE:</span>
+            <span className="text-white font-mana text-xxxs ml-2">{t("move")}:</span>
             <HoldButton
               onAction={() => {
                 if (moveImage) moveImage(0, -3);
@@ -229,7 +231,7 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
             >
               →
             </HoldButton>
-            <span className="text-white font-mana text-xxxs ml-2">ROTATE:</span>
+            <span className="text-white font-mana text-xxxs ml-2">{t("rotate")}:</span>
             <div
               onClick={() => {
                 if (rotateImage) rotateImage(-15);
@@ -246,7 +248,7 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
             >
               ↷
             </div>
-            <span className="text-white font-mana text-xxxs ml-2">DELETE:</span>
+            <span className="text-white font-mana text-xxxs ml-2">{t("delete")}:</span>
             <div
               onClick={() => {
                 if (deleteImage) deleteImage();

@@ -1,4 +1,5 @@
 import { MouseEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { DesignCardExtendedProps } from "../types/activity.types";
 
 export default function DesignCard({
@@ -7,6 +8,7 @@ export default function DesignCard({
   onDelete,
   isDeleting = false,
 }: DesignCardExtendedProps) {
+  const { t } = useTranslation();
   const { design, stats } = designMetadata;
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('en-US', {
@@ -52,7 +54,7 @@ export default function DesignCard({
           <div className="w-full h-full flex items-center justify-center">
             <div className="text-gray-500 text-center">
               <div className="text-2xl mb-2">📐</div>
-              <div className="text-xs font-sat">No Preview</div>
+              <div className="text-xs font-sat">{t("no_preview")}</div>
             </div>
           </div>
         )}
@@ -60,7 +62,7 @@ export default function DesignCard({
           onClick={handleDelete}
           disabled={isDeleting}
           className="absolute top-2 right-2 w-6 h-6 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
-          title="Delete design"
+          title={t("delete_design")}
         >
           {isDeleting ? '⏳' : '×'}
         </button>
@@ -82,35 +84,35 @@ export default function DesignCard({
         <div className="grid grid-cols-3 gap-2 text-xs text-gray-500 font-sat mb-3">
           <div className="text-center">
             <div className="text-white font-satB">{stats.canvasHistoryCount}</div>
-            <div>Canvas</div>
+            <div>{t("canvas")}</div>
           </div>
           <div className="text-center">
             <div className="text-white font-satB">{stats.aiGenerationCount}</div>
-            <div>AI Gen</div>
+            <div>{t("ai_gen")}</div>
           </div>
           <div className="text-center">
             <div className="text-white font-satB">{stats.compositeCount}</div>
-            <div>Composite</div>
+            <div>{t("composite")}</div>
           </div>
         </div>
         <div className="text-xs text-gray-500 space-y-1">
           <div className="flex justify-between">
-            <span>Template:</span>
+            <span>{t("template")}:</span>
             <span className="font-mono">{design.templateId}</span>
           </div>
           <div className="flex justify-between">
-            <span>Layer:</span>
-            <span className="font-mono">{design.layerTemplateId}</span>
+            <span>{t("layer")}:</span>
+            <span className="font-mono">{design.frontLayerTemplateId}</span>
           </div>
           <div className="flex justify-between">
-            <span>Created:</span>
+            <span>{t("created")}:</span>
             <span>{formatDate(design.createdAt)}</span>
           </div>
         </div>
       </div>
       {isDeleting && (
         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="text-white font-sat text-sm">Deleting...</div>
+          <div className="text-white font-sat text-sm">{t("deleting")}</div>
         </div>
       )}
     </div>

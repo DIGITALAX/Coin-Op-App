@@ -1,4 +1,5 @@
 import { InteractiveCanvasProps, ShowCanvasProps } from "../types/synth.types";
+import { useTranslation } from "react-i18next";
 import useInteractive from "../hooks/useInteractive";
 import { useApp } from "../../../context/AppContext";
 import { getCurrentTemplate } from "../utils/templateHelpers";
@@ -8,6 +9,7 @@ export default function InteractiveCanvas({
   size = "small",
   onChildClick,
 }: InteractiveCanvasProps) {
+  const { t } = useTranslation();
   const { canFlip, flipCanvas, selectedLayer, isBackSide } = useApp();
   const currentTemplate = getCurrentTemplate(selectedLayer, isBackSide);
   const {
@@ -42,11 +44,13 @@ export default function InteractiveCanvas({
             onClick={flipCanvas}
             className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm rounded transition-colors"
           >
-            {isBackSide ? "Show Front" : "Show Back"}
+            {isBackSide ? t("show_front") : t("show_back")}
           </button>
         )}
         <ShowCanvas
-          key={`${isBackSide ? "back" : "front"}-${imageLoaded}-${templateChild?.uri || 'none'}`}
+          key={`${isBackSide ? "back" : "front"}-${imageLoaded}-${
+            templateChild?.uri || "none"
+          }`}
           canvasWidth={canvasWidth}
           templateChild={templateChild}
           size={size}
@@ -98,7 +102,7 @@ export default function InteractiveCanvas({
         }}
         className="w-full py-1 bg-ama hover:bg-ama/80 text-black font-bold text-xs transition-colors"
       >
-        {isCollapsed ? "Show Canvas" : "Hide Canvas"}
+        {isCollapsed ? t("show_canvas") : t("hide_canvas")}
       </button>
       {canFlip && (
         <button
@@ -108,12 +112,14 @@ export default function InteractiveCanvas({
           }}
           className="w-full py-1 bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs transition-colors"
         >
-          {isBackSide ? "Show Front" : "Show Back"}
+          {isBackSide ? t("show_front") : t("show_back")}
         </button>
       )}
       <div style={{ display: isCollapsed ? "none" : "block" }}>
         <ShowCanvas
-          key={`${isBackSide ? "back" : "front"}-${imageLoaded}-${templateChild?.uri || 'none'}`}
+          key={`${isBackSide ? "back" : "front"}-${imageLoaded}-${
+            templateChild?.uri || "none"
+          }`}
           canvasWidth={canvasWidth}
           templateChild={templateChild}
           size={size}
@@ -154,23 +160,8 @@ const ShowCanvas = ({
   onChildClick,
   onImageLoad,
 }: ShowCanvasProps & { onImageLoad: () => void }) => {
+  const { t } = useTranslation();
   const imageSrc = getImageSrc(baseTemplateChild?.child?.metadata?.image || "");
-  
-
-
-  const getHardcodedValues = (childUri: string) => {
-    const hardcodedMap: Record<
-      string,
-      { x: number; y: number; scale?: number; flip?: number; rotation?: number }
-    > = {
-     "ipfs://Qmc1hgGG3sCKmx88N3yvFmd1aMf3ph6hTnpLLd7qvMuFZE": {
-    scale: 0.7,
-            x: 1.5,
-            y: 1.6,
-     }
-    };
-    return hardcodedMap[childUri] || null;
-  };
 
   return (
     <div
@@ -181,7 +172,7 @@ const ShowCanvas = ({
         ref={imageRef}
         src={imageSrc}
         key={imageSrc}
-        alt="Base template"
+        alt={t("base_template")}
         draggable={false}
         onLoad={() => {
           if (canvasContainerRef.current && !canvasWidth) {
@@ -198,28 +189,14 @@ const ShowCanvas = ({
         }}
       />
       {(templateChild?.childReferences || [])
-        .filter(
-          (child) => 
-       child.child.metadata.tags.includes("zone")
-        )
+        .filter((child) => child.child.metadata.tags.includes("zone"))
         .map((child, index: number) => {
-         
-          const hardcodedValues = getHardcodedValues(
-            child.child.metadata.image
-          );
-          const finalX = hardcodedValues?.x ?? child.metadata.x;
-          const finalY = hardcodedValues?.y ?? child.metadata.y;
-          const finalScale = hardcodedValues?.scale ?? child.metadata.scale;
-          const finalFlip = hardcodedValues?.flip ?? child.metadata.flip;
-          const finalRotation =
-            hardcodedValues?.rotation ?? child.metadata.rotation;
-
           const pixelPosition = convertCoordinatesToPixels(
-            finalX,
-            finalY,
-            finalScale,
-            finalFlip,
-            finalRotation
+            child.metadata.x,
+            child.metadata.y,
+            child.metadata.scale,
+            child.metadata.flip,
+            child.metadata.rotation
           );
 
           if (!pixelPosition) {

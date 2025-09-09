@@ -160,6 +160,16 @@ html::-webkit-scrollbar-thumb:active {
   background-color: transparent !important;
 }
 
+
+
+button:hover {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+}
+
 div::-webkit-scrollbar {
   width: 0;
   height: 0;

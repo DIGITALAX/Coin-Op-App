@@ -1,16 +1,21 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useApp } from "../../../context/AppContext";
 import {
   FulfillmentSelection,
-  Fulfiller,
   Material,
 } from "../types/fulfillment.types";
 import { getCurrentTemplate } from "../../Synth/utils/templateHelpers";
 import useMaterials from "./useMaterials";
+import { useDesignContext } from "../../../context/DesignContext";
+import { useDesignStorage } from "../../Activity/hooks/useDesignStorage";
 const useFulfillment = () => {
+  const { t } = useTranslation();
   const { selectedLayer, isBackSide, selectedTemplate } = useApp();
   const currentTemplate = getCurrentTemplate(selectedLayer, isBackSide);
-  const { materials, loading, filterMaterialsByTag } = useMaterials();
+  const { loading, filterMaterialsByTag } = useMaterials();
+  const { currentDesign } = useDesignContext();
+  const { getItem, setItem } = useDesignStorage();
 
   const [fulfillmentSelection, setFulfillmentSelection] =
     useState<FulfillmentSelection>({
@@ -18,12 +23,27 @@ const useFulfillment = () => {
       baseColors: [],
       materials: [],
     });
-  const selectFulfiller = (fulfiller: Fulfiller) => {
-    setFulfillmentSelection((prev) => ({
-      ...prev,
-      fulfiller,
-    }));
-  };
+
+  useEffect(() => {
+    const loadFulfillmentData = async () => {
+      if (currentDesign?.id) {
+        const savedFulfillment = await getItem("fulfillment", currentDesign.id, null) as FulfillmentSelection | null;
+        if (savedFulfillment) {
+          setFulfillmentSelection(savedFulfillment);
+        }
+      }
+    };
+    loadFulfillmentData();
+  }, [currentDesign?.id, getItem]);
+
+  useEffect(() => {
+    const saveFulfillmentData = async () => {
+      if (currentDesign?.id && (fulfillmentSelection.baseColors.length > 0 || fulfillmentSelection.materials.length > 0)) {
+        await setItem("fulfillment", fulfillmentSelection, currentDesign.id);
+      }
+    };
+    saveFulfillmentData();
+  }, [fulfillmentSelection, currentDesign?.id, setItem]);
   const toggleBaseColor = (color: string) => {
     setFulfillmentSelection((prev) => ({
       ...prev,
@@ -62,24 +82,12 @@ const useFulfillment = () => {
   const formatPrice = (price: number) => {
     return price.toFixed(2);
   };
-  const getColorName = (hexColor: string) => {
+const getColorName = (hexColor: string) => {
     const colorMap: { [key: string]: string } = {
-      "#fff": "White",
-      "#000": "Black",
-      "#ff0000": "Red",
-      "#00ff00": "Green",
-      "#0000ff": "Blue",
+      "#fff": t("white"),
+      "#000": t("black"),
     };
     return colorMap[hexColor.toLowerCase()] || hexColor;
-  };
-  const getMaterialTypeForTemplate = (templateType: string) => {
-    if (templateType === "poster") {
-      return "print";
-    }
-    if (templateType === "sticker") {
-      return "print";
-    }
-    return "apparel";
   };
 
   const getFilteredMaterials = () => {
@@ -95,10 +103,8 @@ const useFulfillment = () => {
   };
   return {
     fulfillmentSelection,
-    selectFulfiller,
     toggleBaseColor,
     toggleMaterial,
-    calculateBaseTotal,
     calculateTotal,
     formatPrice,
     getColorName,

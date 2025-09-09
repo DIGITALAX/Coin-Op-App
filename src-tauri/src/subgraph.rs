@@ -104,6 +104,7 @@ pub struct Child {
 pub struct ChildMetadata {
     pub title: Option<String>,
     pub image: Option<String>,
+    pub description: Option<String>,
     pub tags: Option<Vec<String>>,
 }
 
@@ -296,6 +297,7 @@ pub async fn fetch_templates() -> Result<Vec<TemplateData>, String> {
               title
               image
               tags
+    
             }
           }
         }
@@ -433,6 +435,10 @@ pub async fn fetch_templates() -> Result<Vec<TemplateData>, String> {
                             .get("image")
                             .and_then(|v| v.as_str())
                             .map(|s| s.to_string());
+                           let description = meta
+                            .get("description")
+                            .and_then(|v| v.as_str())
+                            .map(|s| s.to_string());
                         let tags = meta
                             .get("tags")
                             .and_then(|v| v.as_array())
@@ -443,6 +449,7 @@ pub async fn fetch_templates() -> Result<Vec<TemplateData>, String> {
                             });
                         Some(ChildMetadata {
                             title,
+                            description,
                             image,
                             tags,
                         })
@@ -516,8 +523,6 @@ pub async fn fetch_templates() -> Result<Vec<TemplateData>, String> {
     Ok(template_data)
 }
 
-
-
 pub async fn fetch_children_materials() -> Result<Vec<ChildData>, String> {
     // let api_key = "";
 
@@ -536,6 +541,7 @@ pub async fn fetch_children_materials() -> Result<Vec<ChildData>, String> {
           title
           image
           tags
+          description
         }
         uri
       }
@@ -628,6 +634,10 @@ pub async fn fetch_children_materials() -> Result<Vec<ChildData>, String> {
                 .get("image")
                 .and_then(|v| v.as_str())
                 .map(|s| s.to_string());
+            let description = meta
+                .get("description")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string());
             let tags = meta
                 .get("tags")
                 .and_then(|v| v.as_array())
@@ -639,6 +649,7 @@ pub async fn fetch_children_materials() -> Result<Vec<ChildData>, String> {
             Some(ChildMetadata {
                 title,
                 image,
+                description,
                 tags,
             })
         } else {

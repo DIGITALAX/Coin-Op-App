@@ -1,4 +1,5 @@
 import { useState, useEffect, FunctionComponent } from "react";
+import { useTranslation } from "react-i18next";
 import {
   NestingSettings,
   ROTATION_PRESETS,
@@ -11,6 +12,7 @@ export const NestingSettingsPanel: FunctionComponent<NestingSettingsProps> = ({
   onSettingsChange,
   disabled,
 }) => {
+  const { t } = useTranslation();
   const [localSettings, setLocalSettings] = useState<NestingSettings>(settings);
   useEffect(() => {
     setLocalSettings(settings);
@@ -44,7 +46,7 @@ export const NestingSettingsPanel: FunctionComponent<NestingSettingsProps> = ({
   return (
     <div className="w-80 bg-oscuro/50 rounded p-2 space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-white font-mana text-sm">NESTING SETTINGS</h3>
+<h3 className="text-white font-mana text-sm">{t("nesting_settings")}</h3>
         <button
           onClick={resetToDefaults}
           disabled={disabled}
@@ -54,20 +56,20 @@ export const NestingSettingsPanel: FunctionComponent<NestingSettingsProps> = ({
               : "bg-gris hover:opacity-70 text-white cursor-pointer"
           }`}
         >
-          RESET
+{t("reset")}
         </button>
       </div>
       {disabled && (
         <div className="bg-ama/20 border border-ama/30 rounded p-2">
           <div className="text-ama text-xxxs font-mana">
-            Settings locked during optimization
+{t("settings_locked_optimization")}
           </div>
         </div>
       )}
       <div className="space-y-4">
         <div>
           <label className="block text-white/70 text-xxxs font-mana mb-2">
-            MINIMUM SPACING (mm)
+{t("minimum_spacing_mm")}
           </label>
           <div className="flex items-center gap-2">
             <input
@@ -87,15 +89,15 @@ export const NestingSettingsPanel: FunctionComponent<NestingSettingsProps> = ({
             </span>
           </div>
           <div className="text-white/40 text-xxxs mt-1">
-            Space between pattern pieces (0.0 = touching edges)
+{t("space_between_pattern_pieces")}
           </div>
         </div>
         <div>
           <label className="block text-white/70 text-xxxs font-mana mb-2">
-            ROTATION ANGLES
+{t("rotation_angles")}
           </label>
           <select
-            value={currentRotationPreset?.name || "Custom"}
+value={currentRotationPreset?.name || t("custom")}
             onChange={(e) => {
               const preset = ROTATION_PRESETS.find(
                 (p) => p.name === e.target.value
@@ -114,23 +116,23 @@ export const NestingSettingsPanel: FunctionComponent<NestingSettingsProps> = ({
                 {preset.name}
               </option>
             ))}
-            {!currentRotationPreset && <option value="Custom">Custom</option>}
+{!currentRotationPreset && <option value="Custom">{t("custom")}</option>}
           </select>
           <div className="text-white/40 text-xxxs mt-1">
             {currentRotationPreset
               ? `${
                   currentRotationPreset.angles.length
-                } angles: ${currentRotationPreset.angles
+} ${t("angles")}: ${currentRotationPreset.angles
                   .slice(0, 4)
                   .join(", ")}${
                   currentRotationPreset.angles.length > 4 ? "..." : ""
                 }`
-              : `${localSettings.allowedRotations.length} custom angles`}
+              : `${localSettings.allowedRotations.length} ${t("custom_angles")}`}
           </div>
         </div>
         <div>
           <label className="block text-white/70 text-xxxs font-mana mb-2">
-            LAYOUT WIDTH FACTOR
+{t("layout_width_factor")}
           </label>
           <div className="flex items-center gap-2">
             <input
@@ -150,13 +152,13 @@ export const NestingSettingsPanel: FunctionComponent<NestingSettingsProps> = ({
             </span>
           </div>
           <div className="text-white/40 text-xxxs mt-1">
-            Higher values = wider layouts (less vertical stacking)
+{t("higher_values_wider_layouts")}
           </div>
         </div>
 
         <div>
           <label className="block text-white/70 text-xxxs font-mana mb-2">
-            ITERATION LIMIT
+{t("iteration_limit")}
           </label>
           <div className="flex items-center gap-2">
             <input

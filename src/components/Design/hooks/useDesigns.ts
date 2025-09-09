@@ -219,6 +219,7 @@ export const useDesigns = () => {
           "aiGenerationHistory",
           "composite_canvasHistory",
           "comfyui-settings",
+          "fulfillment",
           "pattern"
         ];
         for (const dataType of dataTypes) {

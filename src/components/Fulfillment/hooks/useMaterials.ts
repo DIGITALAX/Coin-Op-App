@@ -16,7 +16,7 @@ const useMaterials = () => {
       
       const materialsData: Material[] = childrenData.map((child) => ({
         title: child.metadata?.title || "Unknown Material",
-        description: `Type: ${child.child_type}`,
+        description: child.metadata?.description,
         price: parseFloat(child.price) / 1e18,
         type: child.child_type,
         tags: child.metadata?.tags || [],

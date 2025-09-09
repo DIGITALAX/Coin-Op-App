@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import PageNavigation from "../../Common/modules/PageNavigation";
 import SynthCanvas from "./SynthCanvas";
 import { useApp } from "../../../context/AppContext";
@@ -15,6 +16,7 @@ import { useLibrary } from "../../../context/LibraryContext";
 import { getCurrentTemplate } from "../utils/templateHelpers";
 
 export default function Synth() {
+  const { t } = useTranslation();
   const {
     selectedLayer,
     selectLayer,
@@ -257,27 +259,27 @@ export default function Synth() {
     <div className="relative w-full h-full flex flex-col p-4 bg-black">
       <div className="mb-6">
         <h2 className="text-lg font-satB text-white tracking-wider mb-2">
-          SYNTH CANVAS
+          {t("synth_canvas")}
         </h2>
         {currentDesign && (
           <p className="text-ama font-mana text-xxxs mb-2">
-            Project: {currentDesign.name}
+            {t("project")}: {currentDesign.name}
           </p>
         )}
         {selectedLayer ? (
           <p className="text-white font-mana text-xxxs">
-            Layer: TID-{selectedLayer.front.templateId} | Price: $
+            {t("layer")}: TID-{selectedLayer.front.templateId} | {t("price")}: $
             {(
               (Number(selectedLayer.front.price) +
                 selectedLayer.front.childReferences.reduce((acc) => acc, 0)) /
               10 ** 18
             ).toFixed(2)}{" "}
-            | Children: {selectedLayer.front.childReferences?.length || 0}
-            {selectedLayer.back && ` + Back: TID-${selectedLayer.back.templateId}`}
+            | {t("children")}: {selectedLayer.front.childReferences?.length || 0}
+            {selectedLayer.back && ` + ${t("back")}: TID-${selectedLayer.back.templateId}`}
           </p>
         ) : (
           <p className="text-red-400 font-mana text-xxxs">
-            No layer selected. Please go to Layer page and select a layer first.
+            {t("no_layer_selected")}
           </p>
         )}
       </div>
@@ -309,8 +311,8 @@ export default function Synth() {
               <div className="h-full flex items-center justify-center">
                 <p className="text-gray-400 font-sat text-sm">
                   {!selectedTemplate
-                    ? "Select a template to start creating"
-                    : "Select a layer to enable canvas"}
+                    ? t("select_template_to_start")
+                    : t("select_layer_to_enable")}
                 </p>
               </div>
             )}

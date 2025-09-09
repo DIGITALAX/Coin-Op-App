@@ -794,8 +794,9 @@ const useGenerator = ({
         if (attempts >= maxAttempts) {
           throw new Error("Generation timed out");
         }
-        const imageUrl =
-          (prediction as any).output?.[0] || (prediction as any).output;
+        const imageUrl = Array.isArray((prediction as any).output) 
+          ? (prediction as any).output.find((url: string) => typeof url === 'string' && url.startsWith('http'))
+          : (prediction as any).output;
         if (!imageUrl) {
           throw new Error("No output image from Replicate");
         }

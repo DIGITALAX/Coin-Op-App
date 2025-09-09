@@ -20,7 +20,7 @@ export enum Walkthrough {
   Synth = "Synth",
   Composite = "Composite",
   Pattern = "Pattern",
-  Fulfillment = "Fulfillment",
+  Fulfill = "Fulfill",
   Sell = "Sell",
 }
 
@@ -128,4 +128,15 @@ export interface LibraryContextType {
   deleteSynthPrompt: (id: string) => Promise<void>;
   deleteCompositePrompt: (id: string) => Promise<void>;
   refreshLibrary: () => Promise<void>;
+}
+
+export interface LanguageContextType {
+  currentLanguage: string;
+  changeLanguage: (language: string) => Promise<void>;
+  isLoading: boolean;
+}
+
+
+export interface LanguageProviderProps {
+  children: React.ReactNode;
 }

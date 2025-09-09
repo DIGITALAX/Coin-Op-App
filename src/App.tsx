@@ -19,13 +19,48 @@ function App() {
           <Routes>
             <Route path="/" element={<Format />} />
             <Route path="/Layer" element={<Layer />} />
-            <Route path="/Synth" element={<ProjectGuard><Synth /></ProjectGuard>} />
-            <Route path="/Composite" element={<ProjectGuard><Composite /></ProjectGuard>} />
-            <Route path="/Fulfillment" element={<ProjectGuard><Fulfillment /></ProjectGuard>} />
-            <Route path="/Sell" element={<Sell />} />
+            <Route
+              path="/Synth"
+              element={
+                <ProjectGuard>
+                  <Synth />
+                </ProjectGuard>
+              }
+            />
+            <Route
+              path="/Composite"
+              element={
+                <ProjectGuard>
+                  <Composite />
+                </ProjectGuard>
+              }
+            />
+            <Route
+              path="/Fulfill"
+              element={
+                <ProjectGuard>
+                  <Fulfillment />
+                </ProjectGuard>
+              }
+            />
+            <Route
+              path="/Sell"
+              element={
+                <ProjectGuard>
+                  <Sell />
+                </ProjectGuard>
+              }
+            />
             <Route path="/About" element={<About />} />
             <Route path="/Activity" element={<Activity />} />
-            <Route path="/Pattern" element={<ProjectGuard><Pattern /></ProjectGuard>} />
+            <Route
+              path="/Pattern"
+              element={
+                <ProjectGuard>
+                  <Pattern />
+                </ProjectGuard>
+              }
+            />
           </Routes>
         </div>
       </div>

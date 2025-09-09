@@ -41,7 +41,13 @@ user-settings/
 # Rust development files
 **/*.rs.bk
 target/
+**/target/
 Cargo.lock
+
+# Sparrow-specific files
+sparrow/output/
+sparrow/data/live/.live_solution.svg
+**/.live_solution.svg
 
 # Tauri build files
 src-tauri/gen/

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { INFURA_GATEWAY } from "../../../lib/constants";
 import { useApp } from "../../../context/AppContext";
 import useFormat from "../hooks/useFormat";
@@ -5,8 +6,9 @@ import PageNavigation from "../../Common/modules/PageNavigation";
 import { Link } from "react-router-dom";
 import { TemplateChoice } from "../types/format.types";
 export default function Format() {
+  const { t } = useTranslation();
   const { selectedTemplate, selectTemplate, groupedTemplates, isLoadingTemplates } = useApp();
-  const { getTemplateCategory } = useFormat();
+  const { getTemplateCategory, getTemplateTypeName } = useFormat();
 
   if (isLoadingTemplates) {
     return (
@@ -14,7 +16,7 @@ export default function Format() {
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ama"></div>
           <div className="text-white font-satB text-lg tracking-wider">
-            Cargando Templates...
+            {t('loading_templates')}
           </div>
         </div>
         <PageNavigation currentPage="/" />
@@ -26,7 +28,7 @@ export default function Format() {
     <div className="relative w-full h-full flex items-center justify-center">
       <div className="mb-6">
         <h2 className="text-lg font-satB text-white tracking-wider mb-4">
-          SELECT TEMPLATE
+          {t('select_template')}
         </h2>
         <div className="flex gap-4 pb-2">
           {groupedTemplates.map((template) => (
@@ -55,7 +57,7 @@ export default function Format() {
                   </div>
                   <div className="relative w-full h-fit flex items-center justify-end text-right break-all">
                     <div className="relative w-fit h-fit flex">
-                      {"> " + template.name?.toUpperCase()}
+                      {"> " + getTemplateTypeName(template.template_type as TemplateChoice["type"]).toUpperCase()}
                     </div>
                   </div>
                 </div>

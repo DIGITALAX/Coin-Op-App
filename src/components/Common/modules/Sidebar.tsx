@@ -1,7 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Walkthrough } from "../types/common.types";
 import { pageMap } from "../../../lib/constants";
 export default function Sidebar() {
+  const { t } = useTranslation();
   const location = useLocation();
   return (
     <div
@@ -32,7 +34,7 @@ export default function Sidebar() {
                     : "text-white"
                 }`}
               >
-                {item}
+                {t(item)}
               </div>
             </Link>
           );
@@ -41,12 +43,12 @@ export default function Sidebar() {
       <div className="relative w-full h-fit flex flex-col items-center justify-start gap-6">
         <div className="relative w-full h-fit flex flex-col gap-2 justify-start items-start text-sm text-left">
           {[
-            { name: "About", href: "/About" },
-            { name: "Activity", href: "/Activity" },
+            { name: t("about"), href: "/About" },
+            { name: t("activity"), href: "/Activity" },
           ].map((item) => {
             return (
               <Link
-                key={item.name}
+                key={item.href}
                 to={item.href}
                 className="relative whitespace-nowrap w-fit h-fit flex text-noche hover:text-amarillo font-satB cursor-pointer"
               >

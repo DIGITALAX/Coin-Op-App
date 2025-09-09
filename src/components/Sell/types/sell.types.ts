@@ -1,19 +1,23 @@
-import { Design } from "../../Design/types/design.types";
-
-export interface Market {
-  title: string;
-  uri: string;
-  address: string;
+export interface SellData {
+  composite_front: string;
+  composite_back?: string;
+  fulfiller_address: string;
+  custom_fields: {
+    colors: string[];
+    materials: Array<{
+      childId: string;
+      childContract: string;
+    }>;
+    template_contract: string;
+    template_id: string;
+    zone_children: Array<{
+      image: string;
+      location: "front" | "back";
+    }>;
+  };
 }
 
 export interface UseSellReturn {
-  selectedProject: Design | null;
-  selectedMarket: Market | null;
-  setSelectedProject: (project: Design | null) => void;
-  setSelectedMarket: (market: Market | null) => void;
-  showMarketSelector: boolean;
-  setShowMarketSelector: (show: boolean) => void;
-  handleSellProject: (project: Design) => void;
-  handleMarketSelection: (market: Market) => void;
-  cancelSell: () => void;
+  handleCoinOpMarket: () => Promise<void>;
+  isProcessing: boolean;
 }

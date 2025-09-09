@@ -530,7 +530,7 @@ pub fn run() {
                 parse_comfyui_workflow,
                 get_node_info,
                 comfyui_get_models,
-                pattern_export::export_multi_page_pattern_print,
+                pattern_export::export_pattern_to_pdf,
                 pattern_nesting::nest_pattern_pieces,
                 pattern_nesting::get_live_sparrow_svg,
                 pattern_nesting::get_sparrow_stats,

@@ -3,13 +3,10 @@ import { useDesignContext } from "../../../context/DesignContext";
 import { useApp } from "../../../context/AppContext";
 import { usePatternExport } from "../../Synth/hooks/usePatternExport";
 import { useInteractiveCanvasCapture } from "../../Synth/hooks/useInteractiveCanvasCapture";
-import { PatternPiece, Size } from "../types/pattern.types";
 
 export const usePattern = () => {
-  const [selectedPieces, setSelectedPieces] = useState<PatternPiece[]>([]);
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [showSewingExportDialog, setShowSewingExportDialog] = useState(false);
-  const [selectedSize, setSelectedSize] = useState<Size>("M");
   
   const { currentDesign } = useDesignContext();
   const { selectedTemplate } = useApp();
@@ -22,20 +19,6 @@ export const usePattern = () => {
     );
   }, [selectedTemplate]);
 
-  const handleSelectPieces = useCallback(
-    (pieces: PatternPiece[], size: Size) => {
-      setSelectedPieces(pieces);
-      setSelectedSize(size);
-    },
-    []
-  );
-
-  const handleSizeChange = useCallback((pieces: PatternPiece[], size: Size) => {
-    setSelectedPieces(pieces);
-    setSelectedSize(size);
-  }, []);
-
-  
 
   const handleExportPattern = useCallback(async () => {
     if (!captureInteractiveCanvasAt300DPI) return;
@@ -54,8 +37,6 @@ export const usePattern = () => {
   }, [captureInteractiveCanvasAt300DPI, currentDesign, exportPatternSet]);
 
   return {
-    selectedPieces,
-    selectedSize,
     showExportDialog,
     showSewingExportDialog,
     setShowExportDialog,
@@ -63,8 +44,6 @@ export const usePattern = () => {
     isExporting,
     exportProgress,
     isApplicableTemplate,
-    handleSelectPieces,
-    handleSizeChange,
     handleExportPattern,
     currentDesign,
     selectedTemplate
