@@ -7,8 +7,12 @@ const Blender: FunctionComponent = () => {
   
   return (
    <div className="relative w-full h-full flex flex-col">
-       
         <PageNavigation currentPage="/Blender" />
+        <div className="flex-1 flex flex-col items-center justify-center text-center">
+          <div className="font-manu text-white text-lg">
+            {t("blender_compatibility_coming_soon")}
+          </div>
+        </div>
       </div>
   );
 };

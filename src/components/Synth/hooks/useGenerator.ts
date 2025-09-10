@@ -73,8 +73,6 @@ const useGenerator = ({
     numInferenceSteps: 4,
     aspectRatio: "1:1",
   });
-  const [showInferenceStepsDropdown, setShowInferenceStepsDropdown] =
-    useState<boolean>(false);
   const [showAspectRatioDropdown, setShowAspectRatioDropdown] =
     useState<boolean>(false);
   const [showApiKey, setShowApiKey] = useState<boolean>(false);
@@ -100,7 +98,7 @@ const useGenerator = ({
     try {
       const savedProvider = await getItem("aiProvider", mode, "openai");
       setAiProvider(savedProvider || "openai");
-      const savedApiKeys = await getItem("apiKeys", mode, {
+      const savedApiKeys = await getItem("api-keys", "global", {
         openai: "",
         replicate: "",
         comfy: "",
@@ -161,7 +159,7 @@ const useGenerator = ({
           aspectRatio: "1:1",
         }
       );
-      const savedComfySettings = await getItem("comfyui-settings", mode, {
+      const savedComfySettings = await getItem("comfyui-settings", "global", {
         url: "http://localhost:8188",
         workflowJson: null,
         workflowFileName: "",
@@ -193,11 +191,6 @@ const useGenerator = ({
     setPrompt("");
     setUseCanvasAsInput(true);
     setOverwriteCanvas(false);
-    setApiKeys({
-      openai: "",
-      replicate: "",
-      comfy: "",
-    });
     setOpenAiSettings({
       style: "vivid",
       quality: "standard",
@@ -245,10 +238,10 @@ const useGenerator = ({
   }, [aiProvider, mode, setItem]);
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      setItem("api-keys", apiKeys, mode).catch(() => {});
+      setItem("api-keys", apiKeys, "global").catch(() => {});
     }, 300);
     return () => clearTimeout(timeoutId);
-  }, [apiKeys, mode, setItem]);
+  }, [apiKeys, setItem]);
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       const promptKey =
@@ -288,10 +281,10 @@ const useGenerator = ({
   }, [replicateSettings, mode, setItem]);
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      setItem("comfyui-settings", comfySettings, mode).catch(() => {});
+      setItem("comfyui-settings", comfySettings, "global").catch(() => {});
     }, 300);
     return () => clearTimeout(timeoutId);
-  }, [comfySettings, mode, setItem]);
+  }, [comfySettings, setItem]);
   const providerOptions = [
     { value: "openai", label: "OPENAI API" },
     { value: "replicate", label: "REPLICATE API" },
@@ -338,7 +331,7 @@ const useGenerator = ({
     };
     setApiKeys(newApiKeys);
     try {
-      await setItem("api-keys", newApiKeys);
+      await setItem("api-keys", newApiKeys, "global");
     } catch (error) {
     }
   };
@@ -346,7 +339,7 @@ const useGenerator = ({
     const newSettings = { ...comfySettings, url: value };
     setComfySettings(newSettings);
     try {
-      await setItem("comfyui-settings", newSettings, mode);
+      await setItem("comfyui-settings", newSettings, "global");
     } catch (error) {
     }
   };
@@ -415,7 +408,7 @@ const useGenerator = ({
           hasImageInput: hasImageInput,
         };
         setComfySettings(newSettings);
-        await setItem("comfyui-settings", newSettings, mode);
+        await setItem("comfyui-settings", newSettings, "global");
         if (promptNodes.length > 0) {
           setPrompt(promptNodes[0].currentText);
         }
@@ -758,6 +751,7 @@ const useGenerator = ({
             canvasDataURL = getCanvasDataURL();
           }
           if (canvasDataURL) {
+       
             input.image = canvasDataURL;
           }
         }
@@ -956,8 +950,6 @@ const useGenerator = ({
     getOpenAiInputFidelityOptions,
     setShowInputFidelityDropdown,
     openAiSettings,
-    showInferenceStepsDropdown,
-    setShowInferenceStepsDropdown,
     setReplicateSettings,
     setShowAspectRatioDropdown,
     setShowQualityDropdown,

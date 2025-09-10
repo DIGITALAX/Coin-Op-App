@@ -60,8 +60,6 @@ export default function Generator({
     getOpenAiInputFidelityOptions,
     setShowInputFidelityDropdown,
     openAiSettings,
-    showInferenceStepsDropdown,
-    setShowInferenceStepsDropdown,
     setReplicateSettings,
     setShowAspectRatioDropdown,
     setShowQualityDropdown,
@@ -887,47 +885,24 @@ export default function Generator({
                   <label className="block text-sm font-sat text-gray-400 mb-2">
                     {t("inference_steps")}
                   </label>
-                  <div className="relative">
-                    <div
-                      onClick={() =>
-                        setShowInferenceStepsDropdown(
-                          !showInferenceStepsDropdown
-                        )
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={replicateSettings.numInferenceSteps}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      if (value >= 1 && value <= 100) {
+                        setReplicateSettings({
+                          ...replicateSettings,
+                          numInferenceSteps: value,
+                        });
                       }
-                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded font-sat text-sm cursor-pointer flex items-center justify-between"
-                    >
-                      <span>{replicateSettings.numInferenceSteps}</span>
-                      <svg
-                        className={`w-4 h-4 fill-current text-gray-400 transition-transform ${
-                          showInferenceStepsDropdown ? "rotate-180" : ""
-                        }`}
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M5.516 7.548L10 12.032l4.484-4.484L16 9.064l-6 6-6-6z" />
-                      </svg>
-                    </div>
-                    {showInferenceStepsDropdown && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-gray-700 border border-gray-600 rounded font-sat text-sm z-20">
-                        {[1, 2, 3, 4].map((steps) => (
-                          <div
-                            key={steps}
-                            onClick={() => {
-                              setReplicateSettings({
-                                ...replicateSettings,
-                                numInferenceSteps: steps,
-                              });
-                              setShowInferenceStepsDropdown(false);
-                            }}
-                            className="px-3 py-2 text-white hover:bg-gray-600 cursor-pointer"
-                          >
-                            {steps}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                    }}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded font-sat text-sm"
+                  />
                   <p className="text-xs font-sat text-gray-500 mt-1">
-                    Higher = better quality, slower
+                    Higher = better quality, slower (1-100)
                   </p>
                 </div>
                 <div>

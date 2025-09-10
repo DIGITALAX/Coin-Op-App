@@ -31,6 +31,36 @@ export default function Composite() {
   const handleHistoryImageSelected = (imageUrl: string) => {
     setGeneratedImage(imageUrl);
   };
+  
+  const handleDownloadCanvas = async () => {
+    if (!compositeCanvasRef.current) return;
+    
+    const dataURL = await compositeCanvasRef.current.captureCanvas();
+    if (!dataURL) return;
+    
+    const { save } = await import('@tauri-apps/plugin-dialog');
+    
+    const filePath = await save({
+      defaultPath: `composite_${currentTemplate?.templateId}_${isBackSide ? 'back' : 'front'}_${Date.now()}.png`,
+      filters: [
+        {
+          name: 'PNG Image',
+          extensions: ['png']
+        },
+        {
+          name: 'JPEG Image', 
+          extensions: ['jpg', 'jpeg']
+        }
+      ]
+    });
+    
+    if (filePath) {
+      const { writeFile } = await import('@tauri-apps/plugin-fs');
+      const base64Data = dataURL.split(',')[1];
+      const buffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+      await writeFile(filePath, buffer);
+    }
+  };
   useEffect(() => {
     const loadLibraryItem = async () => {
       const compositePromptId = localStorage.getItem("loadCompositePromptId");
@@ -76,14 +106,22 @@ export default function Composite() {
           <div className="flex-1 border border-ama rounded-lg p-4 bg-gray-800 max-w-2xl">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-white font-satB text-sm">{t("composite_canvas")}</h3>
-              {generatedImage && (
+              <div className="flex gap-2">
                 <button
-                  onClick={deleteGeneratedImage}
-                  className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors"
+                  onClick={handleDownloadCanvas}
+                  className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors"
                 >
-                  {t("clear_background")}
+                  {t("download_canvas")}
                 </button>
-              )}
+                {generatedImage && (
+                  <button
+                    onClick={deleteGeneratedImage}
+                    className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors"
+                  >
+                    {t("clear_background")}
+                  </button>
+                )}
+              </div>
             </div>
             <CompositeCanvas
               ref={compositeCanvasRef}

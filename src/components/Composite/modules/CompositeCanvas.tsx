@@ -74,25 +74,29 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
     const canvasHeight = 600;
     const getStorageKey = useCallback(() => {
       if (!selectedLayer) return null;
-      return `compositeCanvasChildren_${currentTemplate?.templateId}`;
-    }, [selectedLayer]);
+      const side = isBackSide ? 'back' : 'front';
+      return `compositeCanvasChildren_${currentTemplate?.templateId}_${side}`;
+    }, [selectedLayer, isBackSide, currentTemplate?.templateId]);
 
     useEffect(() => {
       const loadChildren = async () => {
         const key = getStorageKey();
-        if (!key) return;
+        if (!key) {
+          setChildren([]);
+          setIsLoaded(true);
+          return;
+        }
         try {
           const savedChildren = await getItem(key, "composite", []);
-          if (Array.isArray(savedChildren) && savedChildren.length > 0) {
-            setChildren(savedChildren);
-          }
+          setChildren(Array.isArray(savedChildren) ? savedChildren : []);
           setIsLoaded(true);
         } catch (error) {
+          setChildren([]);
           setIsLoaded(true);
         }
       };
       loadChildren();
-    }, [getStorageKey, getItem]);
+    }, [getStorageKey, getItem, isBackSide]);
 
     useEffect(() => {
       if (!isLoaded) return;

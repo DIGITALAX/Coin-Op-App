@@ -20,4 +20,6 @@ export interface SellData {
 export interface UseSellReturn {
   handleCoinOpMarket: () => Promise<void>;
   isProcessing: boolean;
+  hasComposite: boolean;
+  isCheckingComposite: boolean;
 }

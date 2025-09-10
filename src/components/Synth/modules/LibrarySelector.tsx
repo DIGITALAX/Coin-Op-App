@@ -49,7 +49,7 @@ export default function LibrarySelector({ type, mode = 'synth', onSelect, onSave
   if (showSaveModal) {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-oscuro border border-oscurazul rounded-lg p-6 w-full max-w-md mx-4">
+        <div className="bg-black border border-oscurazul rounded-lg p-6 w-full max-w-md mx-4">
           <h3 className={`font-satB text-lg ${typeColor} mb-4`}>
             {type === 'workflow' ? t('save_workflow_to_library') : t('save_prompt_to_library')}
           </h3>

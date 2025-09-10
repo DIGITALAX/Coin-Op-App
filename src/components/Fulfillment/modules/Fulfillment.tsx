@@ -20,7 +20,7 @@ export default function Fulfillment() {
   const currentTemplate = getCurrentTemplate(selectedLayer, isBackSide);
   const { addToCart } = useCart();
   const { currentDesign } = useDesignContext();
-  const { getItem, setItem } = useDesignStorage();
+  const { getItem } = useDesignStorage();
   const {
     fulfillmentSelection,
     toggleBaseColor,
@@ -65,18 +65,6 @@ export default function Fulfillment() {
           flipCanvas();
           await new Promise((resolve) => setTimeout(resolve, 400));
         }
-        await Promise.all([
-          setItem(
-            `compositeCanvasCapture_${currentTemplate?.templateId}_front`,
-            captures.front,
-            "composite"
-          ),
-          setItem(
-            `compositeCanvasCapture_${currentTemplate?.templateId}_back`,
-            captures.back,
-            "composite"
-          ),
-        ]);
       } catch (error) {}
     }
     const [compositeImages, childrenCanvasData] = await Promise.all([

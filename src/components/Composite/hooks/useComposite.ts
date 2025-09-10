@@ -46,20 +46,6 @@ const useComposite = (
   }, []);
 
 
-  const captureAndSaveComposite = useCallback(async () => {
-    if (!selectedLayer || !compositeCanvasRef?.current) {
-      return;
-    }
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      const canvasDataURL = await compositeCanvasRef.current.captureCanvas();
-      if (canvasDataURL) {
-        const side = isBackSide ? "back" : "front";
-        const captureKey = `compositeCanvasCapture_${selectedLayer.templateId}_${side}`;
-        await setItem(captureKey, canvasDataURL, "composite");
-      }
-    } catch (error) {}
-  }, [selectedLayer, compositeCanvasRef, isBackSide, setItem]);
 
   const handleChildClick = useCallback(
     async (childUri: string) => {
@@ -130,7 +116,6 @@ const useComposite = (
     handleImageGenerated,
     deleteGeneratedImage,
     setGeneratedImage,
-    captureAndSaveComposite,
   };
 };
 export default useComposite;

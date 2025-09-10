@@ -6,7 +6,7 @@ import { useSell } from "../hooks/useSell";
 export default function Sell() {
   const { t } = useTranslation();
   const { currentDesign } = useDesignContext();
-  const { handleCoinOpMarket, isProcessing } = useSell();
+  const { handleCoinOpMarket, isProcessing, hasComposite, isCheckingComposite } = useSell();
 
   if (!currentDesign) {
     return (
@@ -58,10 +58,22 @@ export default function Sell() {
                   </div>
                   <button
                     onClick={handleCoinOpMarket}
-                    disabled={isProcessing}
-                    className="w-full py-3 bg-ama hover:bg-ama/90 disabled:bg-gray-600 disabled:text-gray-400 text-black font-satB text-sm rounded transition-colors"
+                    disabled={isProcessing || isCheckingComposite || !hasComposite}
+                    className={`w-full py-3 font-satB text-sm rounded transition-colors ${
+                      isCheckingComposite || !hasComposite
+                        ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                        : isProcessing
+                        ? "bg-gray-600 text-gray-400"
+                        : "bg-ama hover:bg-ama/90 text-black"
+                    }`}
                   >
-                    {isProcessing ? t("sending") : t("send_to_fgo")}
+                    {isCheckingComposite
+                      ? t("loading")
+                      : !hasComposite
+                      ? t("complete_composite")
+                      : isProcessing
+                      ? t("sending")
+                      : t("send_to_coin")}
                   </button>
                 </div>
 
