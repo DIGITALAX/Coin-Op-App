@@ -256,5 +256,11 @@
   "default": "DEFAULT",
   "modified": "Modified",
   "close": "CLOSE",
-  "create_with_fgo": "CREATE WITH FGO"
+  "create_with_fgo": "CREATE WITH FGO",
+  "hoodie_size": "Hoodie Size",
+  "shirt_size": "Shirt Size",
+  "custom_size": "Custom Size",
+  "custom_front_panel_dimensions": "Custom Front Panel Dimensions (Cut on Fold)",
+  "width_cm": "Width (cm)",
+  "height_cm": "Height (cm)"
 }

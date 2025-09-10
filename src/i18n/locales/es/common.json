@@ -255,5 +255,11 @@
   "default": "PREDETERMINADO",
   "modified": "Modificado",
   "close": "CERRAR",
-  "create_with_fgo": "CREAR CON FGO"
+  "create_with_fgo": "CREAR CON FGO",
+  "hoodie_size": "Tamaño de Sudadera",
+  "shirt_size": "Tamaño de Camiseta",
+  "custom_size": "Tamaño Personalizado",
+  "custom_front_panel_dimensions": "Dimensiones Personalizadas del Panel Frontal (Cortar en Pliegue)",
+  "width_cm": "Ancho (cm)",
+  "height_cm": "Alto (cm)"
 }

@@ -1,6 +1,6 @@
-import { FunctionComponent, useState, useCallback } from "react";
+import { FunctionComponent, useState, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { HoodieSize, ExportDialogProps } from "../types/pattern.types";
+import { GarmentSize, ExportDialogProps, HOODIE_FRONT_PANEL_DIMENSIONS, SHIRT_FRONT_PANEL_DIMENSIONS } from "../types/pattern.types";
 import { useSvgExport } from "../hooks/useSvgExport";
 
 export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
@@ -13,21 +13,37 @@ export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
 }) => {
   const { t } = useTranslation();
   const { exportSvgToPdf } = useSvgExport();
-  const [size, setSize] = useState<HoodieSize>("M");
+  const [size, setSize] = useState<GarmentSize | "CUSTOM">("M");
   const [isExporting, setIsExporting] = useState(false);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
+  const [customWidth, setCustomWidth] = useState<string>("34.8");
+  const [customHeight, setCustomHeight] = useState<string>("65.8");
+
+  const garmentType = useMemo(() => {
+    return patternPieces?.[0]?.garmentType || "hoodie";
+  }, [patternPieces]);
+
+  const isShirt = garmentType === "tshirt";
+  const dimensionTable = isShirt ? SHIRT_FRONT_PANEL_DIMENSIONS : HOODIE_FRONT_PANEL_DIMENSIONS;
 
   const handleExport = useCallback(async () => {
     setIsExporting(true);
     setExportStatus("Preparing export...");
 
     try {
+      const customDimensions = size === "CUSTOM" ? {
+        widthCm: parseFloat(customWidth),
+        heightCm: parseFloat(customHeight)
+      } : undefined;
+
       const result = await exportSvgToPdf(
         svgElement,
         viewportPx,
         size,
         patternPieces,
-        liveSvgContent
+        liveSvgContent,
+        customDimensions,
+        garmentType
       );
 
       if (result.success) {
@@ -54,6 +70,8 @@ export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
     onClose,
     patternPieces,
     liveSvgContent,
+    customWidth,
+    customHeight,
   ]);
 
   if (!isOpen) return null;
@@ -76,25 +94,65 @@ export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
         <div className="space-y-4 mb-6">
           <div>
             <label className="block text-white font-mana text-xs mb-2">
-              Hoodie Size
+              {isShirt ? t("shirt_size") : t("hoodie_size")}
             </label>
             <select
               value={size}
-              onChange={(e) => setSize(e.target.value as HoodieSize)}
+              onChange={(e) => setSize(e.target.value as GarmentSize)}
               className="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 font-mana text-sm"
             >
-              <option value="XXS">XXS (31.2 × 61.0 cm)</option>
-              <option value="XS">XS (32.4 × 62.6 cm)</option>
-              <option value="S">S (33.6 × 64.2 cm)</option>
-              <option value="M">M (34.8 × 65.8 cm)</option>
-              <option value="L">L (36.0 × 67.4 cm)</option>
-              <option value="XL">XL (37.2 × 69.0 cm)</option>
-              <option value="XXL">XXL (38.4 × 70.6 cm)</option>
-              <option value="3XL">3XL (39.6 × 72.2 cm)</option>
-              <option value="4XL">4XL (40.8 × 73.8 cm)</option>
-              <option value="5XL">5XL (40.2 × 79.4 cm)</option>
+              {(Object.keys(dimensionTable) as Array<keyof typeof dimensionTable>).map((sizeKey) => {
+                if (sizeKey === "CUSTOM") return null;
+                const dims = dimensionTable[sizeKey];
+                return (
+                  <option key={sizeKey} value={sizeKey}>
+                    {sizeKey} ({dims.widthCm} × {dims.heightCm} cm)
+                  </option>
+                );
+              })}
+              <option value="CUSTOM">{t("custom_size")}</option>
             </select>
           </div>
+
+          {size === "CUSTOM" && (
+            <div className="space-y-3">
+              <label className="block text-white font-mana text-xs mb-2">
+                {t("custom_front_panel_dimensions")}
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-gray-400 font-mana text-xs mb-1">
+                    {t("width_cm")}
+                  </label>
+                  <input
+                    type="number"
+                    value={customWidth}
+                    onChange={(e) => setCustomWidth(e.target.value)}
+                    min="10"
+                    max="100"
+                    step="0.1"
+                    className="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 font-mana text-sm"
+                    placeholder="34.8"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-400 font-mana text-xs mb-1">
+                    {t("height_cm")}
+                  </label>
+                  <input
+                    type="number"
+                    value={customHeight}
+                    onChange={(e) => setCustomHeight(e.target.value)}
+                    min="10"
+                    max="150"
+                    step="0.1"
+                    className="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 font-mana text-sm"
+                    placeholder="65.8"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {exportStatus && (

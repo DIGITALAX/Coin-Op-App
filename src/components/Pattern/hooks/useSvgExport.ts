@@ -3,18 +3,22 @@ import { invoke } from "@tauri-apps/api/core";
 import { save } from "@tauri-apps/plugin-dialog";
 import {
   ViewportPx,
-  HoodieSize,
+  GarmentSize,
   HOODIE_FRONT_PANEL_DIMENSIONS,
+  SHIRT_FRONT_PANEL_DIMENSIONS,
   PatternPiece,
+  CustomDimensions,
 } from "../types/pattern.types";
 
 export const useSvgExport = () => {
   const normalizeSvgForRealWorld = useCallback(
     async (
       svgElement: SVGSVGElement,
-      hoodieSize: HoodieSize,
+      size: GarmentSize,
       patternPieces: PatternPiece[],
-      liveSvgContent?: string
+      liveSvgContent?: string,
+      customDimensions?: CustomDimensions,
+      garmentType: "tshirt" | "hoodie" = "hoodie"
     ): Promise<SVGSVGElement> => {
       if (!liveSvgContent) {
         return svgElement;
@@ -103,7 +107,10 @@ export const useSvgExport = () => {
         }
       });
 
-      const realWorldDimensions = HOODIE_FRONT_PANEL_DIMENSIONS[hoodieSize];
+      const dimensionTable = garmentType === "tshirt" ? SHIRT_FRONT_PANEL_DIMENSIONS : HOODIE_FRONT_PANEL_DIMENSIONS;
+      const realWorldDimensions = (size === "CUSTOM" && customDimensions) 
+        ? customDimensions 
+        : dimensionTable[size as keyof typeof dimensionTable];
 
       let bboxWidth = frontPanelBBox.width;
       let bboxHeight = frontPanelBBox.height;
@@ -166,9 +173,11 @@ export const useSvgExport = () => {
     async (
       svgElement: SVGSVGElement | null,
       _viewportPx: ViewportPx,
-      size: HoodieSize,
+      size: GarmentSize,
       patternPieces: PatternPiece[] = [],
-      liveSvgContent?: string
+      liveSvgContent?: string,
+      customDimensions?: CustomDimensions,
+      garmentType: "tshirt" | "hoodie" = "hoodie"
     ): Promise<{ success: boolean; filePath?: string; error?: string }> => {
       try {
         if (!svgElement) {
@@ -184,7 +193,9 @@ export const useSvgExport = () => {
             ?.replace(
               /(<path[^>]*stroke-dasharray[^>]*stroke-opacity=")[^"]*("[^>]*\/>)/g,
               "$10$2"
-            )
+            ),
+          customDimensions,
+          garmentType
         );
         const svgString = new XMLSerializer().serializeToString(scaledSvg);
 

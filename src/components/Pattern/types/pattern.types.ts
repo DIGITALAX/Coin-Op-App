@@ -61,7 +61,7 @@ export interface PatternState {
   settings: NestingSettings;
   liveSvgContent: string | null;
   selectedPieces: PatternPiece[];
-  selectedSize: HoodieSize;
+  selectedSize: GarmentSize;
 }
 
 export interface NestingSettings {
@@ -75,7 +75,6 @@ export type RotationPreset = {
   name: string;
   angles: number[];
 };
-
 
 export const ROTATION_PRESETS: RotationPreset[] = [
   { name: "No Rotation", angles: [0] },
@@ -107,7 +106,7 @@ export const DEFAULT_NESTING_SETTINGS: NestingSettings = {
   strikeLimit: 3,
 };
 
-export type HoodieSize =
+export type GarmentSize =
   | "XXS"
   | "XS"
   | "S"
@@ -117,7 +116,8 @@ export type HoodieSize =
   | "XXL"
   | "3XL"
   | "4XL"
-  | "5XL";
+  | "5XL"
+  | "CUSTOM";
 
 export interface NestingRequest {
   pattern_pieces: {
@@ -142,7 +142,7 @@ export interface NestingResult {
 }
 
 export interface PrintExportOptions {
-  selectedSize: HoodieSize;
+  selectedSize: GarmentSize;
   garmentType: "tshirt" | "hoodie";
   isManualMode: boolean;
   manualPieces: CanvasPanel[];
@@ -174,8 +174,13 @@ export interface ViewportPx {
   height: number;
 }
 
+export interface CustomDimensions {
+  widthCm: number;
+  heightCm: number;
+}
+
 export const HOODIE_FRONT_PANEL_DIMENSIONS: Record<
-  HoodieSize,
+  GarmentSize,
   { widthCm: number; heightCm: number }
 > = {
   XXS: { widthCm: 31.2, heightCm: 61.0 },
@@ -187,7 +192,25 @@ export const HOODIE_FRONT_PANEL_DIMENSIONS: Record<
   XXL: { widthCm: 38.4, heightCm: 70.6 },
   "3XL": { widthCm: 39.6, heightCm: 72.2 },
   "4XL": { widthCm: 40.8, heightCm: 73.8 },
-  "5XL": { widthCm: 40.2, heightCm: 79.4 },
+  "5XL": { widthCm: 42.0, heightCm: 75.4 },
+  CUSTOM: { widthCm: 0, heightCm: 0 },
+};
+
+export const SHIRT_FRONT_PANEL_DIMENSIONS: Record<
+  GarmentSize,
+  { widthCm: number; heightCm: number }
+> = {
+  XXS: { widthCm: 29.5, heightCm: 55.0 },
+  XS: { widthCm: 30.7, heightCm: 56.5 },
+  S: { widthCm: 31.9, heightCm: 58.0 },
+  M: { widthCm: 33.1, heightCm: 59.5 },
+  L: { widthCm: 34.3, heightCm: 61.0 },
+  XL: { widthCm: 35.5, heightCm: 62.5 },
+  XXL: { widthCm: 36.7, heightCm: 64.0 },
+  "3XL": { widthCm: 37.9, heightCm: 65.5 },
+  "4XL": { widthCm: 39.1, heightCm: 67.0 },
+  "5XL": { widthCm: 40.3, heightCm: 69.0 },
+  CUSTOM: { widthCm: 0, heightCm: 0 },
 };
 
 export const PATTERN_COLORS: string[] = [

@@ -255,5 +255,11 @@
   "default": "PADRÃO",
   "modified": "Modificado",
   "close": "FECHAR",
-  "create_with_fgo": "CRIAR COM FGO"
+  "create_with_fgo": "CRIAR COM FGO",
+  "hoodie_size": "Tamanho do Moletom",
+  "shirt_size": "Tamanho da Camiseta",
+  "custom_size": "Tamanho Personalizado",
+  "custom_front_panel_dimensions": "Dimensões Personalizadas do Painel Frontal (Cortar na Dobra)",
+  "width_cm": "Largura (cm)",
+  "height_cm": "Altura (cm)"
 }
