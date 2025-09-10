@@ -61,7 +61,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   }, []);
 
   const selectTemplate = (templateChoice: GroupedTemplate) => {
-    setSelectedTemplate(templateChoice);
+     setSelectedTemplate(templateChoice);
 
     if (templateChoice && templateChoice.templates.length > 0) {
       setSelectedLayer({front: templateChoice.templates[0]});

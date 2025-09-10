@@ -136,9 +136,16 @@ export const useDesigns = () => {
           design.lastModified = new Date();
           await setItem(`design-${designId}`, design);
           setCurrentDesign(design);
-          const groupedTemplate = groupedTemplates.find(
-            (gt) => gt.templates.some(t => t.templateId === design.templateId)
-          );
+         
+        
+    
+          
+          const groupedTemplate = groupedTemplates.find((gt) => {
+            const hasMatch = gt.name === design.templateId;
+            return hasMatch;
+          });
+          
+          
           if (groupedTemplate) {
             selectTemplate(groupedTemplate);
             const frontLayer = groupedTemplate.templates.find(
