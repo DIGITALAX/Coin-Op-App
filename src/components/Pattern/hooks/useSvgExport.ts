@@ -89,6 +89,24 @@ export const useSvgExport = () => {
         .split(/[\s,]+/)
         .map(parseFloat);
 
+      // Find the actual content bounds by getting bounding box of all pattern pieces
+      const allPatternElements = sparrowRoot.querySelectorAll('use, path, rect, circle, polygon');
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      
+      allPatternElements.forEach(el => {
+        if (el.getBBox) {
+          const bbox = el.getBBox();
+          minX = Math.min(minX, bbox.x);
+          minY = Math.min(minY, bbox.y);
+          maxX = Math.max(maxX, bbox.x + bbox.width);
+          maxY = Math.max(maxY, bbox.y + bbox.height);
+        }
+      });
+
+      console.log(`📦 ViewBox bounds: (${vbX}, ${vbY}) to (${vbX + vbWidth}, ${vbY + vbHeight})`);
+      console.log(`📦 Actual content bounds: (${minX.toFixed(1)}, ${minY.toFixed(1)}) to (${maxX.toFixed(1)}, ${maxY.toFixed(1)})`);
+      console.log(`📦 Padding: Left=${(minX - vbX).toFixed(1)}, Top=${(minY - vbY).toFixed(1)}, Right=${((vbX + vbWidth) - maxX).toFixed(1)}, Bottom=${((vbY + vbHeight) - maxY).toFixed(1)}`);
+
       const realWorldDimensions = HOODIE_FRONT_PANEL_DIMENSIONS[hoodieSize];
 
       let bboxWidth = frontPanelBBox.width;
@@ -109,17 +127,32 @@ export const useSvgExport = () => {
 
       const scaledSvg = sparrowRoot.cloneNode(true) as SVGSVGElement;
 
-      scaledSvg.setAttribute("width", `${actualCanvasWidthPt}pt`);
-      scaledSvg.setAttribute("height", `${actualCanvasHeightPt}pt`);
+      // Use cropped dimensions for canvas size  
+      const croppedCanvasWidthPt = (maxX - minX) * scaleFactor;
+      const croppedCanvasHeightPt = (maxY - minY) * scaleFactor;
+      
+      scaledSvg.setAttribute("width", `${croppedCanvasWidthPt}pt`);
+      scaledSvg.setAttribute("height", `${croppedCanvasHeightPt}pt`);
 
       const scaledViewBoxWidth = vbWidth * scaleFactor;
       const scaledViewBoxHeight = vbHeight * scaleFactor;
       const scaledViewBoxX = vbX * scaleFactor;
       const scaledViewBoxY = vbY * scaleFactor;
 
+      // Crop the viewBox to remove padding and start closer to (0,0)
+      const croppedViewBoxX = minX * scaleFactor;  // Start from actual content
+      const croppedViewBoxY = minY * scaleFactor;  // Start from actual content  
+      const croppedViewBoxWidth = (maxX - minX) * scaleFactor;  // Only content width
+      const croppedViewBoxHeight = (maxY - minY) * scaleFactor; // Only content height
+      
+      console.log(`📊 Content size: ${(maxX - minX).toFixed(1)} × ${(maxY - minY).toFixed(1)} vs viewBox: ${vbWidth} × ${vbHeight}`);
+      
+      console.log(`✂️ Cropping viewBox from (${scaledViewBoxX.toFixed(1)}, ${scaledViewBoxY.toFixed(1)}, ${scaledViewBoxWidth.toFixed(1)}, ${scaledViewBoxHeight.toFixed(1)})`);
+      console.log(`✂️ Cropping viewBox to (${croppedViewBoxX.toFixed(1)}, ${croppedViewBoxY.toFixed(1)}, ${croppedViewBoxWidth.toFixed(1)}, ${croppedViewBoxHeight.toFixed(1)})`);
+      
       scaledSvg.setAttribute(
         "viewBox",
-        `${scaledViewBoxX} ${scaledViewBoxY} ${scaledViewBoxWidth} ${scaledViewBoxHeight}`
+        `${croppedViewBoxX} ${croppedViewBoxY} ${croppedViewBoxWidth} ${croppedViewBoxHeight}`
       );
 
       const scaleGroup = document.createElementNS(
@@ -135,11 +168,11 @@ export const useSvgExport = () => {
 
       scaledSvg.setAttribute(
         "data-canvas-width",
-        actualCanvasWidthPt.toString()
+        croppedCanvasWidthPt.toString()
       );
       scaledSvg.setAttribute(
         "data-canvas-height",
-        actualCanvasHeightPt.toString()
+        croppedCanvasHeightPt.toString()
       );
 
       document.body.removeChild(host);
