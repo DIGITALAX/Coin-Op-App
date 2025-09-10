@@ -20,10 +20,10 @@ export enum Walkthrough {
   Synth = "Synth",
   Composite = "Composite",
   Pattern = "Pattern",
+  Blender = "Blender",
   Fulfill = "Fulfill",
   Sell = "Sell",
 }
-
 
 export interface NetworkConfig {
   chainId: number;
@@ -135,7 +135,6 @@ export interface LanguageContextType {
   changeLanguage: (language: string) => Promise<void>;
   isLoading: boolean;
 }
-
 
 export interface LanguageProviderProps {
   children: React.ReactNode;

@@ -90,6 +90,7 @@ export const pageMap: { [key in string]: string } = {
   ["Layer"]: "/Layer",
   ["Synth"]: "/Synth",
   ["Pattern"]: "/Pattern",
+  ["Blender"]: "/Blender",
   ["Composite"]: "/Composite",
   ["Fulfill"]: "/Fulfill",
   ["Sell"]: "/Sell",

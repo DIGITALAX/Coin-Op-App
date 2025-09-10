@@ -20,41 +20,14 @@ export interface PatternPiece {
   instructions?: string;
   quantity: number;
 }
-export interface FabricDimensions {
-  widthMM: number;
-  heightMM: number;
-  fabricType: "knit" | "woven";
-}
-export interface PatternLayout {
-  pieces: PlacedPatternPiece[];
-  fabricDimensions: FabricDimensions;
-  wastePercentage: number;
-  wasteAreas: WasteArea[];
-  algorithmUsed?: string;
-  efficiency?: number;
-  sharedCutLength?: number;
-}
-export interface PlacedPatternPiece extends PatternPiece {
-  x: number;
-  y: number;
-  rotation: number;
-  mirrored: boolean;
-}
-export interface WasteArea {
-  id: string;
-  x: number;
-  y: number;
-  widthMM: number;
-  heightMM: number;
-  areaMM2: number;
-  suggestions: string[];
-}
-export interface GarmentSet {
-  id: string;
-  name: string;
-  type: "tshirt" | "hoodie";
-  pieces: PatternPiece[];
-  size: "XS" | "S" | "M" | "L" | "XL" | "XXL";
+
+export interface ExportDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  svgElement: SVGSVGElement | null;
+  viewportPx: ViewportPx;
+  patternPieces: PatternPiece[];
+  liveSvgContent?: string;
 }
 
 export interface NestingSettingsProps {
@@ -103,15 +76,6 @@ export type RotationPreset = {
   angles: number[];
 };
 
-export interface SvgExportOptions {
-  sizePreset: SizePreset;
-  paper: PaperSize;
-  orientation: Orientation;
-  marginMm: number;
-  overlapMm: number;
-  includeCropMarks: boolean;
-  hoodieSize?: HoodieSize;
-}
 
 export const ROTATION_PRESETS: RotationPreset[] = [
   { name: "No Rotation", angles: [0] },
@@ -209,48 +173,6 @@ export interface ViewportPx {
   width: number;
   height: number;
 }
-
-export type PaperSize = "A4" | "A3" | "A2" | "A1" | "A0";
-export type Orientation = "portrait" | "landscape";
-export type SizePreset = "S" | "M" | "L" | "XL";
-
-export interface ExportOptions {
-  sizePreset: SizePreset;
-  scaleMultipliers: Record<SizePreset, number>;
-  paper: PaperSize;
-  orientation: Orientation;
-  marginMm: number;
-  overlapMm: number;
-  includeCropMarks: boolean;
-  includeLabels: boolean;
-  dpi: number;
-  hoodieSize?: HoodieSize;
-}
-
-export interface ExportPayload {
-  svgString: string;
-  viewportPx: ViewportPx;
-  options: ExportOptions;
-  outPath?: string;
-}
-
-export const DEFAULT_SCALE_MULTIPLIERS: Record<SizePreset, number> = {
-  S: 0.9,
-  M: 1.0,
-  L: 1.1,
-  XL: 1.2,
-};
-
-export const ISO_PAPER_SIZES_MM: Record<
-  PaperSize,
-  { width: number; height: number }
-> = {
-  A4: { width: 210, height: 297 },
-  A3: { width: 297, height: 420 },
-  A2: { width: 420, height: 594 },
-  A1: { width: 594, height: 841 },
-  A0: { width: 841, height: 1189 },
-};
 
 export const HOODIE_FRONT_PANEL_DIMENSIONS: Record<
   HoodieSize,

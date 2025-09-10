@@ -518,7 +518,9 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
                       return liveSvgContent
                         .replace(/<text[^>]*>.*?<\/text>/gs, "")
                         .replace(/<svg[^>]*>/, "")
-                        .replace(/<\/svg>$/, "");
+                        .replace(/<\/svg>$/, "")
+                        .replace(/(<path[^>]*stroke-dasharray[^>]*stroke-opacity=")[^"]*("[^>]*\/>)/g,
+  '$10$2');
                     })(),
                   }}
                 />

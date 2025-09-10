@@ -3,9 +3,6 @@ import { invoke } from "@tauri-apps/api/core";
 import { save } from "@tauri-apps/plugin-dialog";
 import {
   ViewportPx,
-  DEFAULT_SCALE_MULTIPLIERS,
-  ISO_PAPER_SIZES_MM,
-  SvgExportOptions,
   HoodieSize,
   HOODIE_FRONT_PANEL_DIMENSIONS,
   PatternPiece,
@@ -13,169 +10,418 @@ import {
 
 export const useSvgExport = () => {
   const normalizeSvgForRealWorld = useCallback(
-    async (svgElement: SVGSVGElement, hoodieSize: HoodieSize, patternPieces: PatternPiece[], liveSvgContent?: string): Promise<SVGSVGElement> => {
-      // Find front panel piece only
-      const frontPanelPiece = patternPieces.find(piece => 
-        piece.name.toLowerCase().includes('front panel')
-      );
-
-      if (!frontPanelPiece) {
+    async (
+      svgElement: SVGSVGElement,
+      hoodieSize: HoodieSize,
+      patternPieces: PatternPiece[],
+      liveSvgContent?: string
+    ): Promise<SVGSVGElement> => {
+      if (!liveSvgContent) {
         return svgElement;
       }
 
-      // Get rotation from liveSvgContent (actual Sparrow result)
-      let canvasRotation = 0;
-      
-      if (liveSvgContent) {
-        console.log("Using liveSvgContent for rotation detection");
-        console.log("First 500 chars of liveSvgContent:", liveSvgContent.substring(0, 500));
-        
-        const parser = new DOMParser();
-        const sparrowDoc = parser.parseFromString(liveSvgContent, "image/svg+xml");
-        
-        const svgRoot = sparrowDoc.documentElement;
-        console.log("SVG root element:", svgRoot?.tagName);
-        console.log("SVG root namespace:", svgRoot?.namespaceURI);
-        
-        if (svgRoot?.tagName === "parsererror") {
-          console.log("Parser error detected:", svgRoot.textContent);
-          console.log("Raw content causing error:", liveSvgContent.substring(0, 200));
-        } else {
-          console.log("SVG parsed successfully");
-          console.log("Root element children:", svgRoot?.children.length);
-          
-          for (let i = 0; i < (svgRoot?.children.length || 0); i++) {
-            const child = svgRoot?.children[i];
-            console.log(`Child ${i}:`, child?.tagName, child?.getAttribute('id'));
-          }
-          
-          const allElements = sparrowDoc.querySelectorAll('*');
-          console.log("Total elements in document:", allElements.length);
-          
-          const useElements = sparrowDoc.querySelectorAll('use');
-          console.log("Found <use> elements:", useElements.length);
-          
-          if (useElements.length > 0) {
-            Array.from(useElements).forEach((useElement, i) => {
-              const href = useElement.getAttribute('href') || useElement.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
-              console.log(`Use element ${i}:`, href, useElement.getAttribute('transform'));
-              
-              if (href === '#item_0') {
-                const transform = useElement.getAttribute('transform') || '';
-                console.log("Front panel (item_0) transform:", transform);
-                
-                if (transform.includes('rotate')) {
-                  const rotateMatch = transform.match(/rotate\(([^)]+)\)/);
-                  if (rotateMatch) {
-                    canvasRotation = parseFloat(rotateMatch[1]);
-                    console.log(`Found front panel Sparrow rotation:`, canvasRotation);
-                  }
-                }
-              }
-            });
-          } else {
-            console.log("No <use> elements found, checking for direct pattern matching");
-            const textMatch = liveSvgContent.match(/<use[^>]*href="#item_0"[^>]*transform="([^"]+)"/);
-            if (textMatch) {
-              const transform = textMatch[1];
-              console.log("Found item_0 transform via regex:", transform);
-              
-              if (transform.includes('rotate')) {
-                const rotateMatch = transform.match(/rotate\(([^)]+)\)/);
-                if (rotateMatch) {
-                  canvasRotation = parseFloat(rotateMatch[1]);
-                  console.log(`Extracted rotation from regex:`, canvasRotation);
-                }
-              }
-            } else {
-              console.log("No item_0 pattern found in SVG content");
-            }
-          }
-        }
-      } else {
-        console.log("No liveSvgContent provided, using empty svgElement");
+      let cleanContent = liveSvgContent.trim().replace(/^\uFEFF/, "");
+      cleanContent = cleanContent.replace(
+        /(\s+fill-opacity="[^"]*")\s+fill-opacity="[^"]*"/g,
+        "$1"
+      );
+      cleanContent = cleanContent.replace(
+        /(\s+fill="[^"]*")\s+fill="[^"]*"/g,
+        "$1"
+      );
+      cleanContent = cleanContent.replace(
+        /(\s+stroke="[^"]*")\s+stroke="[^"]*"/g,
+        "$1"
+      );
+      cleanContent = cleanContent.replace(
+        /(\s+stroke-width="[^"]*")\s+stroke-width="[^"]*"/g,
+        "$1"
+      );
+
+      const sparrowDoc = new DOMParser().parseFromString(
+        cleanContent,
+        "text/xml"
+      );
+      const sparrowRoot = sparrowDoc.documentElement;
+
+      if (sparrowRoot.tagName === "parsererror") {
+        return svgElement;
       }
 
-      // Fetch raw front panel SVG from IPFS
-      let rawSvgContent = frontPanelPiece.svgPath;
+      const host = document.createElement("div");
+      host.style.position = "fixed";
+      host.style.left = "-100000px";
+      host.style.top = "-100000px";
+      host.style.opacity = "0";
+      document.body.appendChild(host);
+      host.appendChild(sparrowRoot);
+
+      const mmToPt = 72.0 / 25.4;
+      const cmToPt = mmToPt * 10;
+
+      const frontPanelIndex = patternPieces.findIndex((p) =>
+        p.name.toLowerCase().includes("front panel")
+      );
+
+      const frontPanelRef =
+        frontPanelIndex >= 0 ? `#item_${frontPanelIndex}` : "#item_1";
+      const frontPanelElement = sparrowRoot.querySelector(
+        frontPanelRef
+      ) as SVGGraphicsElement | null;
+      if (!frontPanelElement || !frontPanelElement.getBBox) {
+        document.body.removeChild(host);
+        return svgElement;
+      }
+
+      const frontPanelBBox = frontPanelElement.getBBox();
+
+      const originalViewBox = sparrowRoot.getAttribute("viewBox");
+      if (!originalViewBox) {
+        document.body.removeChild(host);
+        return svgElement;
+      }
+
+      const [vbX, vbY, vbWidth, vbHeight] = originalViewBox
+        .split(/[\s,]+/)
+        .map(parseFloat);
+
+      const realWorldDimensions = HOODIE_FRONT_PANEL_DIMENSIONS[hoodieSize];
+
+      const scaleFactor = Math.max(
+        (realWorldDimensions.widthCm * cmToPt) / frontPanelBBox.width,
+        (realWorldDimensions.heightCm * cmToPt) / frontPanelBBox.height
+      );
+
+      const actualCanvasWidthPt = vbWidth * scaleFactor;
+      const actualCanvasHeightPt = vbHeight * scaleFactor;
+
+      console.log(`🔍 SCALING DEBUG for ${hoodieSize}:`);
+      console.log(`📐 Sparrow viewBox: ${vbWidth} x ${vbHeight} units`);
+      console.log(`📏 Front panel bbox: ${frontPanelBBox.width} x ${frontPanelBBox.height} units`);
+      console.log(`🎯 Target front panel: ${realWorldDimensions.widthCm}cm x ${realWorldDimensions.heightCm}cm`);
+      console.log(`⚖️ Scale factor: ${scaleFactor.toFixed(2)}`);
+      console.log(`📦 Final canvas: ${actualCanvasWidthPt.toFixed(0)}pt x ${actualCanvasHeightPt.toFixed(0)}pt`);
+      console.log(`📏 That's ${(actualCanvasWidthPt/cmToPt).toFixed(1)}cm x ${(actualCanvasHeightPt/cmToPt).toFixed(1)}cm`);
       
-      if (rawSvgContent.startsWith("ipfs://") || rawSvgContent.startsWith("Qm")) {
-        const ipfsUrl = rawSvgContent.startsWith("ipfs://")
-          ? `https://thedial.infura-ipfs.io/ipfs/${rawSvgContent.replace("ipfs://", "")}`
-          : `https://thedial.infura-ipfs.io/ipfs/${rawSvgContent}`;
-        
-        try {
-          const response = await fetch(ipfsUrl);
-          if (response.ok) {
-            rawSvgContent = await response.text();
-          }
-        } catch (error) {
+      const A4_WIDTH = 595, A4_HEIGHT = 842;
+      const cols = Math.ceil(actualCanvasWidthPt / A4_WIDTH);
+      const rows = Math.ceil(actualCanvasHeightPt / A4_HEIGHT);
+      console.log(`📄 A4 pages: ${cols} x ${rows} = ${cols * rows} pages`);
+
+      const scaledSvg = sparrowRoot.cloneNode(true) as SVGSVGElement;
+
+      scaledSvg.setAttribute("width", `${actualCanvasWidthPt}pt`);
+      scaledSvg.setAttribute("height", `${actualCanvasHeightPt}pt`);
+
+      const scaledViewBoxWidth = vbWidth * scaleFactor;
+      const scaledViewBoxHeight = vbHeight * scaleFactor;
+      const scaledViewBoxX = vbX * scaleFactor;
+      const scaledViewBoxY = vbY * scaleFactor;
+
+      scaledSvg.setAttribute(
+        "viewBox",
+        `${scaledViewBoxX} ${scaledViewBoxY} ${scaledViewBoxWidth} ${scaledViewBoxHeight}`
+      );
+
+      const scaleGroup = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "g"
+      );
+      scaleGroup.setAttribute("transform", `scale(${scaleFactor})`);
+
+      while (scaledSvg.firstChild) {
+        scaleGroup.appendChild(scaledSvg.firstChild);
+      }
+      scaledSvg.appendChild(scaleGroup);
+      
+      scaledSvg.setAttribute('data-canvas-width', actualCanvasWidthPt.toString());
+      scaledSvg.setAttribute('data-canvas-height', actualCanvasHeightPt.toString());
+
+      document.body.removeChild(host);
+      return scaledSvg;
+    },
+    []
+  );
+
+  const exportSvgToPdf = useCallback(
+    async (
+      svgElement: SVGSVGElement | null,
+      _viewportPx: ViewportPx,
+      size: HoodieSize,
+      patternPieces: PatternPiece[] = [],
+      liveSvgContent?: string
+    ): Promise<{ success: boolean; filePath?: string; error?: string }> => {
+      try {
+        if (!svgElement) {
+          throw new Error("No SVG element provided");
+        }
+
+        const scaledSvg = await normalizeSvgForRealWorld(
+          svgElement,
+          size,
+          patternPieces,
+          liveSvgContent
+            ?.replace(/<text[^>]*>.*?<\/text>/gs, "")
+            ?.replace(
+              /(<path[^>]*stroke-dasharray[^>]*stroke-opacity=")[^"]*("[^>]*\/>)/g,
+              "$10$2"
+            )
+        );
+        const svgString = new XMLSerializer().serializeToString(scaledSvg);
+   
+        if (!svgString.trim()) {
+          throw new Error("Empty SVG content");
+        }
+
+        const defaultFilename = `pattern_${
+          size
+        }_${new Date().getTime()}.pdf`;
+
+        const filePath = await save({
+          defaultPath: defaultFilename,
+          filters: [
+            {
+              name: "PDF Files",
+              extensions: ["pdf"],
+            },
+          ],
+          title: `Pattern-${size}`,
+        });
+
+        if (!filePath) {
+          return { success: false, error: "Export cancelled by user" };
+        }
+
+        const canvasWidthPt = parseFloat(scaledSvg.getAttribute('data-canvas-width') || '0');
+        const canvasHeightPt = parseFloat(scaledSvg.getAttribute('data-canvas-height') || '0');
+                
+        const result = await invoke<string>("crop_svg", {
+          svgString,
+          canvasWidthPt,
+          canvasHeightPt,
+          outPath: filePath,
+        });
+
+        return {
+          success: true,
+          filePath: result,
+        };
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    },
+    [normalizeSvgForRealWorld]
+  );
+
+
+  return {
+    exportSvgToPdf,
+  };
+};
+
+// KEEP THIS HERE
+/* 
+
+export const useSvgExport = () => {
+  const normalizeSvgForRealWorld = useCallback(
+    async (
+      svgElement: SVGSVGElement,
+      hoodieSize: HoodieSize,
+      patternPieces: PatternPiece[],
+      liveSvgContent?: string
+    ): Promise<SVGSVGElement> => {
+      if (!liveSvgContent) {
+        return svgElement;
+      }
+
+      // UNIFORM SCALING APPROACH: Scale entire Sparrow result based on front panel real-world size
+      console.log(
+        `Using uniform scaling approach for hoodie size: ${hoodieSize}`
+      );
+
+      // Clean and parse Sparrow SVG
+      let cleanContent = liveSvgContent.trim().replace(/^\uFEFF/, "");
+      cleanContent = cleanContent.replace(
+        /(\s+fill-opacity="[^"]*")\s+fill-opacity="[^"]*"/g,
+        "$1"
+      );
+      cleanContent = cleanContent.replace(
+        /(\s+fill="[^"]*")\s+fill="[^"]*"/g,
+        "$1"
+      );
+      cleanContent = cleanContent.replace(
+        /(\s+stroke="[^"]*")\s+stroke="[^"]*"/g,
+        "$1"
+      );
+      cleanContent = cleanContent.replace(
+        /(\s+stroke-width="[^"]*")\s+stroke-width="[^"]*"/g,
+        "$1"
+      );
+
+      const sparrowDoc = new DOMParser().parseFromString(
+        cleanContent,
+        "text/xml"
+      );
+      const sparrowRoot = sparrowDoc.documentElement;
+
+      if (sparrowRoot.tagName === "parsererror") {
+        console.log("SVG parsing failed, returning original");
+        return svgElement;
+      }
+
+      // Mount offscreen to get accurate DOM measurements
+      const host = document.createElement("div");
+      host.style.position = "fixed";
+      host.style.left = "-100000px";
+      host.style.top = "-100000px";
+      host.style.opacity = "0";
+      document.body.appendChild(host);
+      host.appendChild(sparrowRoot);
+
+      try {
+        // Manufacturing-accurate conversion constants
+        const mmToPt = 72.0 / 25.4; // 72 points per inch ÷ 25.4mm per inch
+        const cmToPt = mmToPt * 10; // 10mm per cm = 28.346 points per cm
+
+        // 1. Find front panel in Sparrow result by name
+        const frontPanelIndex = patternPieces.findIndex((p) =>
+          p.name.toLowerCase().includes("front panel")
+        );
+
+        const frontPanelRef =
+          frontPanelIndex >= 0 ? `#item_${frontPanelIndex}` : "#item_1"; // Default to item_1 if not found
+        console.log(`🎯 Using front panel reference: ${frontPanelRef}`);
+
+        // 2. Get front panel bbox in Sparrow coordinates
+        const frontPanelElement = sparrowRoot.querySelector(
+          frontPanelRef
+        ) as SVGGraphicsElement | null;
+        if (!frontPanelElement || !frontPanelElement.getBBox) {
+          console.log("❌ Could not find front panel element with getBBox");
+          document.body.removeChild(host);
           return svgElement;
         }
-      }
 
-      // Parse the raw SVG 
-      const parser = new DOMParser();
-      const rawSvgDoc = parser.parseFromString(rawSvgContent, "image/svg+xml");
-      const rawSvgElement = rawSvgDoc.querySelector('svg');
-      
-      console.log("Final canvas rotation to apply:", canvasRotation);
-      console.log("Raw SVG element before rotation:", rawSvgElement?.outerHTML.substring(0, 200));
-      
-      if (rawSvgElement && canvasRotation !== 0) {
-        const viewBox = rawSvgElement.getAttribute("viewBox");
-        const [vbX, vbY, vbWidth, vbHeight] = viewBox ? viewBox.split(/[\s,]+/).map(parseFloat) : [0, 0, parseFloat(rawSvgElement.getAttribute("width") || "0"), parseFloat(rawSvgElement.getAttribute("height") || "0")];
-        
-        const centerX = vbX + vbWidth / 2;
-        const centerY = vbY + vbHeight / 2;
-        
-        const transformGroup = rawSvgDoc.createElementNS("http://www.w3.org/2000/svg", "g");
-        transformGroup.setAttribute("transform", `rotate(${canvasRotation} ${centerX} ${centerY})`);
-        
-        while (rawSvgElement.firstChild) {
-          transformGroup.appendChild(rawSvgElement.firstChild);
+        const frontPanelBBox = frontPanelElement.getBBox();
+        console.log(
+          `📏 Sparrow front panel bbox: ${frontPanelBBox.width} × ${frontPanelBBox.height} units`
+        );
+
+        // 3. Get original canvas dimensions from viewBox
+        const originalViewBox = sparrowRoot.getAttribute("viewBox");
+        if (!originalViewBox) {
+          console.log("❌ No viewBox found in Sparrow SVG");
+          document.body.removeChild(host);
+          return svgElement;
         }
-        
-        rawSvgElement.appendChild(transformGroup);
-      }
-      
-      if (rawSvgElement) {
-        const originalViewBox = rawSvgElement.getAttribute("viewBox");
-        const [vbX, vbY, vbWidth, vbHeight] = originalViewBox ? originalViewBox.split(/[\s,]+/).map(parseFloat) : [0, 0, parseFloat(rawSvgElement.getAttribute("width") || "0"), parseFloat(rawSvgElement.getAttribute("height") || "0")];
-        
-        const a4WidthPx = 595;
-        const a4HeightPx = 842;
-        
-        const pagesX = Math.ceil(vbWidth / a4WidthPx);
-        const pagesY = Math.ceil(vbHeight / a4HeightPx);
-        const totalPages = pagesX * pagesY;
-        
-        if (totalPages > 1) {
-          const pages = [];
-          for (let row = 0; row < pagesY; row++) {
-            for (let col = 0; col < pagesX; col++) {
-              const pageClone = rawSvgElement.cloneNode(true) as SVGSVGElement;
-              const offsetX = col * a4WidthPx;
-              const offsetY = row * a4HeightPx;
-              
-              pageClone.setAttribute("width", "210mm");
-              pageClone.setAttribute("height", "297mm");
-              pageClone.setAttribute("viewBox", `${offsetX} ${offsetY} ${a4WidthPx} ${a4HeightPx}`);
-              
-              pages.push(pageClone);
-            }
-          }
-          
-          rawSvgElement.setAttribute("data-pages", JSON.stringify(pages.map(p => new XMLSerializer().serializeToString(p))));
+
+        const [vbX, vbY, vbWidth, vbHeight] = originalViewBox
+          .split(/[\s,]+/)
+          .map(parseFloat);
+        console.log(
+          `📐 Sparrow canvas: ${vbWidth} × ${vbHeight} units (viewBox: ${vbX}, ${vbY}, ${vbWidth}, ${vbHeight})`
+        );
+
+        // 4. Calculate canvas-to-front-panel ratios
+        const canvasWidthRatio = vbWidth / frontPanelBBox.width; // How much wider is canvas than front panel
+        const canvasHeightRatio = vbHeight / frontPanelBBox.height; // How much taller is canvas than front panel
+        console.log(
+          `📊 Canvas ratios - Width: ${canvasWidthRatio.toFixed(
+            2
+          )}x, Height: ${canvasHeightRatio.toFixed(2)}x`
+        );
+
+        // 5. Get target real-world front panel dimensions
+        const realWorldDimensions = HOODIE_FRONT_PANEL_DIMENSIONS[hoodieSize];
+        console.log(
+          `🎯 Target front panel for ${hoodieSize}: ${realWorldDimensions.widthCm}cm × ${realWorldDimensions.heightCm}cm`
+        );
+
+        // 6. Calculate scale factor based on front panel real-world size
+        const scaleFactor = Math.max(
+          (realWorldDimensions.widthCm * cmToPt) / frontPanelBBox.width,
+          (realWorldDimensions.heightCm * cmToPt) / frontPanelBBox.height
+        );
+        console.log(`🔧 Calculated scale factor: ${scaleFactor}`);
+
+        // 7. Calculate actual canvas size needed for ALL scaled content
+        const actualCanvasWidthPt = vbWidth * scaleFactor;
+        const actualCanvasHeightPt = vbHeight * scaleFactor;
+        console.log(
+          `📏 Actual canvas needed: ${actualCanvasWidthPt.toFixed(
+            1
+          )}pt × ${actualCanvasHeightPt.toFixed(1)}pt`
+        );
+        console.log(
+          `📏 That's ${(actualCanvasWidthPt / cmToPt).toFixed(1)}cm × ${(
+            actualCanvasHeightPt / cmToPt
+          ).toFixed(1)}cm`
+        );
+
+        // 8. Create scaled SVG with exact manufacturing dimensions
+        const scaledSvg = sparrowRoot.cloneNode(true) as SVGSVGElement;
+
+        // Set canvas to fit ALL scaled content
+        scaledSvg.setAttribute("width", `${actualCanvasWidthPt}pt`);
+        scaledSvg.setAttribute("height", `${actualCanvasHeightPt}pt`);
+
+        // Scale viewBox to encompass all transformed content
+        const scaledViewBoxWidth = vbWidth * scaleFactor; // 33 * 62.4 = 2059
+        const scaledViewBoxHeight = vbHeight * scaleFactor; // 46 * 62.4 = 2870
+        const scaledViewBoxX = vbX * scaleFactor; // -1.5 * 62.4 = -93.6
+        const scaledViewBoxY = vbY * scaleFactor; // -2.1 * 62.4 = -131
+
+        scaledSvg.setAttribute(
+          "viewBox",
+          `${scaledViewBoxX} ${scaledViewBoxY} ${scaledViewBoxWidth} ${scaledViewBoxHeight}`
+        );
+
+        // Create wrapper group with scale transform
+        const scaleGroup = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "g"
+        );
+        scaleGroup.setAttribute("transform", `scale(${scaleFactor})`);
+
+        // Move all children into scale group
+        while (scaledSvg.firstChild) {
+          scaleGroup.appendChild(scaledSvg.firstChild);
         }
-        
-        rawSvgElement.setAttribute("width", "210mm");
-        rawSvgElement.setAttribute("height", "297mm");
-        rawSvgElement.setAttribute("viewBox", "0 0 595 842");
-        return rawSvgElement as SVGSVGElement;
+        scaledSvg.appendChild(scaleGroup);
+
+        console.log(`🔧 Using transform scale approach: scale(${scaleFactor})`);
+        console.log(
+          `🔧 Original viewBox: (${vbX}, ${vbY}, ${vbWidth}, ${vbHeight})`
+        );
+
+        console.log(
+          `✅ Final SVG: ${actualCanvasWidthPt.toFixed(
+            1
+          )}pt × ${actualCanvasHeightPt.toFixed(1)}pt`
+        );
+        console.log(
+          `✅ Front panel will be: ${realWorldDimensions.widthCm}cm × ${realWorldDimensions.heightCm}cm`
+        );
+
+        if (hoodieSize === "5XL") {
+          console.log(`🚨 5XL CHECK: Front panel should be 40.2cm × 79.4cm`);
+          console.log(
+            `🚨 Total canvas: ${(actualCanvasWidthPt / cmToPt).toFixed(
+              1
+            )}cm × ${(actualCanvasHeightPt / cmToPt).toFixed(1)}cm`
+          );
+        }
+
+        document.body.removeChild(host);
+        return scaledSvg;
+      } catch (error) {
+        console.log("❌ Error in real-world scaling:", error);
+        document.body.removeChild(host);
+        return svgElement;
       }
-      
-      return svgElement;
     },
     []
   );
@@ -195,22 +441,26 @@ export const useSvgExport = () => {
 
         const hoodieSize = options.hoodieSize || "M";
 
-        const scaledSvg = await normalizeSvgForRealWorld(svgElement, hoodieSize, patternPieces, liveSvgContent);
+        const scaledSvg = await normalizeSvgForRealWorld(
+          svgElement,
+          hoodieSize,
+          patternPieces,
+          liveSvgContent
+            ?.replace(/<text[^>]*>.*?<\/text>/gs, "")
+            ?.replace(/(<path[^>]*stroke-dasharray[^>]*stroke-opacity=")[^"]*("[^>]*\/>)/g,
+  '$10$2')
+
+        );
         const svgString = new XMLSerializer().serializeToString(scaledSvg);
 
         if (!svgString.trim()) {
           throw new Error("Empty SVG content");
         }
 
-        const paperInfo = ISO_PAPER_SIZES_MM[options.paper];
-        const paperSize =
-          options.orientation === "portrait"
-            ? `${paperInfo.width}×${paperInfo.height}mm`
-            : `${paperInfo.height}×${paperInfo.width}mm`;
-
-        const defaultFilename = `pattern_${options.sizePreset}_${
-          options.paper
-        }_${options.orientation}_${new Date().getTime()}.pdf`;
+        // Use real-world content dimensions instead of fixed paper sizes
+        const defaultFilename = `pattern_${hoodieSize}_${
+          options.sizePreset
+        }_${new Date().getTime()}.pdf`;
 
         const filePath = await save({
           defaultPath: defaultFilename,
@@ -220,7 +470,7 @@ export const useSvgExport = () => {
               extensions: ["pdf"],
             },
           ],
-          title: `Export Pattern to ${paperSize} PDF`,
+          title: `Export Pattern - Real World ${hoodieSize} Size`,
         });
 
         if (!filePath) {
@@ -286,3 +536,5 @@ export const useSvgExport = () => {
     getEstimatedPageCount,
   };
 };
+
+*/

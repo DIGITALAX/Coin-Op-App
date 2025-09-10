@@ -155,9 +155,6 @@ export const PatternLibrary: FunctionComponent = () => {
               loadedPatterns.map((piece) => (
                 <div key={piece.id} className="text-white/60 text-xxxs mb-1">
                   • {piece.name} (x{piece.quantity})
-                  <span className="text-white/40 ml-1">
-                    {Math.round(piece.widthMM)}×{Math.round(piece.heightMM)}mm
-                  </span>
                 </div>
               ))
             ) : (

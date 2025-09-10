@@ -9,7 +9,7 @@ export default function usePageNavigation(currentPage: string) {
   const { currentDesign } = useDesignContext();
   const hasActiveProject = currentDesign !== null;
   
-  const restrictedPages = ["/Synth", "/Pattern", "/Composite", "/Fulfill", "/Sell"];
+  const restrictedPages = ["/Synth", "/Pattern", "/Blender", "/Composite", "/Fulfill", "/Sell"];
   
   const isPageAccessible = (page: string) => {
     return !restrictedPages.includes(page) || hasActiveProject;

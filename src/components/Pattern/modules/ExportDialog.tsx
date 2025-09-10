@@ -1,43 +1,7 @@
 import { FunctionComponent, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { 
-  PaperSize, 
-  Orientation, 
-  SizePreset, 
-  HoodieSize,
-  ViewportPx,
-  ISO_PAPER_SIZES_MM,
-  HOODIE_FRONT_PANEL_DIMENSIONS,
-  PatternPiece
-} from "../types/pattern.types";
+import { HoodieSize, ExportDialogProps } from "../types/pattern.types";
 import { useSvgExport } from "../hooks/useSvgExport";
-
-interface ExportDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  svgElement: SVGSVGElement | null;
-  viewportPx: ViewportPx;
-  patternPieces: PatternPiece[];
-  liveSvgContent?: string;
-}
-
-interface ExportSettings {
-  hoodieSize: HoodieSize;
-  paper: PaperSize;
-  orientation: Orientation;
-  marginMm: number;
-  overlapMm: number;
-  includeCropMarks: boolean;
-}
-
-const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
-  hoodieSize: "M",
-  paper: "A4",
-  orientation: "portrait",
-  marginMm: 10,
-  overlapMm: 5,
-  includeCropMarks: true,
-};
 
 export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
   isOpen,
@@ -48,29 +12,24 @@ export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
   liveSvgContent,
 }) => {
   const { t } = useTranslation();
-  const { exportSvgToPdf, getEstimatedPageCount } = useSvgExport();
-  const [settings, setSettings] = useState<ExportSettings>(DEFAULT_EXPORT_SETTINGS);
+  const { exportSvgToPdf } = useSvgExport();
+  const [size, setSize] = useState<HoodieSize>("M");
   const [isExporting, setIsExporting] = useState(false);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
-
-  const handleSettingChange = useCallback(<K extends keyof ExportSettings>(
-    key: K,
-    value: ExportSettings[K]
-  ) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
-  }, []);
 
   const handleExport = useCallback(async () => {
     setIsExporting(true);
     setExportStatus("Preparing export...");
 
     try {
-      const exportOptions = {
-        sizePreset: "M" as SizePreset,
-        ...settings,
-      };
-      const result = await exportSvgToPdf(svgElement, viewportPx, exportOptions, patternPieces, liveSvgContent);
-      
+      const result = await exportSvgToPdf(
+        svgElement,
+        viewportPx,
+        size,
+        patternPieces,
+        liveSvgContent
+      );
+
       if (result.success) {
         setExportStatus(`Export successful! File saved: ${result.filePath}`);
         setTimeout(() => {
@@ -87,24 +46,15 @@ export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
     } finally {
       setIsExporting(false);
     }
-  }, [svgElement, viewportPx, settings, exportSvgToPdf, onClose, patternPieces, liveSvgContent]);
-
-  const estimatedPages = getEstimatedPageCount(viewportPx, {
-    sizePreset: "M",
-    paper: settings.paper,
-    orientation: settings.orientation,
-    marginMm: settings.marginMm,
-    overlapMm: settings.overlapMm,
-    includeCropMarks: settings.includeCropMarks,
-  });
-  
-  const paperInfo = ISO_PAPER_SIZES_MM[settings.paper];
-  const paperDimensions = settings.orientation === "portrait" 
-    ? `${paperInfo.width} × ${paperInfo.height}mm`
-    : `${paperInfo.height} × ${paperInfo.width}mm`;
-
-  const hoodieDimensions = HOODIE_FRONT_PANEL_DIMENSIONS[settings.hoodieSize];
-  const scaleFromXXS = hoodieDimensions.widthCm / HOODIE_FRONT_PANEL_DIMENSIONS.XXS.widthCm;
+  }, [
+    svgElement,
+    viewportPx,
+    size,
+    exportSvgToPdf,
+    onClose,
+    patternPieces,
+    liveSvgContent,
+  ]);
 
   if (!isOpen) return null;
 
@@ -129,8 +79,8 @@ export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
               Hoodie Size
             </label>
             <select
-              value={settings.hoodieSize}
-              onChange={(e) => handleSettingChange("hoodieSize", e.target.value as HoodieSize)}
+              value={size}
+              onChange={(e) => setSize(e.target.value as HoodieSize)}
               className="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 font-mana text-sm"
             >
               <option value="XXS">XXS (31.2 × 61.0 cm)</option>
@@ -145,101 +95,16 @@ export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
               <option value="5XL">5XL (40.2 × 79.4 cm)</option>
             </select>
           </div>
-
-          <div>
-            <label className="block text-white font-mana text-xs mb-2">
-              Paper Size
-            </label>
-            <select
-              value={settings.paper}
-              onChange={(e) => handleSettingChange("paper", e.target.value as PaperSize)}
-              className="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 font-mana text-sm"
-            >
-              <option value="A4">A4 (210 × 297mm)</option>
-              <option value="A3">A3 (297 × 420mm)</option>
-              <option value="A2">A2 (420 × 594mm)</option>
-              <option value="A1">A1 (594 × 841mm)</option>
-              <option value="A0">A0 (841 × 1189mm)</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-white font-mana text-xs mb-2">
-              Orientation
-            </label>
-            <select
-              value={settings.orientation}
-              onChange={(e) => handleSettingChange("orientation", e.target.value as Orientation)}
-              className="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 font-mana text-sm"
-            >
-              <option value="portrait">Portrait</option>
-              <option value="landscape">Landscape</option>
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-white font-mana text-xs mb-2">
-                Margin (mm)
-              </label>
-              <input
-                type="number"
-                min="5"
-                max="50"
-                step="1"
-                value={settings.marginMm}
-                onChange={(e) => handleSettingChange("marginMm", parseFloat(e.target.value))}
-                className="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 font-mana text-sm"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-white font-mana text-xs mb-2">
-                Overlap (mm)
-              </label>
-              <input
-                type="number"
-                min="0"
-                max="20"
-                step="1"
-                value={settings.overlapMm}
-                onChange={(e) => handleSettingChange("overlapMm", parseFloat(e.target.value))}
-                className="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 font-mana text-sm"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="cropMarks"
-              checked={settings.includeCropMarks}
-              onChange={(e) => handleSettingChange("includeCropMarks", e.target.checked)}
-              className="rounded"
-            />
-            <label htmlFor="cropMarks" className="text-white font-mana text-xs">
-              Include crop marks
-            </label>
-          </div>
-        </div>
-
-        <div className="bg-gray-800 rounded p-4 mb-6">
-          <h3 className="text-ama font-mana text-xs mb-2">Export Preview</h3>
-          <div className="space-y-1 text-white/70 font-mana text-xxs">
-            <div>Paper: {paperDimensions}</div>
-            <div>Hoodie Size: {settings.hoodieSize} ({hoodieDimensions.widthCm} × {hoodieDimensions.heightCm} cm)</div>
-            <div>Scale Factor: {scaleFromXXS.toFixed(2)}x from XXS</div>
-            <div>Estimated pages: {estimatedPages}</div>
-            <div>Canvas: {viewportPx.width} × {viewportPx.height}px</div>
-          </div>
         </div>
 
         {exportStatus && (
-          <div className={`mb-4 p-3 rounded font-mana text-xs ${
-            exportStatus.includes("successful") 
-              ? "bg-verde/20 border border-verde/50 text-verde"
-              : "bg-red-500/20 border border-red-500/50 text-red-300"
-          }`}>
+          <div
+            className={`mb-4 p-3 rounded font-mana text-xs ${
+              exportStatus.includes("successful")
+                ? "bg-verde/20 border border-verde/50 text-verde"
+                : "bg-red-500/20 border border-red-500/50 text-red-300"
+            }`}
+          >
             {exportStatus}
           </div>
         )}

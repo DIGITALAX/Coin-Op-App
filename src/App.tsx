@@ -10,6 +10,7 @@ import About from "./components/About/modules/About";
 import Activity from "./components/Activity/modules/Activity";
 import Sell from "./components/Sell/modules/Sell";
 import Pattern from "./components/Pattern/modules/Pattern";
+import Blender from "./components/Blender/modules/Blender";
 function App() {
   return (
     <Router>
@@ -40,6 +41,14 @@ function App() {
               element={
                 <ProjectGuard>
                   <Fulfillment />
+                </ProjectGuard>
+              }
+            />
+            <Route
+              path="/Blender"
+              element={
+                <ProjectGuard>
+                  <Blender />
                 </ProjectGuard>
               }
             />
