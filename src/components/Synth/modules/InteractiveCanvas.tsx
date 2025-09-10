@@ -189,8 +189,11 @@ const ShowCanvas = ({
         }}
       />
       {(templateChild?.childReferences || [])
-        .filter((child) => child.child.metadata.tags.includes("zone"))
+        .filter((child) => child.child.metadata?.tags?.includes("zone"))
         .map((child, index: number) => {
+          if (!child.metadata) {
+            return null;
+          }
           const pixelPosition = convertCoordinatesToPixels(
             child.metadata.x,
             child.metadata.y,

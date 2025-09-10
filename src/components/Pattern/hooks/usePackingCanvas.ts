@@ -186,8 +186,6 @@ export const usePackingCanvas = (selectedPieces: PatternPiece[]) => {
 
   const parseSparrowSVG = useCallback(
     (svgContent: string) => {
-      const parser = new DOMParser();
-      const svgDoc = parser.parseFromString(svgContent, "image/svg+xml");
       const patterns: Array<{
         id: string;
         name: string;
@@ -199,121 +197,147 @@ export const usePackingCanvas = (selectedPieces: PatternPiece[]) => {
         bbox: { xMin: number; xMax: number; yMin: number; yMax: number };
       }> = [];
 
-      const itemsGroup = svgDoc.querySelector("g#items");
-      if (!itemsGroup) return patterns;
+      const useRegex = /<use\s+href="#item_(\d+)"\s+transform="([^"]+)"[^>]*>/g;
+      let match;
+      const useElements = [];
 
-      const useElements = itemsGroup.querySelectorAll('use[href^="#item_"]');
-      
+      while ((match = useRegex.exec(svgContent)) !== null) {
+        useElements.push({
+          itemId: match[1],
+          transform: match[2],
+          href: `#item_${match[1]}`,
+        });
+      }
+
+      const pathDataCache = new Map();
+
+      const itemRegex = /<g id="item_(\d+)">\s*<path d="([^"]+)"/g;
+      let pathMatch;
+
+      while ((pathMatch = itemRegex.exec(svgContent)) !== null) {
+        const itemId = pathMatch[1];
+        const pathData = pathMatch[2];
+        pathDataCache.set(itemId, pathData);
+      }
+
       useElements.forEach((useElement, index) => {
-        const transform = useElement.getAttribute("transform") || "";
-        const href = useElement.getAttribute("href");
-        
-        if (href) {
-          const itemId = href.substring(1);
-          const defsGroup = itemsGroup.querySelector("defs");
-          const itemGroup = defsGroup?.querySelector(`g#${itemId}`);
-          const pathElement = itemGroup?.querySelector("path");
-          
-          if (pathElement) {
-            const pathData = pathElement.getAttribute("d") || "";
-            if (pathData) {
-              let x = 0, y = 0, rotation = 0;
-              
-              const translateMatch = transform.match(/translate\(([^)]+)\)/);
-              const rotateMatch = transform.match(/rotate\(([^)]+)\)/);
-              
-              if (translateMatch) {
-                const coords = translateMatch[1].split(/[\s,]+/).map(parseFloat);
-                x = coords[0] || 0;
-                y = coords[1] || 0;
-              }
-              
-              if (rotateMatch) {
-                const rotParams = rotateMatch[1].split(/[\s,]+/).map(parseFloat);
-                rotation = rotParams[0] || 0;
-              }
-              
-              const pathInfo = calculatePathBounds(pathData);
-              let patternName = "Unknown";
-              let patternCategory = "body";
-              
-              const itemIndex = parseInt(itemId.replace("item_", "")) || 0;
-              if (itemIndex < selectedPieces.length) {
-                const selectedPiece = selectedPieces[itemIndex];
-                patternName = selectedPiece.name;
-                patternCategory = selectedPiece.name;
-              }
-              
-              patterns.push({
-                id: `${itemId}-${index}`,
-                name: patternName,
-                pathData,
-                x,
-                y,
-                rotation,
-                color: getPatternColor(patternCategory),
-                bbox: {
-                  xMin: pathInfo.xMin,
-                  xMax: pathInfo.xMax,
-                  yMin: pathInfo.yMin,
-                  yMax: pathInfo.yMax,
-                },
-              });
+        const { itemId, transform } = useElement;
+
+        const pathData = pathDataCache.get(itemId);
+
+        if (pathData) {
+          if (pathData) {
+            let x = 0,
+              y = 0,
+              rotation = 0;
+
+            const translateMatch = transform.match(/translate\(([^)]+)\)/);
+            const rotateMatch = transform.match(/rotate\(([^)]+)\)/);
+
+            if (translateMatch) {
+              const coords = translateMatch[1].split(/[\s,]+/).map(parseFloat);
+              x = coords[0] || 0;
+              y = coords[1] || 0;
             }
+
+            if (rotateMatch) {
+              const rotParams = rotateMatch[1].split(/[\s,]+/).map(parseFloat);
+              rotation = rotParams[0] || 0;
+            }
+
+            const pathInfo = calculatePathBounds(pathData);
+            let patternName = "Unknown";
+            let patternCategory = "body";
+
+            const itemIndex = parseInt(itemId) || 0;
+            if (itemIndex < selectedPieces.length) {
+              const selectedPiece = selectedPieces[itemIndex];
+              patternName = selectedPiece.name;
+              patternCategory = selectedPiece.name;
+            }
+
+            patterns.push({
+              id: `item_${itemId}-${index}`,
+              name: patternName,
+              pathData,
+              x,
+              y,
+              rotation,
+              color: getPatternColor(patternCategory),
+              bbox: {
+                xMin: pathInfo.xMin,
+                xMax: pathInfo.xMax,
+                yMin: pathInfo.yMin,
+                yMax: pathInfo.yMax,
+              },
+            });
           }
         }
       });
-      
+
       return patterns;
     },
     [selectedPieces, calculatePathBounds, getPatternColor]
   );
 
-  const updateAutoBase = useCallback((svgContent: string, isFromFreshNesting = false) => {
-    if (!svgContent) return;
-    
-    const sparrowPatterns = parseSparrowSVG(svgContent);
-    if (sparrowPatterns.length === 0) return;
+  const updateAutoBase = useCallback(
+    (svgContent: string, isFromFreshNesting = false) => {
+      if (!svgContent) {
+        return;
+      }
 
-    let bboxWidth = 48.1;
-    let bboxHeight = 94.5;
-    let xMin = 0.0;
-    let yMin = 0.0;
+      const sparrowPatterns = parseSparrowSVG(svgContent);
 
-    const viewBoxMatch = svgContent.match(/viewBox="([^"]+)"/);
-    if (viewBoxMatch) {
-      const viewBoxValues = viewBoxMatch[1].split(/[\s,]+/).map(parseFloat);
-      xMin = viewBoxValues[0];
-      yMin = viewBoxValues[1];
-      bboxWidth = viewBoxValues[2];
-      bboxHeight = viewBoxValues[3];
-    }
+      if (sparrowPatterns.length === 0) {
+        return;
+      }
 
-    const scale = Math.min(canvasWidth / bboxWidth, canvasHeight / bboxHeight);
-    const scaledWidth = bboxWidth * scale;
-    const scaledHeight = bboxHeight * scale;
-    const offsetX = (canvasWidth - scaledWidth) / 2;
-    const offsetY = (canvasHeight - scaledHeight) / 2;
+      let bboxWidth = 48.1;
+      let bboxHeight = 94.5;
+      let xMin = 0.0;
+      let yMin = 0.0;
 
-    const canvasPieces = sparrowPatterns.map((pattern, index) => ({
-      id: `${pattern.id}-${index}`,
-      name: pattern.name,
-      pathData: pattern.pathData,
-      x: (pattern.x - xMin) * scale + offsetX,
-      y: (pattern.y - yMin) * scale + offsetY,
-      width: pattern.bbox.xMax - pattern.bbox.xMin,
-      height: pattern.bbox.yMax - pattern.bbox.yMin,
-      rotation: pattern.rotation,
-      color: pattern.color,
-      pathBounds: null,
-      scaleFactor: scale
-    }));
+      const viewBoxMatch = svgContent.match(/viewBox="([^"]+)"/);
+      if (viewBoxMatch) {
+        const viewBoxValues = viewBoxMatch[1].split(/[\s,]+/).map(parseFloat);
+        xMin = viewBoxValues[0];
+        yMin = viewBoxValues[1];
+        bboxWidth = viewBoxValues[2];
+        bboxHeight = viewBoxValues[3];
+      }
 
-    setAutoBasePieces(canvasPieces);
-    if (isFromFreshNesting || manualPieces.length === 0) {
-      setManualPieces(canvasPieces);
-    }
-  }, [parseSparrowSVG, canvasWidth, canvasHeight, manualPieces.length]);
+      const scale = Math.min(
+        canvasWidth / bboxWidth,
+        canvasHeight / bboxHeight
+      );
+      const scaledWidth = bboxWidth * scale;
+      const scaledHeight = bboxHeight * scale;
+      const offsetX = (canvasWidth - scaledWidth) / 2;
+      const offsetY = (canvasHeight - scaledHeight) / 2;
+
+      const canvasPieces = sparrowPatterns.map((pattern, index) => ({
+        id: `${pattern.id}-${index}`,
+        name: pattern.name,
+        pathData: pattern.pathData,
+        x: (pattern.x - xMin) * scale + offsetX,
+        y: (pattern.y - yMin) * scale + offsetY,
+        width: pattern.bbox.xMax - pattern.bbox.xMin,
+        height: pattern.bbox.yMax - pattern.bbox.yMin,
+        rotation: pattern.rotation,
+        color: pattern.color,
+        pathBounds: null,
+        scaleFactor: scale,
+      }));
+
+      setAutoBasePieces(canvasPieces);
+
+      if (isFromFreshNesting || manualPieces.length === 0) {
+        setManualPieces(canvasPieces);
+      } else {
+      }
+    },
+    [parseSparrowSVG, canvasWidth, canvasHeight, manualPieces.length]
+  );
 
   const handleCancelNesting = useCallback(() => {
     if (liveSvgContent) {
@@ -361,6 +385,7 @@ export const usePackingCanvas = (selectedPieces: PatternPiece[]) => {
   useEffect(() => {
     if (liveSvgContent && !isNesting && !isSparrowRunning) {
       const isFromFreshNesting = liveSvgContent !== lastSvgFromNesting;
+
       updateAutoBase(liveSvgContent, isFromFreshNesting);
       if (isFromFreshNesting) {
         setLastSvgFromNesting(liveSvgContent);
@@ -373,6 +398,16 @@ export const usePackingCanvas = (selectedPieces: PatternPiece[]) => {
     updateAutoBase,
     lastSvgFromNesting,
   ]);
+
+  useEffect(() => {
+    if (
+      isManualMode &&
+      autoBasePieces.length > 0 &&
+      manualPieces.length === 0
+    ) {
+      setManualPieces([...autoBasePieces]);
+    }
+  }, [isManualMode, autoBasePieces, manualPieces.length]);
 
   const savePatternState = useCallback(async () => {
     if (!currentDesign) {

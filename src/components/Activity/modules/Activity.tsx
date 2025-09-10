@@ -5,11 +5,13 @@ import PageNavigation from "../../Common/modules/PageNavigation";
 import { useDesignContext } from "../../../context/DesignContext";
 import { useCart } from "../../../context/CartContext";
 import { useLibrary } from "../../../context/LibraryContext";
+import { useApp } from "../../../context/AppContext";
 import DesignCard from "./DesignCard";
 import LibraryCard from "./LibraryCard";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 export default function Activity() {
   const { t } = useTranslation();
+  const { isLoadingTemplates } = useApp();
   const { availableDesigns, isLoading, loadDesign, deleteDesign } =
     useDesignContext();
   const { removeByDesignId } = useCart();
@@ -103,6 +105,21 @@ export default function Activity() {
       setIsDeletingLibrary(null);
     }
   };
+
+  if (isLoadingTemplates) {
+    return (
+      <div className="relative w-full h-full flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ama"></div>
+          <div className="text-white font-satB text-lg tracking-wider">
+            {t('loading_templates')}
+          </div>
+        </div>
+        <PageNavigation currentPage="/Activity" />
+      </div>
+    );
+  }
+
   return (
     <div className="relative w-full h-full flex flex-col p-4 bg-black">
       <div className="mb-6">
