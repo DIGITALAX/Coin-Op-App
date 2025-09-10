@@ -75,6 +75,10 @@ export const useSvgExport = () => {
 
       const frontPanelBBox = frontPanelElement.getBBox();
 
+      const transform = frontPanelElement.getAttribute("transform") || "";
+      const rotateMatch = transform.match(/rotate\(([^)]+)\)/);
+      const rotation = rotateMatch ? parseFloat(rotateMatch[1]) : 0;
+
       const originalViewBox = sparrowRoot.getAttribute("viewBox");
       if (!originalViewBox) {
         document.body.removeChild(host);
@@ -87,26 +91,21 @@ export const useSvgExport = () => {
 
       const realWorldDimensions = HOODIE_FRONT_PANEL_DIMENSIONS[hoodieSize];
 
-      const scaleFactor = Math.max(
-        (realWorldDimensions.widthCm * cmToPt) / frontPanelBBox.width,
-        (realWorldDimensions.heightCm * cmToPt) / frontPanelBBox.height
+      let bboxWidth = frontPanelBBox.width;
+      let bboxHeight = frontPanelBBox.height;
+
+      const normalizedRotation = Math.abs(rotation) % 180;
+      if (normalizedRotation > 45 && normalizedRotation < 135) {
+        [bboxWidth, bboxHeight] = [bboxHeight, bboxWidth];
+      }
+
+      const scaleFactor = Math.min(
+        (realWorldDimensions.widthCm * cmToPt) / bboxWidth,
+        (realWorldDimensions.heightCm * cmToPt) / bboxHeight
       );
 
       const actualCanvasWidthPt = vbWidth * scaleFactor;
       const actualCanvasHeightPt = vbHeight * scaleFactor;
-
-      console.log(`🔍 SCALING DEBUG for ${hoodieSize}:`);
-      console.log(`📐 Sparrow viewBox: ${vbWidth} x ${vbHeight} units`);
-      console.log(`📏 Front panel bbox: ${frontPanelBBox.width} x ${frontPanelBBox.height} units`);
-      console.log(`🎯 Target front panel: ${realWorldDimensions.widthCm}cm x ${realWorldDimensions.heightCm}cm`);
-      console.log(`⚖️ Scale factor: ${scaleFactor.toFixed(2)}`);
-      console.log(`📦 Final canvas: ${actualCanvasWidthPt.toFixed(0)}pt x ${actualCanvasHeightPt.toFixed(0)}pt`);
-      console.log(`📏 That's ${(actualCanvasWidthPt/cmToPt).toFixed(1)}cm x ${(actualCanvasHeightPt/cmToPt).toFixed(1)}cm`);
-      
-      const A4_WIDTH = 595, A4_HEIGHT = 842;
-      const cols = Math.ceil(actualCanvasWidthPt / A4_WIDTH);
-      const rows = Math.ceil(actualCanvasHeightPt / A4_HEIGHT);
-      console.log(`📄 A4 pages: ${cols} x ${rows} = ${cols * rows} pages`);
 
       const scaledSvg = sparrowRoot.cloneNode(true) as SVGSVGElement;
 
@@ -133,9 +132,15 @@ export const useSvgExport = () => {
         scaleGroup.appendChild(scaledSvg.firstChild);
       }
       scaledSvg.appendChild(scaleGroup);
-      
-      scaledSvg.setAttribute('data-canvas-width', actualCanvasWidthPt.toString());
-      scaledSvg.setAttribute('data-canvas-height', actualCanvasHeightPt.toString());
+
+      scaledSvg.setAttribute(
+        "data-canvas-width",
+        actualCanvasWidthPt.toString()
+      );
+      scaledSvg.setAttribute(
+        "data-canvas-height",
+        actualCanvasHeightPt.toString()
+      );
 
       document.body.removeChild(host);
       return scaledSvg;
@@ -168,14 +173,12 @@ export const useSvgExport = () => {
             )
         );
         const svgString = new XMLSerializer().serializeToString(scaledSvg);
-   
+
         if (!svgString.trim()) {
           throw new Error("Empty SVG content");
         }
 
-        const defaultFilename = `pattern_${
-          size
-        }_${new Date().getTime()}.pdf`;
+        const defaultFilename = `pattern_${size}_${new Date().getTime()}.pdf`;
 
         const filePath = await save({
           defaultPath: defaultFilename,
@@ -192,9 +195,13 @@ export const useSvgExport = () => {
           return { success: false, error: "Export cancelled by user" };
         }
 
-        const canvasWidthPt = parseFloat(scaledSvg.getAttribute('data-canvas-width') || '0');
-        const canvasHeightPt = parseFloat(scaledSvg.getAttribute('data-canvas-height') || '0');
-                
+        const canvasWidthPt = parseFloat(
+          scaledSvg.getAttribute("data-canvas-width") || "0"
+        );
+        const canvasHeightPt = parseFloat(
+          scaledSvg.getAttribute("data-canvas-height") || "0"
+        );
+
         const result = await invoke<string>("crop_svg", {
           svgString,
           canvasWidthPt,
@@ -215,7 +222,6 @@ export const useSvgExport = () => {
     },
     [normalizeSvgForRealWorld]
   );
-
 
   return {
     exportSvgToPdf,

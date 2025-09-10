@@ -4,19 +4,15 @@ use regex::Regex;
 use lopdf::{Document, Object};
 
 fn svg_to_pdf_bytes(svg: &str, dpi: f32) -> Result<Vec<u8>, String> {
-    println!("=== RUST DEBUG ===");
-    println!("SVG first 200 chars: {}", &svg[..std::cmp::min(200, svg.len())]);
-    
+
     if let Some(width_start) = svg.find("width=\"") {
         if let Some(width_end) = svg[width_start + 7..].find("\"") {
             let width = &svg[width_start + 7..width_start + 7 + width_end];
-            println!("Extracted width: {}", width);
         }
     }
     if let Some(height_start) = svg.find("height=\"") {
         if let Some(height_end) = svg[height_start + 8..].find("\"") {
             let height = &svg[height_start + 8..height_start + 8 + height_end];
-            println!("Extracted height: {}", height);
         }
     }
     
@@ -24,9 +20,6 @@ fn svg_to_pdf_bytes(svg: &str, dpi: f32) -> Result<Vec<u8>, String> {
     uopts.fontdb_mut().load_system_fonts();
     let tree = usvg::Tree::from_str(svg, &uopts)
         .map_err(|e| format!("SVG parse failed: {:?}", e))?;
-        
-    println!("Tree size: {:?}", tree.size());
-    println!("DPI: {}", dpi);
     
     let page_options = svg2pdf::PageOptions { dpi };
     svg2pdf::to_pdf(&tree, ConversionOptions::default(), page_options)
