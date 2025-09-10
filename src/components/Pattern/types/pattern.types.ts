@@ -77,24 +77,24 @@ export type RotationPreset = {
 };
 
 export const ROTATION_PRESETS: RotationPreset[] = [
-  { name: "No Rotation", angles: [0] },
-  { name: "180° Only", angles: [0, 180] },
-  { name: "90° Steps", angles: [0, 90, 180, 270] },
-  { name: "45° Steps", angles: [0, 45, 90, 135, 180, 225, 270, 315] },
+  { name: "no_rotation", angles: [0] },
+  { name: "180_only", angles: [0, 180] },
+  { name: "90_steps", angles: [0, 90, 180, 270] },
+  { name: "45_steps", angles: [0, 45, 90, 135, 180, 225, 270, 315] },
   {
-    name: "30° Steps",
+    name: "30_steps",
     angles: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
   },
-  { name: "15° Steps", angles: Array.from({ length: 24 }, (_, i) => i * 15) },
-  { name: "10° Steps", angles: Array.from({ length: 36 }, (_, i) => i * 10) },
-  { name: "5° Steps", angles: Array.from({ length: 72 }, (_, i) => i * 5) },
-  { name: "1° Steps", angles: Array.from({ length: 360 }, (_, i) => i * 1) },
+  { name: "15_steps", angles: Array.from({ length: 24 }, (_, i) => i * 15) },
+  { name: "10_steps", angles: Array.from({ length: 36 }, (_, i) => i * 10) },
+  { name: "5_steps", angles: Array.from({ length: 72 }, (_, i) => i * 5) },
+  { name: "1_steps", angles: Array.from({ length: 360 }, (_, i) => i * 1) },
   {
-    name: "0.5° Steps",
+    name: "05_steps",
     angles: Array.from({ length: 720 }, (_, i) => i * 0.5),
   },
   {
-    name: "0.1° Steps",
+    name: "01_steps",
     angles: Array.from({ length: 3600 }, (_, i) => i * 0.1),
   },
 ];

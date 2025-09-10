@@ -417,7 +417,7 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
                 onClick={handleCancelNesting}
                 className="px-4 py-2 bg-red-500 hover:opacity-70 text-white rounded font-mana text-xs cursor-pointer"
               >
-                CANCEL
+                {t("cancel")}
               </button>
             )}
             {liveSvgContent && !isNesting && !isSparrowRunning && (
@@ -437,7 +437,7 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
                     onClick={resetToAutoLayout}
                     className="px-4 py-2 bg-red-500 hover:opacity-70 text-white rounded font-mana text-xs cursor-pointer"
                   >
-                    RESET TO AUTO
+                    {t("reset")}
                   </button>
                 )}
               </>
@@ -474,21 +474,21 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
         {sparrowStats && (
           <div className="mb-4 p-3 bg-verde/20 border border-verde/50 rounded">
             <div className="text-verde font-mana text-xs mb-2">
-              OPTIMIZATION STATS
+              {t("optimization_stats")}
             </div>
             <div className="text-white/70 font-mana text-xxxs space-y-1">
-              <div>Phase: {sparrowStats.phase}</div>
-              <div>Iteration: {sparrowStats.iteration}</div>
+              <div>{t("phase")}: {sparrowStats.phase}</div>
+              <div>{t("iteration")}: {sparrowStats.iteration}</div>
               <div>
-                Utilization: {(sparrowStats.utilization * 100).toFixed(1)}%
+                {t("utilization")}: {(sparrowStats.utilization * 100).toFixed(1)}%
               </div>
               <div>
-                Waste: {((1 - sparrowStats.utilization) * 100).toFixed(1)}%
+                {t("waste")}: {((1 - sparrowStats.utilization) * 100).toFixed(1)}%
               </div>
               <div>
-                Strip Size: {sparrowStats.width} × {sparrowStats.height}
+                {t("strip_size")}: {sparrowStats.width} × {sparrowStats.height}
               </div>
-              <div>Density: {sparrowStats.density}</div>
+              <div>{t("density")}: {sparrowStats.density}</div>
             </div>
           </div>
         )}

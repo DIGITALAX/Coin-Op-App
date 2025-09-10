@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { save } from "@tauri-apps/plugin-dialog";
 import { useDesignStorage } from "../../Activity/hooks/useDesignStorage";
@@ -6,6 +7,7 @@ import { useDesignContext } from "../../../context/DesignContext";
 import { CompositeHistoryProps } from "../types/composite.types";
 
 export default function CompositeHistory({ onImageSelected }: CompositeHistoryProps) {
+  const { t } = useTranslation();
   const { getItem, setItem } = useDesignStorage();
   const { refreshDesigns } = useDesignContext();
   const [compositeHistory, setCompositeHistory] = useState<
@@ -65,7 +67,7 @@ export default function CompositeHistory({ onImageSelected }: CompositeHistoryPr
     compositeHistory.length > 0 && (
       <div className="mt-6">
         <h2 className="text-lg font-sat text-white tracking-wider mb-4">
-          COMPOSITE GENERATION HISTORY
+          {t("composite_generation_history")}
         </h2>
         <div className="bg-oscuro border border-gray-600 rounded p-6">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 max-h-96 overflow-y-auto">
@@ -77,7 +79,7 @@ export default function CompositeHistory({ onImageSelected }: CompositeHistoryPr
                     alt={item.prompt.slice(0, 30)}
                     className="w-full h-full object-cover cursor-pointer hover:opacity-80"
                     onClick={() => onImageSelected?.(item.imageData)}
-                    title={`Click to use as background: ${item.prompt}`}
+                    title={`${t("click_to_use_as_background")}: ${item.prompt}`}
                   />
                 </div>
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
@@ -88,7 +90,7 @@ export default function CompositeHistory({ onImageSelected }: CompositeHistoryPr
                       onImageSelected?.(item.imageData);
                     }}
                     className="w-4 h-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center font-sat cursor-pointer transition-colors shadow-lg"
-                    title="Use as background"
+                    title={t("use_as_background")}
                   >
                     ↑
                   </div>
@@ -101,11 +103,11 @@ export default function CompositeHistory({ onImageSelected }: CompositeHistoryPr
                           defaultPath: `composite-${item.model}-${Date.now()}.png`,
                           filters: [
                             {
-                              name: "PNG Images",
+                              name: t("png_images"),
                               extensions: ["png"],
                             },
                             {
-                              name: "JPEG Images", 
+                              name: t("jpeg_images"), 
                               extensions: ["jpg", "jpeg"],
                             },
                             {
@@ -128,11 +130,11 @@ export default function CompositeHistory({ onImageSelected }: CompositeHistoryPr
                           });
                         }
                       } catch (error) {
-                        alert(`Save failed: ${error}`);
+                        alert(`${t("save_failed")}: ${error}`);
                       }
                     }}
                     className="w-4 h-4 bg-green-600 hover:bg-green-700 text-white rounded-full flex items-center justify-center font-sat cursor-pointer transition-colors shadow-lg"
-                    title="Save image"
+                    title={t("save_image")}
                   >
                     ↓
                   </div>
@@ -143,7 +145,7 @@ export default function CompositeHistory({ onImageSelected }: CompositeHistoryPr
                       handleDeleteFromHistory(item.id);
                     }}
                     className="w-4 h-4 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center font-sat cursor-pointer transition-colors shadow-lg"
-                    title="Delete image"
+                    title={t("delete_image")}
                   >
                     ×
                   </div>
@@ -162,13 +164,13 @@ export default function CompositeHistory({ onImageSelected }: CompositeHistoryPr
           </div>
           <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-600">
             <span className="text-sm font-sat text-gray-400">
-              {compositeHistory.length} composite generations saved
+              {compositeHistory.length} {t("composite_generations_saved")}
             </span>
             <div
               onClick={handleClearHistory}
               className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded font-sat text-xs cursor-pointer"
             >
-              CLEAR HISTORY
+              {t("clear_history")}
             </div>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, MouseEvent } from "react";
+import { useTranslation } from "react-i18next";
 import {
   CanvasHistoryProps,
   CanvasHistory as CanvasHistoryType,
@@ -6,6 +7,7 @@ import {
 import { useDesignStorage } from "../../Activity/hooks/useDesignStorage";
 import { useApp } from "../../../context/AppContext";
 export const CanvasHistory = ({ onHistoryLoad }: CanvasHistoryProps) => {
+  const { t } = useTranslation();
   const { getItem, setItem } = useDesignStorage();
   const { selectedTemplate } = useApp();
   const [canvasHistory, setCanvasHistory] = useState<CanvasHistoryType[]>([]);
@@ -67,7 +69,7 @@ export const CanvasHistory = ({ onHistoryLoad }: CanvasHistoryProps) => {
   return (
     <div className="mt-6">
       <h3 className="text-white font-sat text-sm mb-3 tracking-wider">
-        CANVAS HISTORY
+        {t("canvas_history")}
       </h3>
       <div className="flex gap-3 overflow-x-auto pb-2 pt-2 px-2">
         {canvasHistory.map((historyItem) => (

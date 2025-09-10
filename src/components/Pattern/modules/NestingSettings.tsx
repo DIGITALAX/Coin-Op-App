@@ -97,7 +97,7 @@ export const NestingSettingsPanel: FunctionComponent<NestingSettingsProps> = ({
 {t("rotation_angles")}
           </label>
           <select
-value={currentRotationPreset?.name || t("custom")}
+value={currentRotationPreset?.name || "custom"}
             onChange={(e) => {
               const preset = ROTATION_PRESETS.find(
                 (p) => p.name === e.target.value
@@ -113,10 +113,10 @@ value={currentRotationPreset?.name || t("custom")}
           >
             {ROTATION_PRESETS.map((preset) => (
               <option key={preset.name} value={preset.name}>
-                {preset.name}
+                {t(preset.name)}
               </option>
             ))}
-{!currentRotationPreset && <option value="Custom">{t("custom")}</option>}
+{!currentRotationPreset && <option value="custom">{t("custom")}</option>}
           </select>
           <div className="text-white/40 text-xxxs mt-1">
             {currentRotationPreset
@@ -181,13 +181,13 @@ value={currentRotationPreset?.name || t("custom")}
             </span>
           </div>
           <div className="text-white/40 text-xxxs mt-1">
-            Higher = more patient optimization (slower but better results)
+            {t("iteration_limit_description")}
           </div>
         </div>
 
         <div>
           <label className="block text-white/70 text-xxxs font-mana mb-2">
-            STRIKE LIMIT
+            {t("strike_limit")}
           </label>
           <div className="flex items-center gap-2">
             <input
@@ -210,7 +210,7 @@ value={currentRotationPreset?.name || t("custom")}
             </span>
           </div>
           <div className="text-white/40 text-xxxs mt-1">
-            Higher = more persistent when stuck (tries harder before giving up)
+            {t("strike_limit_description")}
           </div>
         </div>
 

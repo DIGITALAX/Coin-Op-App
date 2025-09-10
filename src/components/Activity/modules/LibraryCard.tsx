@@ -1,18 +1,20 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { SynthPrompt, CompositePrompt, LibraryCardProps } from "../types/activity.types";
 
 export default function LibraryCard({ item, type, onLoad, onDelete, isDeleting }: LibraryCardProps) {
+  const { t } = useTranslation();
   const [showDetails, setShowDetails] = useState(false);
   const getTypeLabel = () => {
     switch (type) {
       case 'workflow':
-        return 'ComfyUI Workflow';
+        return t('comfyui_workflow');
       case 'synthPrompt':
-        return 'Synth Prompt';
+        return t('synth_prompt');
       case 'compositePrompt':
-        return 'Composite Prompt';
+        return t('composite_prompt');
       default:
-        return 'Library Item';
+        return t('library_item');
     }
   };
   const getTypeColor = () => {
@@ -29,7 +31,7 @@ export default function LibraryCard({ item, type, onLoad, onDelete, isDeleting }
   };
   const getPreviewContent = () => {
     if (type === 'workflow') {
-      return 'ComfyUI JSON Workflow';
+      return t('comfyui_json_workflow');
     }
     const prompt = item as SynthPrompt | CompositePrompt;
     return prompt.prompt?.substring(0, 100) + (prompt.prompt?.length > 100 ? '...' : '');
@@ -44,7 +46,7 @@ export default function LibraryCard({ item, type, onLoad, onDelete, isDeleting }
             </h3>
             <p className={`font-mana text-xxxs ${getTypeColor()}`}>
               {getTypeLabel()}
-              {item.isDefault && ' (Default)'}
+              {item.isDefault && ` (${t('default')})`}
             </p>
           </div>
           <button
@@ -53,7 +55,7 @@ export default function LibraryCard({ item, type, onLoad, onDelete, isDeleting }
             className={`ml-2 p-1 text-red-400 hover:text-red-300 transition-colors ${
               isDeleting ? 'opacity-50 cursor-not-allowed' : ''
             }`}
-            title="Delete item"
+            title={t('delete_item')}
           >
             {isDeleting ? (
               <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
@@ -81,20 +83,20 @@ export default function LibraryCard({ item, type, onLoad, onDelete, isDeleting }
             onClick={() => onLoad(item.id, type)}
             className="flex-1 px-3 py-2 bg-ama text-black font-satB text-xxxs rounded hover:opacity-80 transition-opacity"
           >
-            LOAD
+            {t('load')}
           </button>
           <button
             onClick={() => setShowDetails(!showDetails)}
             className="px-3 py-2 bg-gris text-white font-satB text-xxxs rounded hover:opacity-80 transition-opacity"
           >
-            {showDetails ? 'HIDE' : 'DETAILS'}
+            {showDetails ? t('hide') : t('details')}
           </button>
         </div>
         {showDetails && (
           <div className="mt-3 pt-3 border-t border-oscurazul">
             <div className="space-y-2 text-xxxs">
               <div className="text-gray-400 font-mana">
-                <span className="text-white">ID:</span> {item.id}
+                <span className="text-white">{t('id')}:</span> {item.id}
               </div>
               {type !== 'workflow' && (
                 <>

@@ -508,7 +508,7 @@ export default function Generator({
               getLorasForProvider(aiProvider).length > 0 && (
                 <div>
                   <label className="block text-sm font-sat text-gray-400 mb-2">
-                    LORA
+                    {t("lora")}
                   </label>
                   <div className="relative">
                     <div
@@ -736,7 +736,7 @@ export default function Generator({
                 {getOpenAiStyleOptions().length > 0 && (
                   <div>
                     <label className="block text-sm font-sat text-gray-400 mb-2">
-                      STYLE
+                      {t("style")}
                     </label>
                     <div className="relative">
                       <div
@@ -778,7 +778,7 @@ export default function Generator({
                 {getOpenAiBackgroundOptions().length > 0 && (
                   <div>
                     <label className="block text-sm font-sat text-gray-400 mb-2">
-                      BACKGROUND
+                      {t("background")}
                     </label>
                     <div className="relative">
                       <div
@@ -822,7 +822,7 @@ export default function Generator({
                 {getOpenAiInputFidelityOptions().length > 0 && (
                   <div>
                     <label className="block text-sm font-sat text-gray-400 mb-2">
-                      INPUT FIDELITY
+                      {t("input_fidelity")}
                     </label>
                     <div className="relative">
                       <div
@@ -879,13 +879,13 @@ export default function Generator({
             <div className="border-t border-gray-600 pt-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-md font-sat text-white tracking-wider">
-                  REPLICATE SETTINGS
+                  {t("replicate_settings")}
                 </h3>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-sat text-gray-400 mb-2">
-                    INFERENCE STEPS
+                    {t("inference_steps")}
                   </label>
                   <div className="relative">
                     <div
@@ -932,7 +932,7 @@ export default function Generator({
                 </div>
                 <div>
                   <label className="block text-sm font-sat text-gray-400 mb-2">
-                    ASPECT RATIO
+                    {t("aspect_ratio")}
                   </label>
                   <div className="relative">
                     <div

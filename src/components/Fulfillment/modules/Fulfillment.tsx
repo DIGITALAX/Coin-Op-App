@@ -192,7 +192,7 @@ export default function Fulfillment() {
         <div className="space-y-6">
           <div className="border border-ama rounded-md p-4 mb-6">
             <h3 className="text-white font-satB text-sm mb-4 tracking-wider">
-              FULFILLER
+              {t("fulfiller")}
             </h3>
             <div className="flex gap-4">
               {FULFILLERS.map((fulfiller, index) => (
@@ -283,7 +283,7 @@ export default function Fulfillment() {
                     </div>
                     <div className="text-right">
                       <span className="text-ama font-mana text-xs">
-                        {material.price === 0 ? "BASE" : `${formatPrice(material.price)} MONA`}
+                        {material.price === 0 ? t("base") : `${formatPrice(material.price)} MONA`}
                       </span>
                     </div>
                   </div>
@@ -296,7 +296,7 @@ export default function Fulfillment() {
             fulfillmentSelection.materials.length > 0 && (
               <div className="border border-ama rounded-md p-4">
                 <h3 className="text-ama font-satB text-sm mb-4 tracking-wider">
-                  FULFILLMENT READY
+                  {t("fulfillment_ready")}
                 </h3>
                 <div className="space-y-2 text-xs mb-4">
                   <div className="flex justify-between">
@@ -314,7 +314,7 @@ export default function Fulfillment() {
                 </div>
                 <div className="border-t border-ama pt-3 mb-4">
                   <div className="flex justify-between mb-4">
-                    <span className="text-white font-satB text-sm">SUPPLIER + FULFILLER TOTAL COSTS:</span>
+                    <span className="text-white font-satB text-sm">{t("supplier_fulfiller_total")}:</span>
                     <span className="text-ama font-satB text-sm">
                       {formatPrice(calculateTotal + FULFILLERS[0].base)} MONA
                     </span>

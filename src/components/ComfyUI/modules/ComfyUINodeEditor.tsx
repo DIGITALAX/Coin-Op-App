@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useNodeCanvas } from "../hooks/useNodeCanvas";
 import { useConnectionRenderer } from "../hooks/useConnectionRenderer";
 import NodeFactory from "./NodeFactory";
@@ -9,6 +10,7 @@ export default function ComfyUINodeEditor({
   onWorkflowChange,
   comfyUrl,
 }: ComfyUINodeEditorProps) {
+  const { t } = useTranslation();
   const { parseWorkflow } = useComfyUI();
   const {
     containerRef,
@@ -39,29 +41,29 @@ export default function ComfyUINodeEditor({
           onClick={resetView}
           className="px-3 py-1.5 bg-gris text-white rounded font-mana text-xxxs hover:opacity-70"
         >
-          Reset View
+          {t("reset_view")}
         </div>
         {workflow && (
           <div
             onClick={deleteWorkflow}
             className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded font-mana text-xxxs cursor-pointer transition-colors"
           >
-            Delete Workflow
+            {t("delete_workflow")}
           </div>
         )}
         {workflow && (
           <div className="flex items-center gap-4 ml-auto">
             <span className="text-white font-mana text-xxxs">
-              Nodes: {workflow.nodes.length}
+              {t("nodes")}: {workflow.nodes.length}
             </span>
             <span className="text-white font-mana text-xxxs">
-              Connections: {workflow.connections?.length || 0}
+              {t("connections")}: {workflow.connections?.length || 0}
             </span>
             <span className="text-white font-mana text-xxxs">
-              Zoom: {Math.round(canvasState.zoom * 100).toFixed(0)}%
+              {t("zoom")}: {Math.round(canvasState.zoom * 100).toFixed(0)}%
             </span>
             <span className="text-white font-mana text-xxxs">
-              Pan: {Math.round(canvasState.pan.x)},{" "}
+              {t("pan")}: {Math.round(canvasState.pan.x)},{" "}
               {Math.round(canvasState.pan.y)}
             </span>
           </div>
@@ -71,7 +73,7 @@ export default function ComfyUINodeEditor({
         <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
           <div className="text-white font-mana">
             <div className="animate-spin w-8 h-8 border-2 border-ama border-t-transparent rounded-full mx-auto mb-2"></div>
-            Parsing Workflow...
+            {t("parsing_workflow")}...
           </div>
         </div>
       )}
@@ -79,7 +81,7 @@ export default function ComfyUINodeEditor({
         <div className="bg-red-900 border-l-4 border-red-500 p-4">
           <div className="flex">
             <div className="ml-3">
-              <p className="text-red-200 font-mana text-sm">Error</p>
+              <p className="text-red-200 font-mana text-sm">{t("error")}</p>
               <p className="text-red-300 text-xs mt-1">{error}</p>
             </div>
             <div
