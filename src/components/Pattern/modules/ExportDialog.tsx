@@ -10,6 +10,8 @@ export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
   viewportPx,
   patternPieces,
   liveSvgContent,
+  isManualMode,
+  manualPieces,
 }) => {
   const { t } = useTranslation();
   const { exportSvgToPdf } = useSvgExport();
@@ -18,6 +20,7 @@ export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
   const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [customWidth, setCustomWidth] = useState<string>("34.8");
   const [customHeight, setCustomHeight] = useState<string>("65.8");
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
 
   const garmentType = useMemo(() => {
     return patternPieces?.[0]?.garmentType || "hoodie";
@@ -26,9 +29,22 @@ export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
   const isShirt = garmentType === "tshirt";
   const dimensionTable = isShirt ? SHIRT_FRONT_PANEL_DIMENSIONS : HOODIE_FRONT_PANEL_DIMENSIONS;
 
+  const handleCancel = useCallback(() => {
+    if (abortController) {
+      abortController.abort();
+      setAbortController(null);
+    }
+    setIsExporting(false);
+    setExportStatus(null);
+    onClose();
+  }, [abortController, onClose]);
+
   const handleExport = useCallback(async () => {
     setIsExporting(true);
     setExportStatus("Preparing export...");
+
+    const controller = new AbortController();
+    setAbortController(controller);
 
     try {
       const customDimensions = size === "CUSTOM" ? {
@@ -41,26 +57,52 @@ export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
         viewportPx,
         size,
         patternPieces,
-        liveSvgContent,
+        liveSvgContent!,
         customDimensions,
-        garmentType
+        garmentType,
+        isManualMode,
+        manualPieces,
+        controller.signal
       );
+
+      if (controller.signal.aborted) {
+        return;
+      }
 
       if (result.success) {
         setExportStatus(`Export successful! File saved: ${result.filePath}`);
         setTimeout(() => {
-          onClose();
-          setExportStatus(null);
+          if (!controller.signal.aborted) {
+            onClose();
+            setExportStatus(null);
+          }
         }, 2000);
       } else {
         setExportStatus(`Export failed: ${result.error}`);
-        setTimeout(() => setExportStatus(null), 5000);
+        setTimeout(() => {
+          if (!controller.signal.aborted) {
+            setExportStatus(null);
+          }
+        }, 5000);
       }
     } catch (error) {
-      setExportStatus(`Export failed: ${error}`);
-      setTimeout(() => setExportStatus(null), 5000);
+      if (!controller.signal.aborted) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          setExportStatus("Export cancelled");
+        } else {
+          setExportStatus(`Export failed: ${error}`);
+        }
+        setTimeout(() => {
+          if (!controller.signal.aborted) {
+            setExportStatus(null);
+          }
+        }, 3000);
+      }
     } finally {
-      setIsExporting(false);
+      if (!controller.signal.aborted) {
+        setIsExporting(false);
+        setAbortController(null);
+      }
     }
   }, [
     svgElement,
@@ -72,6 +114,9 @@ export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
     liveSvgContent,
     customWidth,
     customHeight,
+    garmentType,
+    isManualMode,
+    manualPieces,
   ]);
 
   if (!isOpen) return null;
@@ -169,10 +214,10 @@ export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
 
         <div className="flex space-x-3">
           <button
-            onClick={onClose}
+            onClick={isExporting ? handleCancel : onClose}
             className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-mana text-sm rounded transition-colors"
           >
-            {t("cancel")}
+            {isExporting ? "Cancel Export" : t("cancel")}
           </button>
           <button
             onClick={handleExport}

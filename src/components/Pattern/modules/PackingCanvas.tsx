@@ -569,6 +569,8 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
         viewportPx={{ width: canvasWidth, height: canvasHeight }}
         patternPieces={selectedPieces}
         liveSvgContent={liveSvgContent || undefined}
+        isManualMode={isManualMode}
+        manualPieces={manualPieces}
       />
     </div>
   );

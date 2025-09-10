@@ -28,6 +28,8 @@ export interface ExportDialogProps {
   viewportPx: ViewportPx;
   patternPieces: PatternPiece[];
   liveSvgContent?: string;
+  isManualMode?: boolean;
+  manualPieces?: CanvasPanel[];
 }
 
 export interface NestingSettingsProps {
