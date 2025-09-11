@@ -7,6 +7,7 @@ import { UseSellReturn, SellData } from "../types/sell.types";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { FULFILLERS } from "../../../lib/constants";
 import { CanvasHistory } from "../../Synth/types/synth.types";
+import { Material } from "../../Fulfillment/types/fulfillment.types";
 
 export const useSell = (): UseSellReturn => {
   const { currentDesign } = useDesignContext();
@@ -180,7 +181,12 @@ export const useSell = (): UseSellReturn => {
         fulfillmentDataAny?.materials &&
         Array.isArray(fulfillmentDataAny.materials)
       ) {
-        materials.push(...fulfillmentDataAny.materials);
+        materials.push(
+          ...fulfillmentDataAny.materials.map((mat: Material) => ({
+            childId: mat.childId,
+            childContract: mat.childContract,
+          }))
+        );
       }
 
       const zoneChildrenFront: Array<{
