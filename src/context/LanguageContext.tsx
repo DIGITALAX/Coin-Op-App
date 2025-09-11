@@ -14,10 +14,10 @@ export const LanguageProvider: FunctionComponent<LanguageProviderProps> = ({ chi
   useEffect(() => {
     const loadSavedLanguage = async () => {
       try {
-        const savedLanguage = await getItem('app-language', 'global', 'en');
+        const savedLanguage = await getItem('appLanguage', 'global') as string;
         if (savedLanguage && savedLanguage !== i18n.language) {
-          await i18n.changeLanguage(savedLanguage);
-          setCurrentLanguage(savedLanguage);
+          await i18n.changeLanguage(savedLanguage ?? "en");
+          setCurrentLanguage(savedLanguage ?? "en");
         }
       } catch (error) {
         console.error('Error loading saved language:', error);
@@ -42,7 +42,7 @@ export const LanguageProvider: FunctionComponent<LanguageProviderProps> = ({ chi
 
   const changeLanguage = async (language: string) => {
     try {
-      await setItem('app-language', language, 'global');
+      await setItem('appLanguage', language, 'global');
       await i18n.changeLanguage(language);
       setCurrentLanguage(language);
       

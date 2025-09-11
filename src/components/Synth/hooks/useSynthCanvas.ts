@@ -52,8 +52,9 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
   const [redoHistory, setRedoHistory] = useState<ElementInterface[][]>([]);
   useEffect(() => {
     const loadCanvasHistory = async () => {
+      if (!currentDesign?.id) return;
       try {
-        const history = (await getItem("canvasHistory", "synth")) || [];
+        const history = (await getItem("canvasHistory")) || [];
         if (Array.isArray(history)) {
           setCanvasHistory(history);
         } else {
@@ -64,7 +65,7 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
       }
     };
     loadCanvasHistory();
-  }, [getItem]);
+  }, [getItem, currentDesign?.id]);
   useEffect(() => {
     if (selectedPatternChild && canvasRef.current) {
       loadPatternFromURI(selectedPatternChild.child.metadata.image);
@@ -513,9 +514,9 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
       timestamp: Date.now(),
     };
     try {
-      const currentHistory = (await getItem("canvasHistory", "synth")) || [];
+      const currentHistory = (await getItem("canvasHistory")) || [];
       if (!Array.isArray(currentHistory)) {
-        await setItem("canvasHistory", [], "synth");
+        await setItem("canvasHistory", []);
         return;
       }
       const filteredHistory = currentHistory.filter(
@@ -528,7 +529,7 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
       );
       const newHistory = [historyItem, ...filteredHistory].slice(0, 10);
       setCanvasHistory(newHistory);
-      await setItem("canvasHistory", newHistory, "synth");
+      await setItem("canvasHistory", newHistory);
       if (currentDesign) {
         await refreshDesigns();
       }

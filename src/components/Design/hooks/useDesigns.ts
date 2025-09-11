@@ -25,26 +25,22 @@ export const useDesigns = () => {
   const refreshDesigns = useCallback(async () => {
     try {
       setIsLoading(true);
-      const designsList = (await getItem("designs-list", undefined, [])) || [];
+      const designsList = (await getItem("designs-list", "global")) || [];
       if (Array.isArray(designsList)) {
         const designsMetadata: DesignMetadata[] = [];
         const validDesignIds: string[] = [];
         for (const designId of designsList) {
           try {
-            const designData = await getItem(
-              `design-${designId}`,
-              undefined,
-              null
-            );
+            const designData = await getItem(`design-${designId}`, "global");
             if (designData && typeof designData === "object") {
               const design = designData as Design;
               validDesignIds.push(designId);
               const canvasHistory =
-                (await getItem("canvasHistory", designId, [])) || [];
+                (await getItem("canvasHistory", designId)) || [];
               const aiHistory =
-                (await getItem("aiGenerationHistory", designId, [])) || [];
+                (await getItem("aiGenerationHistory", designId)) || [];
               const compositeHistory =
-                (await getItem("composite_canvasHistory", designId, [])) || [];
+                (await getItem("composite_canvasHistory", designId)) || [];
               designsMetadata.push({
                 design,
                 stats: {
@@ -63,7 +59,7 @@ export const useDesigns = () => {
           } catch (error) {}
         }
         if (validDesignIds.length !== designsList.length) {
-          await setItem("designs-list", validDesignIds);
+          await setItem("designs-list", validDesignIds, "global");
         }
         designsMetadata.sort(
           (a, b) =>
@@ -87,7 +83,7 @@ export const useDesigns = () => {
         const design: Design = {
           id: designId,
           name: request.name,
-          templateId: request.templateId,
+          type: request.type,
           frontLayerTemplateId: request.frontLayerTemplateId,
           backLayerTemplateId: request.backLayerTemplateId,
           childUri: request.childUri,
@@ -95,13 +91,12 @@ export const useDesigns = () => {
           lastModified: now,
           description: request.description,
         };
-        await setItem(`design-${designId}`, design);
-        const designsList =
-          (await getItem("designs-list", undefined, [])) || [];
+        await setItem(`design-${designId}`, design, "global");
+        const designsList = (await getItem("designs-list", "global")) || [];
         const updatedList = Array.isArray(designsList)
           ? [...designsList, designId]
           : [designId];
-        await setItem("designs-list", updatedList);
+        await setItem("designs-list", updatedList, "global");
         setCurrentDesign(design);
         window.dispatchEvent(
           new CustomEvent("newDesignCreated", { detail: { design } })
@@ -120,48 +115,37 @@ export const useDesigns = () => {
     async (designId: string) => {
       try {
         setIsLoading(true);
-        const designData = await getItem(`design-${designId}`, undefined, null);
+        const designData = await getItem(`design-${designId}`, "global");
         if (designData && typeof designData === "object") {
           let design = designData as Design;
-          
-          if ((design as any).layerTemplateId && !design.frontLayerTemplateId) {
-            design = {
-              ...design,
-              frontLayerTemplateId: (design as any).layerTemplateId,
-              backLayerTemplateId: undefined,
-            };
-            delete (design as any).layerTemplateId;
-          }
-          
+
           design.lastModified = new Date();
-          await setItem(`design-${designId}`, design);
+          await setItem(`design-${designId}`, design, "global");
           setCurrentDesign(design);
-         
-        
-    
-          
+
           const groupedTemplate = groupedTemplates.find((gt) => {
-            const hasMatch = gt.name === design.templateId;
+            const hasMatch =
+              gt.name.toLowerCase() === design.type.toLowerCase();
             return hasMatch;
           });
-          
-          
           if (groupedTemplate) {
             selectTemplate(groupedTemplate);
             const frontLayer = groupedTemplate.templates.find(
               (template) => template.templateId === design.frontLayerTemplateId
             );
-            const backLayer = design.backLayerTemplateId ? groupedTemplate.templates.find(
-              (template) => template.templateId === design.backLayerTemplateId
-            ) : undefined;
-            
+            const backLayer = design.backLayerTemplateId
+              ? groupedTemplate.templates.find(
+                  (template) =>
+                    template.templateId === design.backLayerTemplateId
+                )
+              : undefined;
             if (frontLayer) {
               selectLayer(frontLayer, backLayer);
               const patternChild = frontLayer.childReferences.find(
                 (child) => child.uri === design.childUri
               );
               if (patternChild) {
-                setSelectedPatternChild(patternChild as any);
+                setSelectedPatternChild(patternChild);
               }
             }
           }
@@ -173,8 +157,7 @@ export const useDesigns = () => {
               const canvasHistory =
                 ((await getItem(
                   "canvasHistory",
-                  designId,
-                  []
+                  designId
                 )) as CanvasHistory[]) || [];
               if (Array.isArray(canvasHistory) && canvasHistory.length > 0) {
                 const currentChildHistory = canvasHistory
@@ -214,24 +197,50 @@ export const useDesigns = () => {
     async (designId: string) => {
       try {
         setIsLoading(true);
-        const designsList =
-          (await getItem("designs-list", undefined, [])) || [];
+        const designsList = (await getItem("designs-list", "global")) || [];
         const updatedList = Array.isArray(designsList)
           ? designsList.filter((id) => id !== designId)
           : [];
-        await setItem("designs-list", updatedList);
-        await setItem(`design-${designId}`, null);
+        await setItem("designs-list", updatedList, "global");
+        await setItem(`design-${designId}`, null, "global");
+
         const dataTypes = [
           "canvasHistory",
           "aiGenerationHistory",
-          "composite_canvasHistory",
-          "comfyui-settings",
+          "aiCompositeHistory",
+          "comfyuiSettings",
           "fulfillment",
-          "pattern"
+          "pattern",
+          "nestingSettings",
+          "aiProvider",
+          "openai_settings",
+          "replicate_settings",
+          "openai_selectedModel",
+          "replicate_selectedModel",
+          "comfyui_selectedModel",
+          "openai_selectedLora",
+          "replicate_selectedLora",
+          "comfyui_selectedLora",
         ];
+
         for (const dataType of dataTypes) {
           try {
             await setItem(dataType, null, designId);
+          } catch (error) {}
+        }
+
+        const designBasedKeys = [
+          `compositeImage_${designId}_front`,
+          `compositeImage_${designId}_back`,
+          `compositeCanvasChildren_${designId}_front`,
+          `compositeCanvasChildren_${designId}_back`,
+          `interactiveCanvas_${designId}_front`,
+          `interactiveCanvas_${designId}_back`,
+        ];
+
+        for (const key of designBasedKeys) {
+          try {
+            await setItem(key, null, designId);
           } catch (error) {}
         }
         if (currentDesign?.id === designId) {
@@ -249,14 +258,14 @@ export const useDesigns = () => {
   const updateDesignThumbnail = useCallback(
     async (designId: string, thumbnail: string) => {
       try {
-        const designData = await getItem(`design-${designId}`, undefined, null);
+        const designData = await getItem(`design-${designId}`, "global");
         if (designData && typeof designData === "object") {
           const design = {
             ...(designData as Design),
             thumbnail,
             lastModified: new Date(),
           };
-          await setItem(`design-${designId}`, design);
+          await setItem(`design-${designId}`, design, "global");
           if (currentDesign?.id === designId) {
             setCurrentDesign(design);
           }
@@ -270,7 +279,6 @@ export const useDesigns = () => {
   useEffect(() => {
     refreshDesigns();
   }, [refreshDesigns]);
-
 
   return {
     currentDesign,

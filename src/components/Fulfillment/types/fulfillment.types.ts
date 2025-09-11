@@ -12,19 +12,20 @@ export interface Material {
   price: number;
   type: string;
   tags?: string[];
+  childId: string;
+  childContract: string;
 }
 
 export interface FulfillmentSelection {
-  fulfiller: Fulfiller | null;
   baseColors: string[];
   materials: Material[];
 }
 
 export interface ChildData {
   price: string;
-  child_type: string;
-  child_contract: string;
-  child_id: string;
+  childType: string;
+  childContract: string;
+  childId: string;
   currency: string;
   metadata?: {
     title?: string;

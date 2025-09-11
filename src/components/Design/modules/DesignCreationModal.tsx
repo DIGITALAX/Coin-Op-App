@@ -8,6 +8,7 @@ export default function DesignCreationModal({
   frontLayerTemplateId,
   backLayerTemplateId,
   childUri,
+  type,
   onDesignCreated,
 }: DesignCreationModalProps) {
   const { t } = useTranslation();
@@ -29,13 +30,16 @@ export default function DesignCreationModal({
         frontLayerTemplateId,
         backLayerTemplateId,
         childUri,
+        type,
         description: description.trim() || undefined,
       });
       setDesignName("");
       setDescription("");
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("failed_to_create_design"));
+      setError(
+        err instanceof Error ? err.message : t("failed_to_create_design")
+      );
     } finally {
       setIsCreating(false);
     }
@@ -52,7 +56,9 @@ export default function DesignCreationModal({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
       <div className="bg-gray-900 border border-gray-600 rounded-lg p-6 max-w-md w-full mx-4">
-        <h2 className="text-xl font-satB text-white mb-4">{t("create_new_design")}</h2>
+        <h2 className="text-xl font-satB text-white mb-4">
+          {t("create_new_design")}
+        </h2>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-sat text-gray-300 mb-2">
@@ -86,9 +92,17 @@ export default function DesignCreationModal({
             <div className="text-red-400 text-sm font-sat">{error}</div>
           )}
           <div className="text-xs text-gray-500 space-y-1">
-            <p>{t("template_type")}: {templateId}</p>
-            <p>{t("front_layer_tid")}: {frontLayerTemplateId}</p>
-            {backLayerTemplateId && <p>{t("back_layer_tid")}: {backLayerTemplateId}</p>}
+            <p>
+              {t("template_type")}: {templateId}
+            </p>
+            <p>
+              {t("front_layer_tid")}: {frontLayerTemplateId}
+            </p>
+            {backLayerTemplateId && (
+              <p>
+                {t("back_layer_tid")}: {backLayerTemplateId}
+              </p>
+            )}
           </div>
         </div>
         <div className="flex gap-3 mt-6">

@@ -1,10 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useApp } from "../../../context/AppContext";
-import {
-  FulfillmentSelection,
-  Material,
-} from "../types/fulfillment.types";
+import { FulfillmentSelection, Material } from "../types/fulfillment.types";
 import { getCurrentTemplate } from "../../Synth/utils/templateHelpers";
 import useMaterials from "./useMaterials";
 import { useDesignContext } from "../../../context/DesignContext";
@@ -19,7 +16,6 @@ const useFulfillment = () => {
 
   const [fulfillmentSelection, setFulfillmentSelection] =
     useState<FulfillmentSelection>({
-      fulfiller: null,
       baseColors: [],
       materials: [],
     });
@@ -27,7 +23,9 @@ const useFulfillment = () => {
   useEffect(() => {
     const loadFulfillmentData = async () => {
       if (currentDesign?.id) {
-        const savedFulfillment = await getItem("fulfillment", currentDesign.id, null) as FulfillmentSelection | null;
+        const savedFulfillment = (await getItem(
+          "fulfillment"
+        )) as FulfillmentSelection | null;
         if (savedFulfillment) {
           setFulfillmentSelection(savedFulfillment);
         }
@@ -38,8 +36,12 @@ const useFulfillment = () => {
 
   useEffect(() => {
     const saveFulfillmentData = async () => {
-      if (currentDesign?.id && (fulfillmentSelection.baseColors.length > 0 || fulfillmentSelection.materials.length > 0)) {
-        await setItem("fulfillment", fulfillmentSelection, currentDesign.id);
+      if (
+        currentDesign?.id &&
+        (fulfillmentSelection.baseColors.length > 0 ||
+          fulfillmentSelection.materials.length > 0)
+      ) {
+        await setItem("fulfillment", fulfillmentSelection);
       }
     };
     saveFulfillmentData();
@@ -48,15 +50,15 @@ const useFulfillment = () => {
     setFulfillmentSelection((prev) => ({
       ...prev,
       baseColors: prev.baseColors.includes(color)
-        ? prev.baseColors.filter(c => c !== color)
+        ? prev.baseColors.filter((c) => c !== color)
         : [...prev.baseColors, color],
     }));
   };
   const toggleMaterial = (material: Material) => {
     setFulfillmentSelection((prev) => ({
       ...prev,
-      materials: prev.materials.find(m => m.title === material.title)
-        ? prev.materials.filter(m => m.title !== material.title)
+      materials: prev.materials.find((m) => m.title === material.title)
+        ? prev.materials.filter((m) => m.title !== material.title)
         : [...prev.materials, material],
     }));
   };
@@ -75,14 +77,15 @@ const useFulfillment = () => {
     if (!selectedLayer) return 0;
     const baseTotal = calculateBaseTotal;
     const materialsPrice = fulfillmentSelection.materials.reduce(
-      (sum, material) => sum + material.price, 0
+      (sum, material) => sum + material.price,
+      0
     );
     return baseTotal + materialsPrice;
   }, [selectedLayer, fulfillmentSelection.materials, calculateBaseTotal]);
   const formatPrice = (price: number) => {
     return price.toFixed(2);
   };
-const getColorName = (hexColor: string) => {
+  const getColorName = (hexColor: string) => {
     const colorMap: { [key: string]: string } = {
       "#fff": t("white"),
       "#000": t("black"),
@@ -94,13 +97,7 @@ const getColorName = (hexColor: string) => {
     if (!selectedTemplate) return [];
     return filterMaterialsByTag(selectedTemplate.template_type);
   };
-  const resetFulfillmentSelection = () => {
-    setFulfillmentSelection({
-      fulfiller: null,
-      baseColors: [],
-      materials: [],
-    });
-  };
+
   return {
     fulfillmentSelection,
     toggleBaseColor,
@@ -108,7 +105,6 @@ const getColorName = (hexColor: string) => {
     calculateTotal,
     formatPrice,
     getColorName,
-    resetFulfillmentSelection,
     loading,
     getFilteredMaterials,
   };

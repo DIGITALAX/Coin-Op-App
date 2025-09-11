@@ -6,10 +6,12 @@ import { useDesignStorage } from "../../Activity/hooks/useDesignStorage";
 import { useDesignContext } from "../../../context/DesignContext";
 import { CompositeHistoryProps } from "../types/composite.types";
 
-export default function CompositeHistory({ onImageSelected }: CompositeHistoryProps) {
+export default function CompositeHistory({
+  onImageSelected,
+}: CompositeHistoryProps) {
   const { t } = useTranslation();
   const { getItem, setItem } = useDesignStorage();
-  const { refreshDesigns } = useDesignContext();
+  const { refreshDesigns, currentDesign } = useDesignContext();
   const [compositeHistory, setCompositeHistory] = useState<
     Array<{
       id: string;
@@ -23,7 +25,7 @@ export default function CompositeHistory({ onImageSelected }: CompositeHistoryPr
   >([]);
   useEffect(() => {
     const loadHistory = async () => {
-      const saved = await getItem("aiCompositeHistory", "composite", []);
+      const saved = await getItem("aiCompositeHistory");
       if (Array.isArray(saved)) {
         const parsedHistory = saved.map((item: any) => ({
           ...item,
@@ -35,10 +37,10 @@ export default function CompositeHistory({ onImageSelected }: CompositeHistoryPr
       }
     };
     loadHistory();
-  }, [getItem]);
+  }, [getItem, currentDesign?.id]);
   useEffect(() => {
     const handleCompositeGenerated = async () => {
-      const saved = await getItem("aiCompositeHistory", "composite", []);
+      const saved = await getItem("aiCompositeHistory");
       if (Array.isArray(saved)) {
         const parsedHistory = saved.map((item: any) => ({
           ...item,
@@ -47,20 +49,26 @@ export default function CompositeHistory({ onImageSelected }: CompositeHistoryPr
         setCompositeHistory(parsedHistory);
       }
     };
-    window.addEventListener("compositeImageGenerated", handleCompositeGenerated);
+    window.addEventListener(
+      "compositeImageGenerated",
+      handleCompositeGenerated
+    );
     return () => {
-      window.removeEventListener("compositeImageGenerated", handleCompositeGenerated);
+      window.removeEventListener(
+        "compositeImageGenerated",
+        handleCompositeGenerated
+      );
     };
-  }, [getItem]);
+  }, [getItem, currentDesign?.id]);
   const handleDeleteFromHistory = async (itemId: string) => {
     const updatedHistory = compositeHistory.filter((h) => h.id !== itemId);
     setCompositeHistory(updatedHistory);
-    await setItem("aiCompositeHistory", updatedHistory, "composite");
+    await setItem("aiCompositeHistory", updatedHistory);
     await refreshDesigns();
   };
   const handleClearHistory = async () => {
     setCompositeHistory([]);
-    await setItem("aiCompositeHistory", [], "composite");
+    await setItem("aiCompositeHistory", []);
     await refreshDesigns();
   };
   return (
@@ -100,21 +108,23 @@ export default function CompositeHistory({ onImageSelected }: CompositeHistoryPr
                       e.stopPropagation();
                       try {
                         const filePath = await save({
-                          defaultPath: `composite-${item.model}-${Date.now()}.png`,
+                          defaultPath: `composite-${
+                            item.model
+                          }-${Date.now()}.png`,
                           filters: [
                             {
                               name: t("png_images"),
                               extensions: ["png"],
                             },
                             {
-                              name: t("jpeg_images"), 
+                              name: t("jpeg_images"),
                               extensions: ["jpg", "jpeg"],
                             },
                             {
                               name: "All Images",
                               extensions: [
                                 "png",
-                                "jpg", 
+                                "jpg",
                                 "jpeg",
                                 "gif",
                                 "bmp",

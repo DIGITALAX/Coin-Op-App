@@ -1,7 +1,6 @@
 export interface Design {
   id: string;
   name: string;
-  templateId: string;
   frontLayerTemplateId: string;
   backLayerTemplateId?: string;
   childUri: string;
@@ -9,17 +8,12 @@ export interface Design {
   lastModified: Date;
   thumbnail?: string;
   description?: string;
-  wasteData?: {
-    totalWastePercentage?: number;
-    fabricSavedMM2?: number;
-    layoutCount?: number;
-    lastWasteAnalysis?: Date;
-  };
+  type: string;
   patternData?: {
     autoResult: any;
     manualPieces: any[];
     autoBasePieces?: any[];
-    currentMode: 'auto' | 'manual';
+    currentMode: "auto" | "manual";
     settings: any;
     liveSvgContent: string | null;
     savedSvgContent?: string | null;
@@ -35,13 +29,13 @@ export interface DesignMetadata {
     aiGenerationCount: number;
     compositeCount: number;
     wastePercentage?: number;
-    fabricSavedMM2?: number;
     patternLayoutCount?: number;
   };
 }
 export interface CreateDesignRequest {
   name: string;
   templateId: string;
+  type: string;
   frontLayerTemplateId: string;
   backLayerTemplateId?: string;
   childUri: string;
@@ -60,6 +54,7 @@ export interface DesignContextType {
 export interface DesignCreationModalProps {
   isOpen: boolean;
   onClose: () => void;
+  type: string;
   templateId: string;
   frontLayerTemplateId: string;
   backLayerTemplateId?: string;

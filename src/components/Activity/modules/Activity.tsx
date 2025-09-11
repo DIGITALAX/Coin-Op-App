@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import PageNavigation from "../../Common/modules/PageNavigation";
 import { useDesignContext } from "../../../context/DesignContext";
-import { useCart } from "../../../context/CartContext";
 import { useLibrary } from "../../../context/LibraryContext";
 import { useApp } from "../../../context/AppContext";
 import DesignCard from "./DesignCard";
@@ -14,7 +13,6 @@ export default function Activity() {
   const { isLoadingTemplates } = useApp();
   const { availableDesigns, isLoading, loadDesign, deleteDesign } =
     useDesignContext();
-  const { removeByDesignId } = useCart();
   const { 
     workflows, 
     synthPrompts, 
@@ -54,7 +52,6 @@ export default function Activity() {
       setIsDeleting(designId);
       setShowDeleteModal(null);
       await deleteDesign(designId);
-      removeByDesignId(designId);
     } catch (error) {
       alert(t("failed_to_delete_design"));
     } finally {

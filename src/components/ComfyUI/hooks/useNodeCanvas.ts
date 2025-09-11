@@ -61,7 +61,7 @@ export const useNodeCanvas = () => {
         });
         return usedOutputs.sort((a, b) => a - b);
       };
-      const savedData = (await getItem<ComfyUISettings>("comfyui-settings")) || {};
+      const savedData = (await getItem<ComfyUISettings>("comfyuiSettings")) || {};
       const savedPositions = savedData.nodePositions || {};
       const savedInputs = savedData.nodeInputs || {};
       for (let i = 0; i < nodes.length; i++) {
@@ -196,7 +196,7 @@ export const useNodeCanvas = () => {
             : node
         );
         (async () => {
-          const currentSettings = (await getItem("comfyui-settings")) || {};
+          const currentSettings = (await getItem("comfyuiSettings")) || {};
           if (typeof currentSettings !== 'object') {
             return;
           }
@@ -211,7 +211,7 @@ export const useNodeCanvas = () => {
               return acc;
             }, {} as Record<string, any>),
           };
-          await setItem("comfyui-settings", updatedSettings);
+          await setItem("comfyuiSettings", updatedSettings);
         })();
         return updatedNodes;
       });
@@ -271,7 +271,7 @@ export const useNodeCanvas = () => {
               : node
           );
           (async () => {
-            const currentSettings = (await getItem("comfyui-settings")) || {};
+            const currentSettings = (await getItem("comfyuiSettings")) || {};
             if (typeof currentSettings !== 'object') {
               return;
             }
@@ -286,7 +286,7 @@ export const useNodeCanvas = () => {
                 return acc;
               }, {} as Record<string, any>),
             };
-            await setItem("comfyui-settings", updatedSettings);
+            await setItem("comfyuiSettings", updatedSettings);
           })();
           return updatedNodes;
         });

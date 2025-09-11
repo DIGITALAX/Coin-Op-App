@@ -76,7 +76,7 @@ export default function Synth() {
       if (!currentDesign || !selectedPatternChild) return;
       try {
         const canvasHistory =
-          (await getItem("canvasHistory", currentDesign.id, [])) || [];
+          (await getItem("canvasHistory")) || [];
         if (Array.isArray(canvasHistory) && canvasHistory.length > 0) {
           const currentChildHistory = canvasHistory
             .filter((item: any) => item.childUri === selectedPatternChild.uri)
@@ -116,7 +116,7 @@ export default function Synth() {
           }
         }
       }
-      const canvasHistory = await getItem("canvasHistory", "synth");
+      const canvasHistory = await getItem("canvasHistory");
    
       if (canvasHistory && Array.isArray(canvasHistory)) {
         try {
@@ -218,18 +218,18 @@ export default function Synth() {
         },
       }));
       if (workflow === null || workflow === undefined) {
-        await setItem("comfyui-settings", {});
+        await setItem("comfyuiSettings", {});
       } else {
-        const currentSettings = (await getItem("comfyui-settings")) || {};
+        const currentSettings = (await getItem("comfyuiSettings")) || {};
         if (typeof currentSettings !== "object") {
-          await setItem("comfyui-settings", {});
+          await setItem("comfyuiSettings", {});
           return;
         }
         const updatedSettings = {
           ...currentSettings,
           workflowJson: workflow,
         };
-        await setItem("comfyui-settings", updatedSettings);
+        await setItem("comfyuiSettings", updatedSettings);
       }
       if (setComfySettingsRef) {
         setComfySettingsRef((prev) => ({

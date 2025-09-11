@@ -20,15 +20,17 @@ export const useApp = () => {
 };
 
 export const AppProvider = ({ children }: AppProviderProps) => {
-  const [selectedTemplate, setSelectedTemplate] =
-    useState<GroupedTemplate>();
+  const [selectedTemplate, setSelectedTemplate] = useState<GroupedTemplate>();
   const [groupedTemplates, setGroupedTemplates] = useState<GroupedTemplate[]>(
     []
   );
   const [isLoadingTemplates, setIsLoadingTemplates] = useState<boolean>(true);
   const [selectedPatternChild, setSelectedPatternChild] =
     useState<Child | null>(null);
-  const [selectedLayer, setSelectedLayer] = useState<{front: Template, back?: Template} | null>(null);
+  const [selectedLayer, setSelectedLayer] = useState<{
+    front: Template;
+    back?: Template;
+  } | null>(null);
   const [isBackSide, setIsBackSide] = useState<boolean>(false);
 
   useEffect(() => {
@@ -40,13 +42,17 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         setGroupedTemplates(data);
         setSelectedTemplate(data[0]);
 
-        const templateWithData = data.find(group => group.templates.length > 0);
+        const templateWithData = data.find(
+          (group) => group.templates.length > 0
+        );
         if (templateWithData) {
           setSelectedTemplate(templateWithData);
-          setSelectedLayer({front: templateWithData.templates[0]});
+          setSelectedLayer({ front: templateWithData.templates[0] });
           if (templateWithData.templates[0].childReferences?.length > 0) {
             setSelectedPatternChild(
-              templateWithData.templates[0].childReferences[0] as Child
+              templateWithData.templates[0].childReferences.filter((child) =>
+                child.child.metadata.tags.includes("zone")
+              )?.[0]
             );
           }
         }
@@ -61,13 +67,15 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   }, []);
 
   const selectTemplate = (templateChoice: GroupedTemplate) => {
-     setSelectedTemplate(templateChoice);
+    setSelectedTemplate(templateChoice);
 
     if (templateChoice && templateChoice.templates.length > 0) {
-      setSelectedLayer({front: templateChoice.templates[0]});
+      setSelectedLayer({ front: templateChoice.templates[0] });
       if (templateChoice.templates[0].childReferences.length > 0) {
         setSelectedPatternChild(
-          templateChoice.templates[0].childReferences[0] as Child
+          templateChoice.templates[0].childReferences?.filter((child) =>
+            child.child.metadata.tags.includes("zone")
+          )?.[0]
         );
       }
     }
@@ -75,9 +83,13 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   };
 
   const selectLayer = (front: Template, back?: Template) => {
-    setSelectedLayer({front, back});
+    setSelectedLayer({ front, back });
     if (front.childReferences.length > 0) {
-      setSelectedPatternChild(front.childReferences[0] as Child);
+      setSelectedPatternChild(
+        front.childReferences?.filter((child) =>
+          child.child.metadata.tags.includes("zone")
+        )?.[0]
+      );
     }
     setIsBackSide(false);
   };
@@ -91,7 +103,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     if (!selectedLayer?.back) return false;
     return true;
   })();
-    
+
   return (
     <AppContext.Provider
       value={{

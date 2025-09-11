@@ -48,7 +48,7 @@ const useWorkflow = (
         "Are you sure you want to delete this workflow? This will clear it from cache and you will need to upload it again."
       )
     ) {
-      await setItem("comfyui-settings", {});
+      await setItem("comfyuiSettings", {});
       onWorkflowChange?.(undefined);
       resetView();
     }

@@ -18,8 +18,10 @@ const useMaterials = () => {
         title: child.metadata?.title || "Unknown Material",
         description: child.metadata?.description,
         price: parseFloat(child.price) / 1e18,
-        type: child.child_type,
+        type: child.childType,
         tags: child.metadata?.tags || [],
+        childId: child.childId,
+        childContract: child.childContract
       }));
       
       setMaterials(materialsData);

@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { usePatternNesting } from "./usePatternNesting";
 import { useLiveSparrowVisualization } from "./useLiveSparrowVisualization";
-import { useFileStorage } from "../../Activity/hooks/useFileStorage";
 import { useDesignContext } from "../../../context/DesignContext";
 import {
   CanvasPanel,
@@ -10,6 +9,7 @@ import {
   PatternPiece,
   PATTERN_COLORS,
 } from "../types/pattern.types";
+import { useDesignStorage } from "../../Activity/hooks/useDesignStorage";
 
 export const usePackingCanvas = (selectedPieces: PatternPiece[]) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -48,15 +48,13 @@ export const usePackingCanvas = (selectedPieces: PatternPiece[]) => {
     useLiveSparrowVisualization(isSparrowRunning, handleSparrowComplete);
 
   const liveSvgContent = liveSvgFromSparrow || savedSvgContent;
-  const { setItem, getItem } = useFileStorage();
   const { currentDesign } = useDesignContext();
+  const { setItem, getItem } = useDesignStorage();
 
   const loadSavedSettings = useCallback(async () => {
     try {
       const savedSettings = await getItem<Partial<NestingSettings>>(
-        "nestingSettings",
-        "pattern",
-        DEFAULT_NESTING_SETTINGS
+        "nestingSettings"
       );
       if (savedSettings) {
         setNestingSettings({
@@ -69,7 +67,7 @@ export const usePackingCanvas = (selectedPieces: PatternPiece[]) => {
 
   const saveSettings = useCallback(async () => {
     try {
-      await setItem("nestingSettings", nestingSettings, "pattern");
+      await setItem("nestingSettings", nestingSettings);
     } catch {}
   }, [nestingSettings, setItem]);
 
@@ -428,7 +426,7 @@ export const usePackingCanvas = (selectedPieces: PatternPiece[]) => {
     };
 
     try {
-      await setItem("pattern", patternData, currentDesign.id);
+      await setItem("pattern", patternData);
       alert("Pattern saved successfully!");
     } catch (error) {
       alert(`Pattern save failed: ${error}`);
@@ -452,11 +450,7 @@ export const usePackingCanvas = (selectedPieces: PatternPiece[]) => {
     }
 
     try {
-      const patternData = (await getItem(
-        "pattern",
-        currentDesign.id,
-        null
-      )) as any;
+      const patternData = (await getItem("pattern")) as any;
       if (!patternData) {
         return;
       }

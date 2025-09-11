@@ -1,20 +1,30 @@
 export interface SellData {
-  composite_front: string;
-  composite_back?: string;
-  fulfiller_address: string;
-  custom_fields: {
-    colors: string[];
-    materials: Array<{
+  front: {
+    compositeImage: string;
+    templateId: string;
+    templateContract: string;
+    children: {
       childId: string;
       childContract: string;
-    }>;
-    template_contract: string;
-    template_id: string;
-    zone_children: Array<{
-      image: string;
-      location: "front" | "back";
-    }>;
+      canvasImage: string;
+    }[];
   };
+  back?: {
+    compositeImage: string;
+    templateId: string;
+    templateContract: string;
+    children: {
+      childId: string;
+      childContract: string;
+      canvasImage: string;
+    }[];
+  };
+  fulfiller: string;
+  materials: {
+    childId: string;
+    childContract: string;
+  }[];
+  colors: string[];
 }
 
 export interface UseSellReturn {

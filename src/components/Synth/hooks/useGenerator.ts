@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useDesignStorage } from "../../Activity/hooks/useDesignStorage";
 import { useDesignContext } from "../../../context/DesignContext";
 import { UseGeneratorProps } from "../types/synth.types";
+import { useFileStorage } from "../../Activity/hooks/useFileStorage";
 
 const useGenerator = ({
   mode = "synth",
@@ -11,6 +12,7 @@ const useGenerator = ({
   getCanvasImage,
 }: UseGeneratorProps = {}) => {
   const { setItem, getItem } = useDesignStorage();
+  const { setItem: setItemFile, getItem: getItemFile } = useFileStorage();
   const { currentDesign, refreshDesigns } = useDesignContext();
   const [aiProvider, setAiProvider] = useState<string>("openai");
   const [showProviderDropdown, setShowProviderDropdown] =
@@ -96,13 +98,9 @@ const useGenerator = ({
   });
   const loadSettings = useCallback(async () => {
     try {
-      const savedProvider = await getItem("aiProvider", mode, "openai");
+      const savedProvider = (await getItem("aiProvider")) as string;
       setAiProvider(savedProvider || "openai");
-      const savedApiKeys = await getItem("api-keys", "global", {
-        openai: "",
-        replicate: "",
-        comfy: "",
-      });
+      const savedApiKeys = (await getItemFile("apiKeys", "global")) as any;
       setApiKeys(
         savedApiKeys || {
           openai: "",
@@ -112,34 +110,24 @@ const useGenerator = ({
       );
       const historyKey =
         mode === "composite" ? "aiCompositeHistory" : "aiGenerationHistory";
-      const savedHistory = await getItem(historyKey, mode, []);
+      const savedHistory = await getItem(historyKey) as [];
       const parsedHistory = (savedHistory || []).map((item: any) => ({
         ...item,
         timestamp: new Date(item.timestamp),
       }));
       setGenerationHistory(parsedHistory);
-      const savedModel = await getItem(
-        `${savedProvider || "openai"}_selectedModel`,
-        mode,
-        (savedProvider || "openai") === "openai" ? "dall-e-2" : ""
-      );
-      const savedLora = await getItem(
-        `${savedProvider || "openai"}_selectedLora`,
-        mode,
-        ""
-      );
+      const savedModel = (await getItem(
+        `${savedProvider || "openai"}_selectedModel`
+      )) as string;
+      const savedLora = (await getItem(
+        `${savedProvider || "openai"}_selectedLora`
+      )) as string;
       setSelectedModel(
         savedModel ||
           ((savedProvider || "openai") === "openai" ? "dall-e-2" : "")
       );
       setSelectedLora(savedLora || "");
-      const savedOpenAiSettings = await getItem("openai_settings", mode, {
-        style: "vivid",
-        quality: "standard",
-        size: "1024x1024",
-        background: "auto",
-        inputFidelity: "low",
-      });
+      const savedOpenAiSettings = (await getItem("openai_settings")) as any;
       setOpenAiSettings(
         savedOpenAiSettings || {
           style: "vivid",
@@ -149,23 +137,16 @@ const useGenerator = ({
           inputFidelity: "low",
         }
       );
-      const savedReplicateSettings = await getItem("replicate_settings", mode, {
-        numInferenceSteps: 4,
-        aspectRatio: "1:1",
-      });
+      const savedReplicateSettings = (await getItem(
+        "replicate_settings"
+      )) as any;
       setReplicateSettings(
         savedReplicateSettings || {
           numInferenceSteps: 4,
           aspectRatio: "1:1",
         }
       );
-      const savedComfySettings = await getItem("comfyui-settings", "global", {
-        url: "http://localhost:8188",
-        workflowJson: null,
-        workflowFileName: "",
-        promptNodes: [],
-        hasImageInput: false,
-      });
+      const savedComfySettings = (await getItem("comfyuiSettings")) as any;
       setComfySettings(
         savedComfySettings || {
           url: "http://localhost:8188",
@@ -179,10 +160,9 @@ const useGenerator = ({
         (savedProvider || "openai") === "comfy"
           ? "comfy_prompt"
           : `${mode}_prompt`;
-      const savedPrompt = await getItem(promptKey, mode, "");
+      const savedPrompt = (await getItem(promptKey)) as string;
       setPrompt(savedPrompt || "");
-    } catch (error) {
-    }
+    } catch (error) {}
   }, [mode, getItem]);
   const resetToDefaults = useCallback(() => {
     setAiProvider("openai");
@@ -231,14 +211,14 @@ const useGenerator = ({
   useEffect(() => {
     if (aiProvider) {
       const timeoutId = setTimeout(() => {
-        setItem("aiProvider", aiProvider, mode).catch(() => {});
+        setItem("aiProvider", aiProvider).catch(() => {});
       }, 300);
       return () => clearTimeout(timeoutId);
     }
   }, [aiProvider, mode, setItem]);
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      setItem("api-keys", apiKeys, "global").catch(() => {});
+      setItemFile("apiKeys", apiKeys, "global").catch(() => {});
     }, 300);
     return () => clearTimeout(timeoutId);
   }, [apiKeys, setItem]);
@@ -246,42 +226,39 @@ const useGenerator = ({
     const timeoutId = setTimeout(() => {
       const promptKey =
         aiProvider === "comfy" ? "comfy_prompt" : `${mode}_prompt`;
-      setItem(promptKey, prompt, mode).catch(() => {});
+      setItem(promptKey, prompt).catch(() => {});
     }, 300);
     return () => clearTimeout(timeoutId);
   }, [prompt, aiProvider, mode, setItem]);
   useEffect(() => {
     if (selectedModel) {
       const timeoutId = setTimeout(() => {
-        setItem(`${aiProvider}_selectedModel`, selectedModel, mode).catch(
-        );
+        setItem(`${aiProvider}_selectedModel`, selectedModel).catch();
       }, 300);
       return () => clearTimeout(timeoutId);
     }
   }, [selectedModel, aiProvider, mode, setItem]);
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      setItem(`${aiProvider}_selectedLora`, selectedLora, mode).catch(
-      );
+      setItem(`${aiProvider}_selectedLora`, selectedLora).catch();
     }, 300);
     return () => clearTimeout(timeoutId);
   }, [selectedLora, aiProvider, mode, setItem]);
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      setItem("openai_settings", openAiSettings, mode).catch(() => {});
+      setItem("openai_settings", openAiSettings).catch(() => {});
     }, 300);
     return () => clearTimeout(timeoutId);
   }, [openAiSettings, mode, setItem]);
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      setItem("replicate_settings", replicateSettings, mode).catch(
-      );
+      setItem("replicate_settings", replicateSettings).catch();
     }, 300);
     return () => clearTimeout(timeoutId);
   }, [replicateSettings, mode, setItem]);
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      setItem("comfyui-settings", comfySettings, "global").catch(() => {});
+      setItem("comfyuiSettings", comfySettings).catch(() => {});
     }, 300);
     return () => clearTimeout(timeoutId);
   }, [comfySettings, setItem]);
@@ -331,17 +308,15 @@ const useGenerator = ({
     };
     setApiKeys(newApiKeys);
     try {
-      await setItem("api-keys", newApiKeys, "global");
-    } catch (error) {
-    }
+      await setItemFile("apiKeys", newApiKeys, "global");
+    } catch (error) {}
   };
   const handleComfyUrlChange = async (value: string) => {
     const newSettings = { ...comfySettings, url: value };
     setComfySettings(newSettings);
     try {
-      await setItem("comfyui-settings", newSettings, "global");
-    } catch (error) {
-    }
+      await setItem("comfyuiSettings", newSettings);
+    } catch (error) {}
   };
   const scanWorkflowForNodes = (workflowJson: any) => {
     const promptNodes: Array<{
@@ -408,7 +383,7 @@ const useGenerator = ({
           hasImageInput: hasImageInput,
         };
         setComfySettings(newSettings);
-        await setItem("comfyui-settings", newSettings, "global");
+        await setItem("comfyuiSettings", newSettings);
         if (promptNodes.length > 0) {
           setPrompt(promptNodes[0].currentText);
         }
@@ -431,11 +406,7 @@ const useGenerator = ({
   }, [useCanvasAsInput, mode, aiProvider, selectedModel]);
   const loadApiKeys = async () => {
     try {
-      const savedKeys = await getItem("api-keys", mode, {
-        openai: "",
-        replicate: "",
-        comfy: "",
-      });
+      const savedKeys = (await getItemFile("apiKeys", "global")) as any;
       setApiKeys(
         savedKeys || {
           openai: "",
@@ -443,27 +414,22 @@ const useGenerator = ({
           comfy: "",
         }
       );
-    } catch (error) {
-    }
+    } catch (error) {}
   };
   const reloadSettings = useCallback(async () => {
     await loadSettings();
   }, [loadSettings]);
   const handleProviderChange = async (provider: string) => {
     try {
-      const savedModel = await getItem(
-        `${provider}_selectedModel`,
-        mode,
-        provider === "openai" ? "dall-e-2" : ""
-      );
-      const savedLora = await getItem(`${provider}_selectedLora`, mode, "");
+      const savedModel = (await getItem(`${provider}_selectedModel`)) as string;
+      const savedLora = (await getItem(`${provider}_selectedLora`)) as string;
       setAiProvider(provider);
       setSelectedModel(savedModel || (provider === "openai" ? "dall-e-2" : ""));
       setSelectedLora(savedLora || "");
       setShowProviderDropdown(false);
       const promptKey =
         provider === "comfy" ? "comfy_prompt" : `${mode}_prompt`;
-      const savedPrompt = await getItem(promptKey, mode, "");
+      const savedPrompt = (await getItem(promptKey)) as string;
       if (savedPrompt) {
         setPrompt(savedPrompt);
       }
@@ -545,11 +511,9 @@ const useGenerator = ({
             return [...(prev || []), imageElement];
           });
         }
-      } catch (error) {
-      }
+      } catch (error) {}
     };
-    img.onerror = () => {
-    };
+    img.onerror = () => {};
     img.src = imageDataUrl;
   };
   const cancelGeneration = () => {
@@ -751,7 +715,6 @@ const useGenerator = ({
             canvasDataURL = getCanvasDataURL();
           }
           if (canvasDataURL) {
-       
             input.image = canvasDataURL;
           }
         }
@@ -788,8 +751,10 @@ const useGenerator = ({
         if (attempts >= maxAttempts) {
           throw new Error("Generation timed out");
         }
-        const imageUrl = Array.isArray((prediction as any).output) 
-          ? (prediction as any).output.find((url: string) => typeof url === 'string' && url.startsWith('http'))
+        const imageUrl = Array.isArray((prediction as any).output)
+          ? (prediction as any).output.find(
+              (url: string) => typeof url === "string" && url.startsWith("http")
+            )
           : (prediction as any).output;
         if (!imageUrl) {
           throw new Error("No output image from Replicate");

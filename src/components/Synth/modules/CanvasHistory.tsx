@@ -6,15 +6,17 @@ import {
 } from "./../types/synth.types";
 import { useDesignStorage } from "../../Activity/hooks/useDesignStorage";
 import { useApp } from "../../../context/AppContext";
+import { useDesignContext } from "../../../context/DesignContext";
 export const CanvasHistory = ({ onHistoryLoad }: CanvasHistoryProps) => {
   const { t } = useTranslation();
   const { getItem, setItem } = useDesignStorage();
-  const { selectedTemplate } = useApp();
+  const { selectedTemplate, isBackSide } = useApp();
+  const { currentDesign } = useDesignContext();
   const [canvasHistory, setCanvasHistory] = useState<CanvasHistoryType[]>([]);
   useEffect(() => {
     const loadHistory = async () => {
       try {
-        const history = (await getItem("canvasHistory", "synth")) || [];
+        const history = (await getItem("canvasHistory")) || [];
         if (Array.isArray(history)) {
           setCanvasHistory(history);
         } else {
@@ -27,41 +29,48 @@ export const CanvasHistory = ({ onHistoryLoad }: CanvasHistoryProps) => {
     loadHistory();
     const interval = setInterval(loadHistory, 1000);
     return () => clearInterval(interval);
-  }, [getItem]);
+  }, [getItem, currentDesign?.id]);
   const deleteFromHistory = async (historyId: string, e: MouseEvent) => {
     e.stopPropagation();
-    const deletedItem = canvasHistory.find(item => item.id === historyId);
+    const deletedItem = canvasHistory.find((item) => item.id === historyId);
     const updatedHistory = canvasHistory.filter(
       (item) => item.id !== historyId
     );
     setCanvasHistory(updatedHistory);
-    await setItem("canvasHistory", updatedHistory, "synth");
+    await setItem("canvasHistory", updatedHistory);
     if (deletedItem) {
-      const interactiveCanvasKey = `interactiveCanvas_${deletedItem.layerTemplateId}`;
-      const saved = await getItem(interactiveCanvasKey, "synth");
-      if (saved && typeof saved === 'object' && 'childReferences' in saved) {
+      const interactiveCanvasKey = `interactiveCanvas_${currentDesign?.id}_${
+        isBackSide ? "back" : "front"
+      }`;
+      const saved = await getItem(interactiveCanvasKey);
+      if (saved && typeof saved === "object" && "childReferences" in saved) {
         try {
           const templateChild = saved as any;
-          const originalTemplate = selectedTemplate?.templates.find(t => t.templateId === deletedItem.layerTemplateId);
+          const originalTemplate = selectedTemplate?.templates.find(
+            (t) => t.templateId === deletedItem.layerTemplateId
+          );
           if (originalTemplate) {
             const childIndex = originalTemplate.childReferences.findIndex(
-              child => child.uri === deletedItem.childUri
+              (child) => child.uri === deletedItem.childUri
             );
             if (childIndex >= 0 && templateChild.childReferences[childIndex]) {
-              const originalChild = originalTemplate.childReferences[childIndex];
+              const originalChild =
+                originalTemplate.childReferences[childIndex];
               if (originalChild.metadata) {
-                templateChild.childReferences[childIndex].child.metadata.image = originalChild.child.metadata.image;
+                templateChild.childReferences[childIndex].child.metadata.image =
+                  originalChild.child.metadata.image;
               } else {
                 templateChild.childReferences.splice(childIndex, 1);
               }
-              await setItem(interactiveCanvasKey, templateChild, "synth");
-              window.dispatchEvent(new CustomEvent('interactiveCanvasUpdate', { 
-                detail: { templateId: deletedItem.layerTemplateId } 
-              }));
+              await setItem(interactiveCanvasKey, templateChild);
+              window.dispatchEvent(
+                new CustomEvent("interactiveCanvasUpdate", {
+                  detail: { templateId: deletedItem.layerTemplateId },
+                })
+              );
             }
           }
-        } catch (error) {
-        }
+        } catch (error) {}
       }
     }
   };
@@ -85,8 +94,8 @@ export const CanvasHistory = ({ onHistoryLoad }: CanvasHistoryProps) => {
               alt="canvas history"
               draggable={false}
               className="w-full h-full object-contain rounded"
-              style={{ 
-                imageRendering: 'crisp-edges'
+              style={{
+                imageRendering: "crisp-edges",
               }}
             />
             <div

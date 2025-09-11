@@ -3,16 +3,16 @@ import { ChildCanvasData, CompositeImages } from "../types/composite.types";
 
 
 export const collectCompositeImages = async (
-  templateId: string,
-  getItem: (key: string, category: string) => Promise<any>
+  designId: string,
+  getItem: (key: string) => Promise<any>
 ): Promise<CompositeImages> => {
   const compositeImages: CompositeImages = {};
   try {
-    const frontCanvasKey = `compositeCanvasCapture_${templateId}_front`;
-    const backCanvasKey = `compositeCanvasCapture_${templateId}_back`;
+    const frontCanvasKey = `compositeCanvasCapture_${designId}_front`;
+    const backCanvasKey = `compositeCanvasCapture_${designId}_back`;
     const [frontCanvas, backCanvas] = await Promise.all([
-      getItem(frontCanvasKey, "composite").catch(() => null),
-      getItem(backCanvasKey, "composite").catch(() => null),
+      getItem(frontCanvasKey).catch(() => null),
+      getItem(backCanvasKey).catch(() => null),
     ]);
     if (frontCanvas && typeof frontCanvas === "string") {
       compositeImages.front = frontCanvas;
@@ -21,15 +21,15 @@ export const collectCompositeImages = async (
       compositeImages.back = backCanvas;
     }
     if (!compositeImages.front) {
-      const frontBgKey = `compositeImage_${templateId}_front`;
-      const frontBg = await getItem(frontBgKey, "composite").catch(() => null);
+      const frontBgKey = `compositeImage_${designId}_front`;
+      const frontBg = await getItem(frontBgKey).catch(() => null);
       if (frontBg && typeof frontBg === "string") {
         compositeImages.front = frontBg;
       }
     }
     if (!compositeImages.back) {
-      const backBgKey = `compositeImage_${templateId}_back`;
-      const backBg = await getItem(backBgKey, "composite").catch(() => null);
+      const backBgKey = `compositeImage_${designId}_back`;
+      const backBg = await getItem(backBgKey).catch(() => null);
       if (backBg && typeof backBg === "string") {
         compositeImages.back = backBg;
       }
@@ -40,11 +40,11 @@ export const collectCompositeImages = async (
 };
 export const collectChildrenCanvasData = async (
   layer: Template,
-  getItem: (key: string, category: string, defaultValue?: any) => Promise<any>
+  getItem: (key: string) => Promise<any>,
 ): Promise<ChildCanvasData[]> => {
   const childrenData: ChildCanvasData[] = [];
   try {
-    const canvasHistory = await getItem("canvasHistory", "synth", []);
+    const canvasHistory = await getItem("canvasHistory");
     if (canvasHistory && Array.isArray(canvasHistory)) {
       const layerHistoryItems = canvasHistory.filter((item: any) => {
         return (

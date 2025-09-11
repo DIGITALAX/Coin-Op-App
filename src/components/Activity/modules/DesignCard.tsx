@@ -97,10 +97,6 @@ export default function DesignCard({
         </div>
         <div className="text-xs text-gray-500 space-y-1">
           <div className="flex justify-between">
-            <span>{t("template")}:</span>
-            <span className="font-mono">{design.templateId}</span>
-          </div>
-          <div className="flex justify-between">
             <span>{t("layer")}:</span>
             <span className="font-mono">{design.frontLayerTemplateId}</span>
           </div>

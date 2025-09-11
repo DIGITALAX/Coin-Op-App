@@ -4,9 +4,11 @@ import { invoke } from "@tauri-apps/api/core";
 import { save } from "@tauri-apps/plugin-dialog";
 import { addImageToCanvas } from "../utils/addImageToCanvas";
 import { useDesignStorage } from "../../Activity/hooks/useDesignStorage";
+import { useDesignContext } from "../../../context/DesignContext";
 export default function GenerationHistory() {
   const { t } = useTranslation();
   const { getItem, setItem } = useDesignStorage();
+  const { currentDesign } = useDesignContext();
   const [generationHistory, setGenerationHistory] = useState<
     Array<{
       id: string;
@@ -21,7 +23,7 @@ export default function GenerationHistory() {
   useEffect(() => {
     const loadHistory = async () => {
       try {
-        const history = (await getItem("aiGenerationHistory", "synth")) || [];
+        const history = (await getItem("aiGenerationHistory")) || [];
         if (Array.isArray(history)) {
           setGenerationHistory(history);
         } else {
@@ -32,11 +34,11 @@ export default function GenerationHistory() {
       }
     };
     loadHistory();
-  }, [getItem]);
+  }, [getItem, currentDesign?.id]);
   const handleDeleteFromHistory = async (itemId: string) => {
     const updatedHistory = generationHistory.filter((h) => h.id !== itemId);
     setGenerationHistory(updatedHistory);
-    await setItem("aiGenerationHistory", updatedHistory, "synth");
+    await setItem("aiGenerationHistory", updatedHistory);
   };
   return (
     generationHistory.length > 0 && (
@@ -146,7 +148,7 @@ export default function GenerationHistory() {
             <div
               onClick={async () => {
                 setGenerationHistory([]);
-                await setItem("aiGenerationHistory", [], "synth");
+                await setItem("aiGenerationHistory", []);
               }}
               className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded font-sat text-xs cursor-pointer"
             >

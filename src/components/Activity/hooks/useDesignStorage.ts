@@ -9,40 +9,29 @@ export const useDesignStorage = () => {
     removeItem,
   } = useFileStorage();
   const getItem = useCallback(
-    async <T>(
-      key: string,
-      mode?: "synth" | "composite" | string,
-      defaultValue?: T
-    ): Promise<T | null> => {
-      if (currentDesign) {
-        return fileGetItem<T>(key, currentDesign.id, defaultValue);
+    async <T>(key: string): Promise<T | null> => {
+      if (!currentDesign) {
+        return null;
       }
-      return fileGetItem<T>(key, mode, defaultValue);
+      return fileGetItem<T>(key, currentDesign.id);
     },
     [currentDesign, fileGetItem]
   );
   const setItem = useCallback(
-    async (
-      key: string,
-      value: any,
-      mode?: "synth" | "composite" | string
-    ): Promise<void> => {
-      if (currentDesign) {
-        return fileSetItem(key, value, currentDesign.id);
+    async (key: string, value: any): Promise<void> => {
+      if (!currentDesign) {
+        return;
       }
-      return fileSetItem(key, value, mode);
+      return fileSetItem(key, value, currentDesign.id);
     },
     [currentDesign, fileSetItem]
   );
   const removeItemDesign = useCallback(
-    async (
-      key: string,
-      mode?: "synth" | "composite" | string
-    ): Promise<void> => {
-      if (currentDesign) {
-        return removeItem(key, currentDesign.id);
+    async (key: string): Promise<void> => {
+      if (!currentDesign) {
+        return;
       }
-      return removeItem(key, mode);
+      return removeItem(key, currentDesign.id);
     },
     [currentDesign, removeItem]
   );

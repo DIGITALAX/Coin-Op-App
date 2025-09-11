@@ -5,6 +5,8 @@ import { getCurrentTemplate } from "../../Synth/utils/templateHelpers";
 import { useApp } from "../../../context/AppContext";
 import { UseSellReturn, SellData } from "../types/sell.types";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { FULFILLERS } from "../../../lib/constants";
+import { CanvasHistory } from "../../Synth/types/synth.types";
 
 export const useSell = (): UseSellReturn => {
   const { currentDesign } = useDesignContext();
@@ -30,9 +32,9 @@ export const useSell = (): UseSellReturn => {
     }
 
     try {
-      const frontCompositeKey = `compositeImage_${frontTemplate.templateId}_front`;
+      const frontCompositeKey = `compositeImage_${currentDesign.id}_front`;
 
-      const frontComposite = await getItem(frontCompositeKey, "composite");
+      const frontComposite = await getItem(frontCompositeKey);
 
       setHasComposite(!!frontComposite);
     } catch (error) {
@@ -74,14 +76,19 @@ export const useSell = (): UseSellReturn => {
               );
               childResolve();
             };
-            childImg.onerror = () => childResolve();
+            childImg.onerror = () => {
+              childResolve();
+            };
             childImg.src = child.imageUrl;
           });
         }
 
-        resolve(canvas.toDataURL("image/png"));
+        const result = canvas.toDataURL("image/png");
+        resolve(result);
       };
-      bg.onerror = () => resolve("");
+      bg.onerror = () => {
+        resolve("");
+      };
       bg.src = backgroundImage;
     });
   };
@@ -113,9 +120,9 @@ export const useSell = (): UseSellReturn => {
     setIsProcessing(true);
 
     try {
-      const currentTemplate = getCurrentTemplate(selectedLayer, isBackSide);
+      const cTemplate = getCurrentTemplate(selectedLayer, isBackSide);
 
-      if (!currentTemplate) {
+      if (!cTemplate) {
         setIsProcessing(false);
         return;
       }
@@ -127,23 +134,21 @@ export const useSell = (): UseSellReturn => {
         return;
       }
 
-      const fulfillmentData = await getItem(
-        "fulfillment",
-        currentDesign.id,
-        null
-      );
+      const fulfillmentData = await getItem("fulfillment");
 
-      const frontImageKey = `compositeImage_${frontTemplate.templateId}_front`;
-      const backImageKey = `compositeImage_${frontTemplate.templateId}_back`;
-      const frontChildrenKey = `compositeCanvasChildren_${frontTemplate.templateId}_front`;
-      const backChildrenKey = `compositeCanvasChildren_${frontTemplate.templateId}_back`;
+      const backTemplate = getCurrentTemplate(selectedLayer, true);
+
+      const frontImageKey = `compositeImage_${currentDesign.id}_front`;
+      const backImageKey = `compositeImage_${currentDesign.id}_back`;
+      const frontChildrenKey = `compositeCanvasChildren_${currentDesign.id}_front`;
+      const backChildrenKey = `compositeCanvasChildren_${currentDesign.id}_back`;
 
       const [frontImage, backImage, frontChildren, backChildren]: any =
         await Promise.all([
-          getItem(frontImageKey, "composite"),
-          getItem(backImageKey, "composite").catch(() => null),
-          getItem(frontChildrenKey, "composite").catch(() => []),
-          getItem(backChildrenKey, "composite").catch(() => []),
+          getItem(frontImageKey),
+          getItem(backImageKey).catch(() => null),
+          getItem(frontChildrenKey).catch(() => []),
+          getItem(backChildrenKey).catch(() => []),
         ]);
 
       if (!frontImage || typeof frontImage !== "string") {
@@ -161,69 +166,79 @@ export const useSell = (): UseSellReturn => {
         composite_back = await renderComposite(backImage, backChildren || []);
       }
 
-      const { FULFILLERS } = await import("../../../lib/constants");
-      const fulfiller_address = FULFILLERS[0]?.address || "";
-
       const colors: string[] = [];
       const fulfillmentDataAny = fulfillmentData as any;
       if (
-        fulfillmentDataAny?.selectedColors &&
-        Array.isArray(fulfillmentDataAny.selectedColors)
+        fulfillmentDataAny?.baseColors &&
+        Array.isArray(fulfillmentDataAny.baseColors)
       ) {
-        fulfillmentDataAny.selectedColors.forEach((color: any) => {
-          if (color?.hex) {
-            colors.push(color.hex);
-          }
-        });
+        colors.push(...fulfillmentDataAny.baseColors);
       }
 
-      const materials: Array<{ childId: string; childContract: string }> = [];
+      const materials: any[] = [];
       if (
-        fulfillmentDataAny?.selectedMaterials &&
-        Array.isArray(fulfillmentDataAny.selectedMaterials)
+        fulfillmentDataAny?.materials &&
+        Array.isArray(fulfillmentDataAny.materials)
       ) {
-        fulfillmentDataAny.selectedMaterials.forEach((material: any) => {
-          if (material?.childId && material?.childContract) {
-            materials.push({
-              childId: material.childId,
-              childContract: material.childContract,
-            });
-          }
-        });
+        materials.push(...fulfillmentDataAny.materials);
       }
 
-      const template_contract = currentTemplate?.templateContract || "";
-      const template_id = currentTemplate?.templateId || "";
+      const zoneChildrenFront: Array<{
+        childId: string;
+        childContract: string;
+        canvasImage: string;
+      }> = [];
 
-      const zone_children: Array<{
-        image: string;
-        location: "front" | "back";
+      const zoneChildrenBack: Array<{
+        childId: string;
+        childContract: string;
+        canvasImage: string;
       }> = [];
 
       try {
-        const canvasHistory = await getItem("canvasHistory", "synth", []);
+        const canvasHistory: CanvasHistory[] | null = await getItem(
+          "canvasHistory"
+        );
+
         if (canvasHistory && Array.isArray(canvasHistory)) {
-          const zoneChildren =
-            currentTemplate?.childReferences?.filter((child: any) =>
+          const childrenFront =
+            selectedLayer.front?.childReferences?.filter((child: any) =>
               child?.child?.metadata?.tags?.includes("zone")
             ) || [];
 
-          for (const zoneChild of zoneChildren) {
+          for (const zoneChild of childrenFront) {
             const childHistory = canvasHistory.find(
-              (history: any) =>
+              (history) =>
                 history.childUri === zoneChild.uri &&
-                history.layerTemplateId === currentTemplate.templateId
-            ) as any;
+                history.layerTemplateId === selectedLayer.front.templateId
+            ) as CanvasHistory;
 
             if (childHistory?.thumbnail) {
-              const tags = zoneChild?.child?.metadata?.tags || [];
-              const location: "front" | "back" = tags.includes("back")
-                ? "back"
-                : "front";
+              zoneChildrenFront.push({
+                canvasImage: childHistory.thumbnail as string,
+                childId: zoneChild.childId,
+                childContract: zoneChild.childContract,
+              });
+            }
+          }
 
-              zone_children.push({
-                image: childHistory.thumbnail,
-                location,
+          const childrenBack =
+            selectedLayer.back?.childReferences?.filter((child: any) =>
+              child?.child?.metadata?.tags?.includes("zone")
+            ) || [];
+
+          for (const zoneChild of childrenBack) {
+            const childHistory = canvasHistory.find(
+              (history) =>
+                history.childUri === zoneChild.uri &&
+                history.layerTemplateId === selectedLayer.back?.templateId
+            ) as CanvasHistory;
+
+            if (childHistory?.thumbnail) {
+              zoneChildrenBack.push({
+                canvasImage: childHistory.thumbnail as string,
+                childId: zoneChild.childId,
+                childContract: zoneChild.childContract,
               });
             }
           }
@@ -233,16 +248,23 @@ export const useSell = (): UseSellReturn => {
       }
 
       const sellData: SellData = {
-        composite_front: composite_front as string,
-        composite_back: composite_back as string | undefined,
-        fulfiller_address,
-        custom_fields: {
-          colors,
-          materials,
-          template_contract,
-          template_id,
-          zone_children,
+        front: {
+          compositeImage: composite_front,
+          templateId: frontTemplate.templateId,
+          templateContract: frontTemplate.templateContract,
+          children: zoneChildrenFront,
         },
+        back: composite_back
+          ? {
+              compositeImage: composite_back,
+              templateId: backTemplate!?.templateId,
+              templateContract: backTemplate!?.templateContract,
+              children: zoneChildrenBack,
+            }
+          : undefined,
+        fulfiller: FULFILLERS[0].address,
+        colors,
+        materials,
       };
 
       const fgoUrl =

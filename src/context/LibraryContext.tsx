@@ -45,20 +45,16 @@ export const LibraryProvider = ({ children }: LibraryProviderProps) => {
   const refreshLibrary = useCallback(async () => {
     try {
       setIsLoading(true);
-      const workflowsList =
-        (await getItem("library-workflows", undefined, [])) || [];
-      const synthPromptsList =
-        (await getItem("library-synth-prompts", undefined, [])) || [];
-      const compositePromptsList =
-        (await getItem("library-composite-prompts", undefined, [])) || [];
+      const workflowsList: any[] =
+        (await getItem("library-workflows", "global")) || [];
+      const synthPromptsList: any[] =
+        (await getItem("library-synth-prompts", "global")) || [];
+      const compositePromptsList: any[] =
+        (await getItem("library-composite-prompts", "global")) || [];
       const loadedWorkflows: ComfyUIWorkflow[] = [];
       for (const workflowId of workflowsList) {
         try {
-          const workflow = await getItem(
-            `workflow-${workflowId}`,
-            undefined,
-            null
-          );
+          const workflow = await getItem(`workflow-${workflowId}`, "global");
           if (workflow) {
             loadedWorkflows.push(workflow as ComfyUIWorkflow);
           }
@@ -67,11 +63,7 @@ export const LibraryProvider = ({ children }: LibraryProviderProps) => {
       const loadedSynthPrompts: SynthPrompt[] = [];
       for (const promptId of synthPromptsList) {
         try {
-          const prompt = await getItem(
-            `synth-prompt-${promptId}`,
-            undefined,
-            null
-          );
+          const prompt = await getItem(`synth-prompt-${promptId}`, "global");
           if (prompt) {
             loadedSynthPrompts.push(prompt as SynthPrompt);
           }
@@ -82,8 +74,7 @@ export const LibraryProvider = ({ children }: LibraryProviderProps) => {
         try {
           const prompt = await getItem(
             `composite-prompt-${promptId}`,
-            undefined,
-            null
+            "global"
           );
           if (prompt) {
             loadedCompositePrompts.push(prompt as CompositePrompt);
@@ -129,13 +120,13 @@ export const LibraryProvider = ({ children }: LibraryProviderProps) => {
           lastModified: now,
           isDefault: false,
         };
-        await setItem(`workflow-${workflowId}`, workflow);
+        await setItem(`workflow-${workflowId}`, workflow, "global");
         const workflowsList =
-          (await getItem("library-workflows", undefined, [])) || [];
+          (await getItem("library-workflows", "global")) || [];
         const updatedList = Array.isArray(workflowsList)
           ? [...workflowsList, workflowId]
           : [workflowId];
-        await setItem("library-workflows", updatedList);
+        await setItem("library-workflows", updatedList, "global");
         await refreshLibrary();
         return workflow;
       } catch (error) {
@@ -160,13 +151,13 @@ export const LibraryProvider = ({ children }: LibraryProviderProps) => {
           lastModified: now,
           isDefault: false,
         };
-        await setItem(`synth-prompt-${promptId}`, synthPrompt);
+        await setItem(`synth-prompt-${promptId}`, synthPrompt, "global");
         const promptsList =
-          (await getItem("library-synth-prompts", undefined, [])) || [];
+          (await getItem("library-synth-prompts", "global")) || [];
         const updatedList = Array.isArray(promptsList)
           ? [...promptsList, promptId]
           : [promptId];
-        await setItem("library-synth-prompts", updatedList);
+        await setItem("library-synth-prompts", updatedList, "global");
         await refreshLibrary();
         return synthPrompt;
       } catch (error) {
@@ -193,13 +184,17 @@ export const LibraryProvider = ({ children }: LibraryProviderProps) => {
           lastModified: now,
           isDefault: false,
         };
-        await setItem(`composite-prompt-${promptId}`, compositePrompt);
+        await setItem(
+          `composite-prompt-${promptId}`,
+          compositePrompt,
+          "global"
+        );
         const promptsList =
-          (await getItem("library-composite-prompts", undefined, [])) || [];
+          (await getItem("library-composite-prompts", "global")) || [];
         const updatedList = Array.isArray(promptsList)
           ? [...promptsList, promptId]
           : [promptId];
-        await setItem("library-composite-prompts", updatedList);
+        await setItem("library-composite-prompts", updatedList, "global");
         await refreshLibrary();
         return compositePrompt;
       } catch (error) {
@@ -229,13 +224,13 @@ export const LibraryProvider = ({ children }: LibraryProviderProps) => {
   const deleteWorkflow = useCallback(
     async (id: string) => {
       try {
-        await setItem(`workflow-${id}`, null);
+        await setItem(`workflow-${id}`, null, "global");
         const workflowsList =
-          (await getItem("library-workflows", undefined, [])) || [];
+          (await getItem("library-workflows", "global")) || [];
         const updatedList = Array.isArray(workflowsList)
           ? workflowsList.filter((wId) => wId !== id)
           : [];
-        await setItem("library-workflows", updatedList);
+        await setItem("library-workflows", updatedList, "global");
         await refreshLibrary();
       } catch (error) {
         throw error;
@@ -246,13 +241,13 @@ export const LibraryProvider = ({ children }: LibraryProviderProps) => {
   const deleteSynthPrompt = useCallback(
     async (id: string) => {
       try {
-        await setItem(`synth-prompt-${id}`, null);
+        await setItem(`synth-prompt-${id}`, null, "global");
         const promptsList =
-          (await getItem("library-synth-prompts", undefined, [])) || [];
+          (await getItem("library-synth-prompts", "global")) || [];
         const updatedList = Array.isArray(promptsList)
           ? promptsList.filter((pId) => pId !== id)
           : [];
-        await setItem("library-synth-prompts", updatedList);
+        await setItem("library-synth-prompts", updatedList, "global");
         await refreshLibrary();
       } catch (error) {
         throw error;
@@ -263,13 +258,13 @@ export const LibraryProvider = ({ children }: LibraryProviderProps) => {
   const deleteCompositePrompt = useCallback(
     async (id: string) => {
       try {
-        await setItem(`composite-prompt-${id}`, null);
+        await setItem(`composite-prompt-${id}`, null, "global");
         const promptsList =
-          (await getItem("library-composite-prompts", undefined, [])) || [];
+          (await getItem("library-composite-prompts", "global")) || [];
         const updatedList = Array.isArray(promptsList)
           ? promptsList.filter((pId) => pId !== id)
           : [];
-        await setItem("library-composite-prompts", updatedList);
+        await setItem("library-composite-prompts", updatedList, "global");
         await refreshLibrary();
       } catch (error) {
         throw error;
@@ -279,11 +274,7 @@ export const LibraryProvider = ({ children }: LibraryProviderProps) => {
   );
   useEffect(() => {
     const initializeLibrary = async () => {
-      const hasInitialized = await getItem(
-        "library-initialized",
-        undefined,
-        false
-      );
+      const hasInitialized = await getItem("library-initialized", "global");
       if (!hasInitialized) {
         try {
           await initializeDefaultLibrary(
@@ -291,7 +282,7 @@ export const LibraryProvider = ({ children }: LibraryProviderProps) => {
             createSynthPrompt,
             createCompositePrompt
           );
-          await setItem("library-initialized", true);
+          await setItem("library-initialized", true, "global");
         } catch (error) {}
       }
       await refreshLibrary();
