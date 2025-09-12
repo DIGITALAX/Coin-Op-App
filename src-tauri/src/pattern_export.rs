@@ -5,17 +5,6 @@ use lopdf::{Document, Object};
 
 fn svg_to_pdf_bytes(svg: &str, dpi: f32) -> Result<Vec<u8>, String> {
 
-    if let Some(width_start) = svg.find("width=\"") {
-        if let Some(width_end) = svg[width_start + 7..].find("\"") {
-            let width = &svg[width_start + 7..width_start + 7 + width_end];
-        }
-    }
-    if let Some(height_start) = svg.find("height=\"") {
-        if let Some(height_end) = svg[height_start + 8..].find("\"") {
-            let height = &svg[height_start + 8..height_start + 8 + height_end];
-        }
-    }
-    
     let mut uopts = usvg::Options::default();
     uopts.fontdb_mut().load_system_fonts();
     let tree = usvg::Tree::from_str(svg, &uopts)
@@ -222,7 +211,6 @@ pub async fn crop_svg(
     }
     
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let stderr = String::from_utf8_lossy(&output.stderr);
     
     let tiles: Vec<String> = serde_json::from_str(&stdout)
         .map_err(|e| format!("Failed to parse cropper output: {} | STDOUT: {}", e, stdout))?;
@@ -267,7 +255,7 @@ fn extract_data_pages(svg_string: &str) -> Option<Vec<String>> {
         Ok(pages) => {
             Some(pages)
         }
-        Err(e) => {
+        Err(_) => {
             None
         }
     }

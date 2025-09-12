@@ -7,7 +7,6 @@ import { UseSellReturn, SellData } from "../types/sell.types";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { FULFILLERS } from "../../../lib/constants";
 import { CanvasHistory } from "../../Synth/types/synth.types";
-import { Material } from "../../Fulfillment/types/fulfillment.types";
 
 export const useSell = (): UseSellReturn => {
   const { currentDesign } = useDesignContext();
@@ -121,13 +120,6 @@ export const useSell = (): UseSellReturn => {
     setIsProcessing(true);
 
     try {
-      const cTemplate = getCurrentTemplate(selectedLayer, isBackSide);
-
-      if (!cTemplate) {
-        setIsProcessing(false);
-        return;
-      }
-
       const frontTemplate = getCurrentTemplate(selectedLayer, false);
 
       if (!frontTemplate) {
@@ -167,27 +159,7 @@ export const useSell = (): UseSellReturn => {
         composite_back = await renderComposite(backImage, backChildren || []);
       }
 
-      const colors: string[] = [];
       const fulfillmentDataAny = fulfillmentData as any;
-      if (
-        fulfillmentDataAny?.baseColors &&
-        Array.isArray(fulfillmentDataAny.baseColors)
-      ) {
-        colors.push(...fulfillmentDataAny.baseColors);
-      }
-
-      const materials: any[] = [];
-      if (
-        fulfillmentDataAny?.materials &&
-        Array.isArray(fulfillmentDataAny.materials)
-      ) {
-        materials.push(
-          ...fulfillmentDataAny.materials.map((mat: Material) => ({
-            childId: mat.childId,
-            childContract: mat.childContract,
-          }))
-        );
-      }
 
       const zoneChildrenFront: Array<{
         childId: string;
@@ -268,9 +240,15 @@ export const useSell = (): UseSellReturn => {
               children: zoneChildrenBack,
             }
           : undefined,
-        fulfiller: FULFILLERS[0].address,
-        colors,
-        materials,
+        fulfiller: FULFILLERS[0],
+        color: {
+          childId: fulfillmentDataAny?.color?.childId,
+          childContract: fulfillmentDataAny?.color?.childContract,
+        },
+        material: {
+          childId: fulfillmentDataAny?.material?.childId,
+          childContract: fulfillmentDataAny?.material?.childContract,
+        },
       };
 
       const fgoUrl =

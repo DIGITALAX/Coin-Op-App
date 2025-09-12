@@ -99,10 +99,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     }
   };
 
-  const canFlip = (() => {
-    if (!selectedLayer?.back) return false;
-    return true;
-  })();
+  const canFlip = selectedLayer?.back ? true : false;
 
   return (
     <AppContext.Provider

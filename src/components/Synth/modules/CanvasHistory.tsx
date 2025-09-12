@@ -1,5 +1,7 @@
 import { useState, useEffect, MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { save } from "@tauri-apps/plugin-dialog";
+import { invoke } from "@tauri-apps/api/core";
 import {
   CanvasHistoryProps,
   CanvasHistory as CanvasHistoryType,
@@ -30,6 +32,40 @@ export const CanvasHistory = ({ onHistoryLoad }: CanvasHistoryProps) => {
     const interval = setInterval(loadHistory, 1000);
     return () => clearInterval(interval);
   }, [getItem, currentDesign?.id]);
+  const downloadThumbnail = async (
+    historyItem: CanvasHistoryType,
+    e: MouseEvent
+  ) => {
+    e.stopPropagation();
+
+    try {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const filename = `canvas_thumbnail_${historyItem.id}_${timestamp}.png`;
+
+      const filePath = await save({
+        defaultPath: filename,
+        filters: [
+          {
+            name: "PNG Image",
+            extensions: ["png"],
+          },
+        ],
+        title: "Save Canvas Thumbnail",
+      });
+
+      if (!filePath) {
+        return;
+      }
+
+      await invoke("write_image_file", {
+        imageData: historyItem.thumbnail,
+        filePath: filePath,
+      });
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  };
+
   const deleteFromHistory = async (historyId: string, e: MouseEvent) => {
     e.stopPropagation();
     const deletedItem = canvasHistory.find((item) => item.id === historyId);
@@ -98,6 +134,12 @@ export const CanvasHistory = ({ onHistoryLoad }: CanvasHistoryProps) => {
                 imageRendering: "crisp-edges",
               }}
             />
+            <div
+              onClick={(e) => downloadThumbnail(historyItem, e)}
+              className="absolute cursor-pointer -top-1 -left-1 w-4 h-4 bg-ama hover:bg-ama/80 text-black rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
+            >
+              ↓
+            </div>
             <div
               onClick={(e) => deleteFromHistory(historyItem.id, e)}
               className="absolute cursor-pointer -top-1 -right-1 w-4 h-4 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"

@@ -147,7 +147,7 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
                 ? "bg-gris/40 cursor-not-allowed"
                 : "bg-gris hover:opacity-70"
             }`}
-            title="Undo (Ctrl+Z)"
+            title= {t("undo")}
           >
             {t("undo")}
           </div>
@@ -158,7 +158,7 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
                 ? "bg-gris/40 cursor-not-allowed"
                 : "bg-gris hover:opacity-70"
             }`}
-            title="Redo (Ctrl+Y)"
+            title={t("redo")}
           >
             {t("redo")}
           </div>

@@ -2,14 +2,11 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useApp } from "../../../context/AppContext";
 import { useDesignContext } from "../../../context/DesignContext";
-import {
-  FULFILLERS,
-  BASE_COLORS,
-  INFURA_GATEWAY,
-} from "../../../lib/constants";
+import { FULFILLERS, INFURA_GATEWAY } from "../../../lib/constants";
 import PageNavigation from "../../Common/modules/PageNavigation";
 import useFulfillment from "../hooks/useFulfillment";
 import { getCurrentTemplate } from "../../Synth/utils/templateHelpers";
+import { Color, Material } from "../types/fulfillment.types";
 
 export default function Fulfillment() {
   const { t } = useTranslation();
@@ -19,16 +16,19 @@ export default function Fulfillment() {
   const { currentDesign } = useDesignContext();
   const {
     fulfillmentSelection,
-    toggleBaseColor,
+    toggleColor,
     toggleMaterial,
     calculateTotal,
     formatPrice,
     getColorName,
     loading,
-    getFilteredMaterials,
+    getFilteredMaterialsColors,
   } = useFulfillment();
 
-  const filteredMaterials = getFilteredMaterials();
+  const filteredValues = getFilteredMaterialsColors()! as {
+    materials: Material[];
+    colors: Color[];
+  };
 
   if (!selectedLayer) {
     return (
@@ -104,18 +104,18 @@ export default function Fulfillment() {
                   </>
                 )}
 
-                {fulfillmentSelection.materials.length > 0 && (
+                {fulfillmentSelection.material && (
                   <>
                     <div className="flex justify-between">
                       <span>{t("material_children")}:</span>
                       <span></span>
                     </div>
-                    {fulfillmentSelection.materials.map((material, index) => (
-                      <div key={index} className="flex justify-between">
-                        <span>• {material.title}:</span>
-                        <span>{formatPrice(material.price)} MONA</span>
-                      </div>
-                    ))}
+                    <div className="flex justify-between">
+                      <span>• {fulfillmentSelection.material.title}:</span>
+                      <span>
+                        {formatPrice(fulfillmentSelection.material.price)} MONA
+                      </span>
+                    </div>
                   </>
                 )}
 
@@ -171,25 +171,25 @@ export default function Fulfillment() {
             </div>
             <div className="border border-ama rounded-md p-4 mb-6">
               <h3 className="text-white font-satB text-sm mb-4 tracking-wider">
-                {t("select_base_colors")}
+                {t("select_print_dye")}
               </h3>
               <div className="flex gap-3">
-                {BASE_COLORS.map((color, index) => (
+                {filteredValues?.colors?.map((color, index) => (
                   <div
                     key={index}
-                    onClick={() => toggleBaseColor(color)}
+                    onClick={() => toggleColor(color)}
                     className={`relative border rounded-md p-2 cursor-pointer hover:opacity-80 ${
-                      fulfillmentSelection.baseColors.includes(color)
+                      fulfillmentSelection.color?.title == color.title
                         ? "border-ama bg-black"
                         : "border-white opacity-60"
                     }`}
                   >
                     <div
                       className="w-8 h-8 rounded-md border border-gray-300"
-                      style={{ backgroundColor: color }}
+                      style={{ backgroundColor: color.title }}
                     />
                     <p className="text-white font-mana text-xxxs mt-1 text-center">
-                      {getColorName(color)}
+                      {getColorName(color.title)}
                     </p>
                   </div>
                 ))}
@@ -203,20 +203,18 @@ export default function Fulfillment() {
                 <div className="text-white font-mana text-xs text-center py-4">
                   {t("loading_materials")}
                 </div>
-              ) : filteredMaterials.length === 0 ? (
+              ) : filteredValues?.materials.length === 0 ? (
                 <div className="text-white font-mana text-xs text-center py-4">
                   {t("no_materials_available")}
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {filteredMaterials.map((material, index) => (
+                  {filteredValues?.materials?.map((material, index) => (
                     <div
                       key={index}
                       onClick={() => toggleMaterial(material)}
                       className={`relative border rounded-md p-3 cursor-pointer hover:opacity-80 ${
-                        fulfillmentSelection.materials.some(
-                          (m) => m.title === material.title
-                        )
+                        fulfillmentSelection.material?.title == material.title
                           ? "border-ama bg-black"
                           : "border-white opacity-60"
                       }`}
@@ -243,52 +241,45 @@ export default function Fulfillment() {
                 </div>
               )}
             </div>
-            {fulfillmentSelection.baseColors.length > 0 &&
-              fulfillmentSelection.materials.length > 0 && (
-                <div className="border border-ama rounded-md p-4">
-                  <h3 className="text-ama font-satB text-sm mb-4 tracking-wider">
-                    {t("fulfillment_ready")}
-                  </h3>
-                  <div className="space-y-2 text-xs mb-4">
-                    <div className="flex justify-between">
-                      <span className="text-white font-mana">
-                        {t("colors")}:
-                      </span>
-                      <span className="text-white font-mana">
-                        {fulfillmentSelection.baseColors
-                          .map((color) => getColorName(color))
-                          .join(", ")}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-white font-mana">
-                        {t("materials")}:
-                      </span>
-                      <span className="text-white font-mana">
-                        {fulfillmentSelection.materials
-                          .map((material) => material.title)
-                          .join(", ")}
-                      </span>
-                    </div>
+            {fulfillmentSelection.color && fulfillmentSelection.material && (
+              <div className="border border-ama rounded-md p-4">
+                <h3 className="text-ama font-satB text-sm mb-4 tracking-wider">
+                  {t("fulfillment_ready")}
+                </h3>
+                <div className="space-y-2 text-xs mb-4">
+                  <div className="flex justify-between">
+                    <span className="text-white font-mana">{t("colors")}:</span>
+                    <span className="text-white font-mana">
+                      {fulfillmentSelection.color.title}
+                    </span>
                   </div>
-                  <div className="border-t border-ama pt-3 mb-4">
-                    <div className="flex justify-between mb-4">
-                      <span className="text-white font-satB text-sm">
-                        {t("supplier_fulfiller_total")}:
-                      </span>
-                      <span className="text-ama font-satB text-sm">
-                        {formatPrice(calculateTotal + FULFILLERS[0].base)} MONA
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => navigate("/Sell")}
-                      className="w-full bg-ama hover:bg-ama/90 text-black font-satB text-xs py-3 px-4 rounded-md hover:opacity-80"
-                    >
-                      {t("proceed_to_sell")}
-                    </button>
+                  <div className="flex justify-between">
+                    <span className="text-white font-mana">
+                      {t("materials")}:
+                    </span>
+                    <span className="text-white font-mana">
+                      {fulfillmentSelection.material.title}
+                    </span>
                   </div>
                 </div>
-              )}
+                <div className="border-t border-ama pt-3 mb-4">
+                  <div className="flex justify-between mb-4">
+                    <span className="text-white font-satB text-sm">
+                      {t("supplier_fulfiller_total")}:
+                    </span>
+                    <span className="text-ama font-satB text-sm">
+                      {formatPrice(calculateTotal + FULFILLERS[0].base)} MONA
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => navigate("/Sell")}
+                    className="w-full bg-ama hover:bg-ama/90 text-black font-satB text-xs py-3 px-4 rounded-md hover:opacity-80"
+                  >
+                    {t("proceed_to_sell")}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

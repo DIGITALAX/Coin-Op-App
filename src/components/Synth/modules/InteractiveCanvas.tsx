@@ -206,12 +206,26 @@ const ShowCanvas = ({
             return null;
           }
 
+          const isSavedCanvas = child.child.metadata.image.startsWith("data:");
+          let originalImageUri;
+
+          if (isSavedCanvas && child.child) {
+            originalImageUri = currentTemplate?.childReferences?.find(
+              (chi) =>
+                chi.uri == child.uri &&
+                chi.childId == child.childId &&
+                chi.childContract == child.childContract
+            )?.child.metadata.image;
+          } else {
+            originalImageUri = child.child.metadata.image;
+          }
+
           const dims = imageDimensions[child.uri];
           if (!dims) {
             return (
               <img
-                key={`${child.uri}-${index}`}
-                src={getImageSrc(child.child.metadata.image)}
+                key={`${child.uri}-${index}-${canvasWidth}`}
+                src={getImageSrc(originalImageUri!)}
                 alt={`Pattern ${index}`}
                 className="absolute transition-opacity"
                 draggable={false}
@@ -271,19 +285,6 @@ const ShowCanvas = ({
             pixelPosition.rotation || 0
           }deg) scale(${sx}, ${sy})`;
 
-          const isSavedCanvas = child.child.metadata.image.startsWith("data:");
-          let originalImageUri;
-
-          if (isSavedCanvas && child.child) {
-            originalImageUri = currentTemplate?.childReferences?.find(
-              (chi) =>
-                chi.uri == child.uri &&
-                chi.childId == child.childId &&
-                chi.childContract == child.childContract
-            )?.child.metadata.image;
-          } else {
-            originalImageUri = child.child.metadata.image;
-          }
           const parsedSvg = originalImageUri
             ? parsedSvgCache[originalImageUri]
             : null;
@@ -298,7 +299,7 @@ const ShowCanvas = ({
                 )
             );
             return (
-              <div key={`${child.uri}-${index}-container`}>
+              <div key={`${child.uri}-${index}-container-${canvasWidth}`}>
                 {child.child.metadata.image.startsWith("data:") && (
                   <img
                     key={`${child.uri}-${index}-data`}
@@ -318,7 +319,7 @@ const ShowCanvas = ({
                   />
                 )}
                 <svg
-                  key={`${child.uri}-${index}`}
+                  key={`${child.uri}-${index}-${canvasWidth}`}
                   {...parsedSvg.props}
                   className="absolute transition-opacity"
                   style={{

@@ -1,4 +1,5 @@
 use serde::{ Deserialize, Serialize };
+use serde_json::{ Value, json };
 
 const INFURA_GATEWAY: &str = "https://thedial.infura-ipfs.io/ipfs";
 
@@ -435,7 +436,7 @@ pub async fn fetch_templates() -> Result<Vec<TemplateData>, String> {
                             .get("image")
                             .and_then(|v| v.as_str())
                             .map(|s| s.to_string());
-                           let description = meta
+                        let description = meta
                             .get("description")
                             .and_then(|v| v.as_str())
                             .map(|s| s.to_string());
@@ -523,7 +524,7 @@ pub async fn fetch_templates() -> Result<Vec<TemplateData>, String> {
     Ok(template_data)
 }
 
-pub async fn fetch_children_materials() -> Result<Vec<ChildData>, String> {
+pub async fn fetch_children_materials_colors() -> Result<Value, String> {
     // let api_key = "";
 
     let client = reqwest::Client::new();
@@ -531,7 +532,7 @@ pub async fn fetch_children_materials() -> Result<Vec<ChildData>, String> {
     let query =
         r#"
     {
-      childs(where: {childContract: "0xf38d630c6f90adf72765408cf725119fb183d136"}) {
+      childs(where: { or: [{childContract: "0xf38d630c6f90adf72765408cf725119fb183d136"}, {childContract: "0xe61b80f94d9a0915ad53283c9d27307b785b1fdc"}] }) {
         childContract
         childId
         physicalPrice
@@ -587,6 +588,7 @@ pub async fn fetch_children_materials() -> Result<Vec<ChildData>, String> {
         .ok_or("Invalid response structure")?;
 
     let mut materials_data = Vec::new();
+    let mut colors_data = Vec::new();
 
     for child in childs {
         let child_contract = child
@@ -656,16 +658,31 @@ pub async fn fetch_children_materials() -> Result<Vec<ChildData>, String> {
             None
         };
 
-        materials_data.push(ChildData {
-            price: physical_price,
-            child_type,
-            child_contract,
-            child_id,
-            currency: infra_currency,
-            metadata,
-            uri,
-        });
+        if child_contract == "0xf38d630c6f90adf72765408cf725119fb183d136" {
+            materials_data.push(ChildData {
+                price: physical_price,
+                child_type,
+                child_contract,
+                child_id,
+                currency: infra_currency,
+                metadata,
+                uri,
+            });
+        } else {
+            colors_data.push(ChildData {
+                price: physical_price,
+                child_type,
+                child_contract,
+                child_id,
+                currency: infra_currency,
+                metadata,
+                uri,
+            });
+        }
     }
 
-    Ok(materials_data)
+    Ok(json!({
+        "materials": materials_data,
+        "colors": colors_data
+    }))
 }

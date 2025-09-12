@@ -26,11 +26,7 @@ export const usePattern = () => {
       const frontCanvasDataUrl = await captureInteractiveCanvasAt300DPI(3);
       if (frontCanvasDataUrl) {
         const baseName = currentDesign?.name || "pattern";
-        await exportPatternSet(frontCanvasDataUrl, null, baseName, {
-          widthInches: 8,
-          heightInches: 10,
-          dpi: 300,
-        });
+        await exportPatternSet(frontCanvasDataUrl, null, baseName);
         setShowExportDialog(false);
       }
     } catch (error) {}

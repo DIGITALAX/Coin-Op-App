@@ -459,8 +459,6 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
     if (!hasContent) return;
     const boundsWidth = maxX - minX + 1;
     const boundsHeight = maxY - minY + 1;
-    const originalWidth = patternElement.originalWidth || boundsWidth;
-    const originalHeight = patternElement.originalHeight || boundsHeight;
     const cropCanvas = document.createElement("canvas");
     const cropCtx = cropCanvas.getContext("2d");
     if (!cropCtx) return;
@@ -477,8 +475,8 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
       boundsWidth,
       boundsHeight
     );
-    tempCanvas.width = originalWidth;
-    tempCanvas.height = originalHeight;
+    tempCanvas.width = boundsWidth;
+    tempCanvas.height = boundsHeight;
     tempCtx.drawImage(
       cropCanvas,
       0,
@@ -487,8 +485,8 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
       boundsHeight,
       0,
       0,
-      originalWidth,
-      originalHeight
+      boundsWidth,
+      boundsHeight
     );
     const thumbnail = tempCanvas.toDataURL("image/png");
     const serializableElements = elements.map((element) => {

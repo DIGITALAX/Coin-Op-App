@@ -1,3 +1,5 @@
+import { Fulfiller } from "../../Fulfillment/types/fulfillment.types";
+
 export interface SellData {
   front: {
     compositeImage: string;
@@ -19,12 +21,15 @@ export interface SellData {
       canvasImage: string;
     }[];
   };
-  fulfiller: string;
-  materials: {
+  fulfiller: Fulfiller;
+  material: {
     childId: string;
     childContract: string;
-  }[];
-  colors: string[];
+  };
+  color: {
+    childId: string;
+    childContract: string;
+  };
 }
 
 export interface UseSellReturn {

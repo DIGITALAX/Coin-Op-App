@@ -5,6 +5,7 @@ use std::fs;
 mod pattern_nesting;
 mod pattern_export;
 mod subgraph;
+use serde_json::Value;
 
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -501,8 +502,8 @@ async fn fetch_template_children() -> Result<Vec<subgraph::GroupedTemplate>, Str
 }
 
 #[tauri::command]
-async fn fetch_children_materials() -> Result<Vec<subgraph::ChildData>, String> {
-    subgraph::fetch_children_materials().await
+async fn fetch_children_materials_colors() -> Result<Value, String> {
+    subgraph::fetch_children_materials_colors().await
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -539,7 +540,7 @@ pub fn run() {
                 pattern_nesting::clear_sparrow_data,
                 pattern_nesting::cancel_sparrow_process,
                 fetch_template_children,
-                fetch_children_materials
+                fetch_children_materials_colors
             ]
         )
         .run(tauri::generate_context!())

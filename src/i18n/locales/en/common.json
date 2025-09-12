@@ -171,8 +171,8 @@
   "base": "Base",
   "vig": "Vig",
   "of_sale_price": "of sale price",
-  "select_base_colors": "SELECT BASE COLORS",
-  "select_materials": "SELECT MATERIALS",
+  "select_print_dye": "SELECT PRINT DYE",
+  "select_materials": "SELECT MATERIAL",
   "loading_materials": "Loading materials...",
   "no_materials_available": "No materials available for this template type",
   "colors": "Colors",
@@ -325,5 +325,15 @@
   "hide_uppercase": "HIDE",
   "details": "DETAILS",
   "id": "ID",
-  "delete_design_confirmation": "Are you sure you want to delete \"{{designName}}\"? This action cannot be undone"
+  "delete_design_confirmation": "Are you sure you want to delete \"{{designName}}\"? This action cannot be undone",
+  "blender_integration": "Blender Integration",
+  "blender_export_description": "Export your {{itemType}} designs directly to Blender for advanced 3D modeling and rendering.",
+  "download_blender_plugin": "Download Blender Plugin",
+  "installation_instructions": "Installation Instructions",
+  "blender_step_1": "Download the plugin from the GitHub repository above",
+  "blender_step_2": "Open Blender and go to Edit → Preferences → Add-ons",
+  "blender_step_3": "Click \"Install...\" and select the downloaded plugin file",
+  "blender_step_4": "Enable the \"DIGITALAX Export Plugin\" in the add-ons list",
+  "blender_step_5": "Return to this app and use the export features in your design workflow",
+  "blender_only_apparel": "Blender integration is only compatible with apparel items (shirts and hoodies). Please select a shirt or hoodie template to use this feature."
 }

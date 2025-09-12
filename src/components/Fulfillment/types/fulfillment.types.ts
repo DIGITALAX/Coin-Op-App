@@ -16,9 +16,19 @@ export interface Material {
   childContract: string;
 }
 
+export interface Color {
+  title: string;
+  description?: string;
+  price: number;
+  type: string;
+  tags?: string[];
+  childId: string;
+  childContract: string;
+}
+
 export interface FulfillmentSelection {
-  baseColors: string[];
-  materials: Material[];
+  color: Color | null;
+  material: Material | null;
 }
 
 export interface ChildData {

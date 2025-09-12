@@ -317,17 +317,20 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
         const processedImageUrl = getImageUrl(imageUrl);
         img.crossOrigin = "anonymous";
         img.onload = () => {
-          const maxSize = 1000;
+          const maxAllowedWidth = canvasWidth / 2;
           const naturalWidth = img.naturalWidth;
           const naturalHeight = img.naturalHeight;
           let width, height;
-          if (naturalWidth > naturalHeight) {
-            width = Math.min(maxSize, naturalWidth);
-            height = (naturalHeight / naturalWidth) * width;
+          
+          if (naturalWidth > maxAllowedWidth) {
+            const scaleFactor = maxAllowedWidth / naturalWidth;
+            width = maxAllowedWidth;
+            height = naturalHeight * scaleFactor;
           } else {
-            height = Math.min(maxSize, naturalHeight);
-            width = (naturalWidth / naturalHeight) * height;
+            width = naturalWidth;
+            height = naturalHeight;
           }
+          
           const minSize = 40;
           if (width < minSize) {
             const scale = minSize / width;
@@ -360,6 +363,14 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
               finalWidth = Math.ceil((width * cos + height * sin) * scale);
               finalHeight = Math.ceil((width * sin + height * cos) * scale);
             }
+          }
+
+          if (finalWidth > maxAllowedWidth) {
+            const constraintScale = maxAllowedWidth / finalWidth;
+            finalWidth = maxAllowedWidth;
+            finalHeight = finalHeight * constraintScale;
+            width = width * constraintScale;
+            height = height * constraintScale;
           }
 
           const x = canvasWidth / 2 - finalWidth / 2;

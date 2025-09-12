@@ -1,23 +1,27 @@
 import { useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useApp } from "../../../context/AppContext";
-import { FulfillmentSelection, Material } from "../types/fulfillment.types";
+import {
+  Color,
+  FulfillmentSelection,
+  Material,
+} from "../types/fulfillment.types";
 import { getCurrentTemplate } from "../../Synth/utils/templateHelpers";
-import useMaterials from "./useMaterials";
+import useMaterialsAndColors from "./useMaterialsAndColors";
 import { useDesignContext } from "../../../context/DesignContext";
 import { useDesignStorage } from "../../Activity/hooks/useDesignStorage";
 const useFulfillment = () => {
   const { t } = useTranslation();
   const { selectedLayer, isBackSide, selectedTemplate } = useApp();
   const currentTemplate = getCurrentTemplate(selectedLayer, isBackSide);
-  const { loading, filterMaterialsByTag } = useMaterials();
+  const { loading, filterMaterialsColorsByTag } = useMaterialsAndColors();
   const { currentDesign } = useDesignContext();
   const { getItem, setItem } = useDesignStorage();
 
   const [fulfillmentSelection, setFulfillmentSelection] =
     useState<FulfillmentSelection>({
-      baseColors: [],
-      materials: [],
+      color: null,
+      material: null,
     });
 
   useEffect(() => {
@@ -38,28 +42,23 @@ const useFulfillment = () => {
     const saveFulfillmentData = async () => {
       if (
         currentDesign?.id &&
-        (fulfillmentSelection.baseColors.length > 0 ||
-          fulfillmentSelection.materials.length > 0)
+        (fulfillmentSelection.color || fulfillmentSelection.material)
       ) {
         await setItem("fulfillment", fulfillmentSelection);
       }
     };
     saveFulfillmentData();
   }, [fulfillmentSelection, currentDesign?.id, setItem]);
-  const toggleBaseColor = (color: string) => {
+  const toggleColor = (color: Color) => {
     setFulfillmentSelection((prev) => ({
       ...prev,
-      baseColors: prev.baseColors.includes(color)
-        ? prev.baseColors.filter((c) => c !== color)
-        : [...prev.baseColors, color],
+      materials: prev.color?.title == color.title ? null : color,
     }));
   };
   const toggleMaterial = (material: Material) => {
     setFulfillmentSelection((prev) => ({
       ...prev,
-      materials: prev.materials.find((m) => m.title === material.title)
-        ? prev.materials.filter((m) => m.title !== material.title)
-        : [...prev.materials, material],
+      materials: prev.material?.title == material.title ? null : material,
     }));
   };
   const calculateBaseTotal = useMemo(() => {
@@ -76,12 +75,9 @@ const useFulfillment = () => {
   const calculateTotal = useMemo(() => {
     if (!selectedLayer) return 0;
     const baseTotal = calculateBaseTotal;
-    const materialsPrice = fulfillmentSelection.materials.reduce(
-      (sum, material) => sum + material.price,
-      0
-    );
-    return baseTotal + materialsPrice;
-  }, [selectedLayer, fulfillmentSelection.materials, calculateBaseTotal]);
+    const materialPrice = Number(fulfillmentSelection.material?.price);
+    return baseTotal + materialPrice;
+  }, [selectedLayer, fulfillmentSelection.material, calculateBaseTotal]);
   const formatPrice = (price: number) => {
     return price.toFixed(2);
   };
@@ -93,20 +89,20 @@ const useFulfillment = () => {
     return colorMap[hexColor.toLowerCase()] || hexColor;
   };
 
-  const getFilteredMaterials = () => {
+  const getFilteredMaterialsColors = () => {
     if (!selectedTemplate) return [];
-    return filterMaterialsByTag(selectedTemplate.template_type);
+    return filterMaterialsColorsByTag(selectedTemplate.template_type);
   };
 
   return {
     fulfillmentSelection,
-    toggleBaseColor,
+    toggleColor,
     toggleMaterial,
     calculateTotal,
     formatPrice,
     getColorName,
     loading,
-    getFilteredMaterials,
+    getFilteredMaterialsColors,
   };
 };
 export default useFulfillment;

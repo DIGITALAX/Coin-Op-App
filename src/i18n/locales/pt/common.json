@@ -171,8 +171,8 @@
   "base": "Base",
   "vig": "Comissão",
   "of_sale_price": "do preço de venda",
-  "select_base_colors": "SELECIONAR CORES BASE",
-  "select_materials": "SELECIONAR MATERIAIS",
+  "select_print_dye": "SELECIONAR TINTA IMPRESSÃO",
+  "select_materials": "SELECIONAR MATERIAL",
   "loading_materials": "Carregando materiais...",
   "no_materials_available": "Nenhum material disponível para este tipo de modelo",
   "colors": "Cores",
@@ -325,5 +325,15 @@
   "hide_uppercase": "OCULTAR",
   "details": "DETALHES",
   "id": "ID",
-  "delete_design_confirmation": "Voc\u00ea tem certeza de que deseja excluir \"{{designName}}\"? Esta a\u00e7\u00e3o n\u00e3o pode ser desfeita"
+  "delete_design_confirmation": "Voc\u00ea tem certeza de que deseja excluir \"{{designName}}\"? Esta a\u00e7\u00e3o n\u00e3o pode ser desfeita",
+  "blender_integration": "Integração com Blender",
+  "blender_export_description": "Exporte seus designs de {{itemType}} diretamente para o Blender para modelagem 3D avançada e renderização.",
+  "download_blender_plugin": "Baixar Plugin do Blender",
+  "installation_instructions": "Instruções de Instalação",
+  "blender_step_1": "Baixe o plugin do repositório GitHub acima",
+  "blender_step_2": "Abra o Blender e vá para Editar → Preferências → Complementos",
+  "blender_step_3": "Clique em \"Instalar...\" e selecione o arquivo do plugin baixado",
+  "blender_step_4": "Habilite o \"Plugin de Exportação DIGITALAX\" na lista de complementos",
+  "blender_step_5": "Retorne a este aplicativo e use os recursos de exportação no seu fluxo de design",
+  "blender_only_apparel": "A integração com Blender é compatível apenas com itens de vestuário (camisas e moletons). Por favor, selecione um modelo de camisa ou moletom para usar este recurso."
 }

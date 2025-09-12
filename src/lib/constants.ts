@@ -45,7 +45,6 @@ export const FULFILLERS: Fulfiller[] = [
     address: "0xdD35935C12E3748704C96492E5565d34daE73De7",
   },
 ];
-export const BASE_COLORS: string[] = ["#fff", "#000"];
 
 export const TEMPLATE_CHOICES: TemplateChoice[] = [
   {

@@ -86,11 +86,6 @@ export interface UseGeneratorProps {
   getCanvasImage?: () => string | null;
 }
 
-export interface ExportOptions {
-  widthInches: number;
-  heightInches: number;
-  dpi: number;
-}
 export interface UseSynthCanvasProps {
   onCanvasSave?: (childIndex: number, newUri: string) => void;
 }
