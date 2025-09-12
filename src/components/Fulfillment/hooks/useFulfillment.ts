@@ -52,13 +52,13 @@ const useFulfillment = () => {
   const toggleColor = (color: Color) => {
     setFulfillmentSelection((prev) => ({
       ...prev,
-      materials: prev.color?.title == color.title ? null : color,
+      color: prev.color?.title == color.title ? null : color,
     }));
   };
   const toggleMaterial = (material: Material) => {
     setFulfillmentSelection((prev) => ({
       ...prev,
-      materials: prev.material?.title == material.title ? null : material,
+      material: prev.material?.title == material.title ? null : material,
     }));
   };
   const calculateBaseTotal = useMemo(() => {
