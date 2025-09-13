@@ -1,4 +1,11 @@
-import { Dispatch, MutableRefObject, ReactElement, ReactNode, RefObject, SetStateAction } from "react";
+import {
+  Dispatch,
+  MutableRefObject,
+  ReactElement,
+  ReactNode,
+  RefObject,
+  SetStateAction,
+} from "react";
 import { Template } from "../../Format/types/format.types";
 export interface PatternElement {
   type: string;
@@ -37,8 +44,10 @@ export interface CanvasHistory {
   layerTemplateId: string;
   templateName: string;
   elements: any[];
-  thumbnail: string;
+  thumbnailPath: string;
   timestamp: number;
+  originalCanvasWidth: number;
+  originalCanvasHeight: number;
 }
 export interface ElementInterface {
   id: number;
@@ -101,8 +110,8 @@ export interface GeneratorProps {
 }
 
 export interface LibrarySelectorProps {
-  type: 'workflow' | 'prompt';
-  mode?: 'synth' | 'composite';
+  type: "workflow" | "prompt";
+  mode?: "synth" | "composite";
   onSelect: (item: any) => void;
   onSave: (name: string, description?: string) => void;
   className?: string;
@@ -114,18 +123,32 @@ export interface SynthCanvasProps {
 
 export interface ShowCanvasProps {
   size?: "small" | "large";
-  convertCoordinatesToPixels: (x: number, y: number, scale?: number, flip?: number, rotation?: number) => any;
+  convertCoordinatesToPixels: (
+    x: number,
+    y: number,
+    scale?: number,
+    flip?: number,
+    rotation?: number
+  ) => any;
   baseTemplateChild: any;
   imageRef: MutableRefObject<HTMLImageElement | null>;
   setCanvasWidth: (width: number) => void;
   imageDimensions: Record<string, { width: number; height: number }>;
-  setImageDimensions: Dispatch<SetStateAction<Record<string, { width: number; height: number }>>>;
+  setImageDimensions: Dispatch<
+    SetStateAction<Record<string, { width: number; height: number }>>
+  >;
   canvasContainerRef: RefObject<HTMLDivElement | null>;
   parsedSvgCache: Record<string, any>;
-  createReactElement: (childEl: any, key: string, onChildClick?: (uri: string) => void, uri?: string) => ReactElement;
+  createReactElement: (
+    childEl: any,
+    key: string,
+    onChildClick?: (uri: string) => void,
+    uri?: string
+  ) => ReactElement;
   getImageSrc: (src: string) => string;
   currentTemplate: Template | null;
   canvasWidth: number | undefined;
+  imageUrls: Record<string, string>;
   templateChild: Template | null;
   onChildClick?: (childUri: string) => void;
 }

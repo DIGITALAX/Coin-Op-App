@@ -13,7 +13,6 @@ import {
   CreateLibraryItemRequest,
 } from "../components/Activity/types/activity.types";
 import { useFileStorage } from "../components/Activity/hooks/useFileStorage";
-import { initializeDefaultLibrary } from "../lib/defaultLibrary";
 import { v4 as uuidv4 } from "uuid";
 import {
   LibraryContextType,
@@ -277,11 +276,6 @@ export const LibraryProvider = ({ children }: LibraryProviderProps) => {
       const hasInitialized = await getItem("library-initialized", "global");
       if (!hasInitialized) {
         try {
-          await initializeDefaultLibrary(
-            createWorkflow,
-            createSynthPrompt,
-            createCompositePrompt
-          );
           await setItem("library-initialized", true, "global");
         } catch (error) {}
       }

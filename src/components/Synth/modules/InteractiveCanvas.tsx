@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import useInteractive from "../hooks/useInteractive";
 import { useApp } from "../../../context/AppContext";
 import { getCurrentTemplate } from "../utils/templateHelpers";
+import { useFileStorage } from "../../Activity/hooks/useFileStorage";
+import { useState, useEffect } from "react";
 
 export default function InteractiveCanvas({
   templateChild,
@@ -12,6 +14,8 @@ export default function InteractiveCanvas({
   const { t } = useTranslation();
   const { canFlip, flipCanvas, selectedLayer, isBackSide } = useApp();
   const currentTemplate = getCurrentTemplate(selectedLayer, isBackSide);
+  const { getBinaryFileUrl } = useFileStorage();
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
   const {
     getImageSrc,
     convertCoordinatesToPixels,
@@ -34,6 +38,30 @@ export default function InteractiveCanvas({
     imageLoaded,
   } = useInteractive(templateChild);
 
+  useEffect(() => {
+    const loadImageUrls = async () => {
+      if (!templateChild?.childReferences) return;
+
+      const newImageUrls: Record<string, string> = {};
+
+      for (const child of templateChild.childReferences) {
+        const imageRef = child.child?.metadata?.image;
+        if (imageRef && !imageRef.startsWith("data:") && !imageUrls[imageRef]) {
+          try {
+            const url = await getBinaryFileUrl(imageRef);
+            newImageUrls[imageRef] = url;
+          } catch (error) {}
+        }
+      }
+
+      if (Object.keys(newImageUrls).length > 0) {
+        setImageUrls((prev) => ({ ...prev, ...newImageUrls }));
+      }
+    };
+
+    loadImageUrls();
+  }, [templateChild, getBinaryFileUrl]);
+
   const isLarge = size === "large";
 
   if (isLarge) {
@@ -51,6 +79,7 @@ export default function InteractiveCanvas({
           key={`${isBackSide ? "back" : "front"}-${imageLoaded}-${
             templateChild?.uri || "none"
           }`}
+          imageUrls={imageUrls}
           canvasWidth={canvasWidth}
           templateChild={templateChild}
           size={size}
@@ -123,6 +152,7 @@ export default function InteractiveCanvas({
           canvasWidth={canvasWidth}
           templateChild={templateChild}
           size={size}
+          imageUrls={imageUrls}
           getImageSrc={getImageSrc}
           currentTemplate={currentTemplate}
           onChildClick={onChildClick}
@@ -158,10 +188,18 @@ const ShowCanvas = ({
   canvasWidth,
   templateChild,
   onChildClick,
+  imageUrls,
   onImageLoad,
 }: ShowCanvasProps & { onImageLoad: () => void }) => {
   const { t } = useTranslation();
   const imageSrc = getImageSrc(baseTemplateChild?.child?.metadata?.image || "");
+
+  const getImageUrl = (imageRef: string): string => {
+    if (imageRef.startsWith("data:")) {
+      return imageRef;
+    }
+    return imageUrls[imageRef] || "";
+  };
 
   return (
     <div
@@ -206,16 +244,20 @@ const ShowCanvas = ({
             return null;
           }
 
-          const isSavedCanvas = child.child.metadata.image.startsWith("data:");
+          const isSavedCanvas =
+            child.child.metadata.image &&
+            (child.child.metadata.image.startsWith("data:") ||
+              !child.child.metadata.image.startsWith("http"));
           let originalImageUri;
 
           if (isSavedCanvas && child.child) {
-            originalImageUri = currentTemplate?.childReferences?.find(
+            const originalChild = currentTemplate?.childReferences?.find(
               (chi) =>
                 chi.uri == child.uri &&
                 chi.childId == child.childId &&
                 chi.childContract == child.childContract
-            )?.child.metadata.image;
+            );
+            originalImageUri = originalChild?.child.metadata.image;
           } else {
             originalImageUri = child.child.metadata.image;
           }
@@ -300,24 +342,25 @@ const ShowCanvas = ({
             );
             return (
               <div key={`${child.uri}-${index}-container-${canvasWidth}`}>
-                {child.child.metadata.image.startsWith("data:") && (
-                  <img
-                    key={`${child.uri}-${index}-data`}
-                    src={getImageSrc(child.child.metadata.image)}
-                    alt={`Pattern ${index}`}
-                    width={w}
-                    height={h}
-                    className="absolute"
-                    style={{
-                      left: `${pixelPosition.left}px`,
-                      top: `${pixelPosition.top}px`,
-                      transform,
-                      transformOrigin: "0 0",
-                      pointerEvents: "none",
-                      zIndex: 0,
-                    }}
-                  />
-                )}
+                {child.child.metadata.image &&
+                  getImageUrl(child.child.metadata.image) && (
+                    <img
+                      key={`${child.uri}-${index}-data`}
+                      src={getImageSrc(getImageUrl(child.child.metadata.image))}
+                      alt={`Pattern ${index}`}
+                      width={w}
+                      height={h}
+                      className="absolute"
+                      style={{
+                        left: `${pixelPosition.left}px`,
+                        top: `${pixelPosition.top}px`,
+                        transform,
+                        transformOrigin: "0 0",
+                        pointerEvents: "none",
+                        zIndex: 0,
+                      }}
+                    />
+                  )}
                 <svg
                   key={`${child.uri}-${index}-${canvasWidth}`}
                   {...parsedSvg.props}

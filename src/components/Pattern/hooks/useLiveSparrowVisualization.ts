@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { PATTERN_COLORS, SparrowStats } from '../types/pattern.types';
+import { SparrowStats } from '../types/pattern.types';
+import { PATTERN_COLORS } from '../../../lib/constants';
 
 const removeSvgBackground = (svgContent: string): string => {
   return svgContent.replace(

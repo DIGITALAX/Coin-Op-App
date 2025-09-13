@@ -1,4 +1,5 @@
 import { ChangeEvent, useEffect, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { fetch } from "@tauri-apps/plugin-http";
 import { invoke } from "@tauri-apps/api/core";
 import { useDesignStorage } from "../../Activity/hooks/useDesignStorage";
@@ -11,6 +12,7 @@ const useGenerator = ({
   onImageGenerated,
   getCanvasImage,
 }: UseGeneratorProps = {}) => {
+  const { t } = useTranslation();
   const { setItem, getItem } = useDesignStorage();
   const { setItem: setItemFile, getItem: getItemFile } = useFileStorage();
   const { currentDesign, refreshDesigns } = useDesignContext();
@@ -366,7 +368,7 @@ const useGenerator = ({
     const file = event.target.files?.[0];
     if (!file) return;
     if (file.type !== "application/json") {
-      alert("Please upload a JSON file");
+      alert(t("upload_json_file"));
       return;
     }
     const reader = new FileReader();
@@ -388,7 +390,7 @@ const useGenerator = ({
           setPrompt(promptNodes[0].currentText);
         }
       } catch (error) {
-        alert("Invalid JSON file");
+        alert(t("invalid_json_file"));
       }
     };
     reader.readAsText(file);
@@ -528,28 +530,28 @@ const useGenerator = ({
       aiProvider !== "comfy" &&
       !apiKeys?.[aiProvider as keyof typeof apiKeys]
     ) {
-      alert(`Please enter your ${aiProvider.toUpperCase()} API key first`);
+      alert(t("enter_api_key", { provider: aiProvider.toUpperCase() }));
       return;
     }
     if (aiProvider !== "comfy" && !selectedModel) {
-      alert("Please select a model first");
+      alert(t("select_model_first"));
       return;
     }
     if (aiProvider !== "comfy" && !prompt.trim()) {
-      alert("Please enter a prompt");
+      alert(t("enter_prompt"));
       return;
     }
     if (aiProvider === "comfy") {
       if (!comfySettings.url) {
-        alert("Please enter ComfyUI URL");
+        alert(t("enter_comfyui_url"));
         return;
       }
       if (!comfySettings.workflowJson) {
-        alert("Please upload a workflow JSON file");
+        alert(t("upload_workflow_json"));
         return;
       }
       if (comfySettings.promptNodes.length > 0 && !prompt.trim()) {
-        alert("Please enter a prompt for the workflow");
+        alert(t("enter_workflow_prompt"));
         return;
       }
       if (

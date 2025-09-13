@@ -12,6 +12,7 @@ import {
 import wheelLogic from "../utils/wheelLogic";
 import { useApp } from "../../../context/AppContext";
 import { useDesignStorage } from "../../Activity/hooks/useDesignStorage";
+import { useFileStorage } from "../../Activity/hooks/useFileStorage";
 import { useDesignContext } from "../../../context/DesignContext";
 import { getCurrentTemplate } from "../utils/templateHelpers";
 
@@ -22,6 +23,7 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const currentTemplate = getCurrentTemplate(selectedLayer, isBackSide);
   const { getItem, setItem } = useDesignStorage();
+  const { saveBinaryFile, removeBinaryFile } = useFileStorage();
   const { currentDesign, refreshDesigns } = useDesignContext();
   const [patternElement, setPatternElement] = useState<SvgPatternType | null>(
     null
@@ -394,32 +396,7 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
       yOffset: 0,
     });
   };
-  const captureCanvasAt300DPI = useCallback(
-    async (targetWidthInches: number, targetHeightInches: number) => {
-      const canvas = canvasRef.current;
-      if (!canvas || !patternElement) return null;
-      const dpi = 300;
-      const targetWidthPixels = targetWidthInches * dpi;
-      const targetHeightPixels = targetHeightInches * dpi;
-      const exportCanvas = document.createElement("canvas");
-      exportCanvas.width = targetWidthPixels;
-      exportCanvas.height = targetHeightPixels;
-      const exportCtx = exportCanvas.getContext("2d");
-      if (!exportCtx) return null;
-      exportCtx.imageSmoothingEnabled = true;
-      exportCtx.imageSmoothingQuality = "high";
-      const scaleX = targetWidthPixels / canvas.width;
-      const scaleY = targetHeightPixels / canvas.height;
-      const scale = Math.min(scaleX, scaleY);
-      exportCtx.scale(scale, scale);
-      const centerX = (targetWidthPixels / scale - canvas.width) / 2;
-      const centerY = (targetHeightPixels / scale - canvas.height) / 2;
-      exportCtx.translate(centerX, centerY);
-      exportCtx.drawImage(canvas, 0, 0);
-      return exportCanvas.toDataURL("image/png");
-    },
-    [patternElement]
-  );
+
   const saveCanvasToHistory = async () => {
     if (
       !selectedPatternChild ||
@@ -488,7 +465,24 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
       boundsWidth,
       boundsHeight
     );
-    const thumbnail = tempCanvas.toDataURL("image/png");
+    const blob = await new Promise<Blob>((resolve) => {
+      tempCanvas.toBlob((blob) => {
+        resolve(blob!);
+      }, 'image/png');
+    });
+    
+    const timestamp = Date.now();
+    const fileName = `canvas_${selectedPatternChild.uri.replace(/[^a-zA-Z0-9]/g, '_')}_${currentTemplate?.templateId}_${timestamp}.png`;
+    
+    if (!currentDesign) return;
+    
+    const thumbnailPath = await saveBinaryFile(
+      fileName, 
+      blob, 
+      currentDesign.id,
+      currentDesign.name
+    );
+    
     const serializableElements = elements.map((element) => {
       if (element.type === "image" && element.image) {
         return {
@@ -501,6 +495,8 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
       }
       return element;
     });
+    const actualCanvas = document.getElementById("synth-canvas-id") as HTMLCanvasElement;
+    
     const historyItem: CanvasHistory = {
       id: Date.now().toString(),
       childUri: selectedPatternChild.uri,
@@ -508,8 +504,10 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
       layerTemplateId: currentTemplate?.templateId,
       templateName: selectedTemplate.name,
       elements: serializableElements,
-      thumbnail,
+      thumbnailPath,
       timestamp: Date.now(),
+      originalCanvasWidth: actualCanvas?.width,
+      originalCanvasHeight: actualCanvas?.height,
     };
     try {
       const currentHistory = (await getItem("canvasHistory")) || [];
@@ -517,6 +515,20 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
         await setItem("canvasHistory", []);
         return;
       }
+      const oldItem = currentHistory.find(
+        (item: CanvasHistory) =>
+          item.childUri === selectedPatternChild.uri &&
+          item.layerTemplateId === currentTemplate?.templateId &&
+          item.templateName === selectedTemplate.name
+      );
+      
+      if (oldItem?.thumbnailPath) {
+        try {
+          await removeBinaryFile(oldItem.thumbnailPath);
+        } catch (error) {
+        }
+      }
+      
       const filteredHistory = currentHistory.filter(
         (item: CanvasHistory) =>
           !(
@@ -536,7 +548,7 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
           (child) => child.uri === selectedPatternChild.uri
         );
         if (childIndex >= 0) {
-          props.onCanvasSave(childIndex, thumbnail);
+          props.onCanvasSave(childIndex, thumbnailPath);
         }
       }
     } catch (error) {}
@@ -698,6 +710,5 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
     redo,
     undoHistory,
     redoHistory,
-    captureCanvasAt300DPI,
   };
 };

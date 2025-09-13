@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { usePatternNesting } from "./usePatternNesting";
 import { useLiveSparrowVisualization } from "./useLiveSparrowVisualization";
 import { useDesignContext } from "../../../context/DesignContext";
@@ -7,11 +8,12 @@ import {
   NestingSettings,
   DEFAULT_NESTING_SETTINGS,
   PatternPiece,
-  PATTERN_COLORS,
 } from "../types/pattern.types";
 import { useDesignStorage } from "../../Activity/hooks/useDesignStorage";
+import { PATTERN_COLORS } from "../../../lib/constants";
 
 export const usePackingCanvas = (selectedPieces: PatternPiece[]) => {
+  const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [panels, setPanels] = useState<CanvasPanel[]>([]);
   const [selectedPanelId, setSelectedPanelId] = useState<string | null>(null);
@@ -86,7 +88,7 @@ export const usePackingCanvas = (selectedPieces: PatternPiece[]) => {
 
   const handleNestClick = useCallback(async () => {
     if (!selectedPieces.length) {
-      alert("Please select pattern pieces to nest");
+      alert(t("select_pattern_pieces_to_nest"));
       return;
     }
     try {
@@ -101,9 +103,9 @@ export const usePackingCanvas = (selectedPieces: PatternPiece[]) => {
         setIsManualMode(false);
       }
     } catch (error) {
-      alert("Nesting failed. Please try again.");
+      alert(t("nesting_failed_try_again"));
     }
-  }, [selectedPieces, nestPatterns, nestingSettings, canvasWidth]);
+  }, [selectedPieces, nestPatterns, nestingSettings, canvasWidth, t]);
 
   const getPatternColor = useCallback((patternName: string): string => {
     let hash = 0;
@@ -427,9 +429,9 @@ export const usePackingCanvas = (selectedPieces: PatternPiece[]) => {
 
     try {
       await setItem("pattern", patternData);
-      alert("Pattern saved successfully!");
+      alert(t("pattern_saved_successfully"));
     } catch (error) {
-      alert(`Pattern save failed: ${error}`);
+      alert(`${t("pattern_save_failed")}: ${error}`);
     }
   }, [
     currentDesign,

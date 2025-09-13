@@ -1,6 +1,7 @@
 import { NetworkConfig } from "../components/Common/types/common.types";
 import { TemplateChoice } from "../components/Format/types/format.types";
 import { Fulfiller } from "../components/Fulfillment/types/fulfillment.types";
+import { GarmentSize } from "../components/Pattern/types/pattern.types";
 
 export const INFURA_GATEWAY: string = "https://thedial.infura-ipfs.io";
 export type Environment = "testnet" | "mainnet";
@@ -94,3 +95,50 @@ export const pageMap: { [key in string]: string } = {
   ["Fulfill"]: "/Fulfill",
   ["Sell"]: "/Sell",
 };
+
+
+
+export const HOODIE_FRONT_PANEL_DIMENSIONS: Record<
+  GarmentSize,
+  { widthCm: number; heightCm: number }
+> = {
+  XXS: { widthCm: 31.2, heightCm: 61.0 },
+  XS: { widthCm: 32.4, heightCm: 62.6 },
+  S: { widthCm: 33.6, heightCm: 64.2 },
+  M: { widthCm: 34.8, heightCm: 65.8 },
+  L: { widthCm: 36.0, heightCm: 67.4 },
+  XL: { widthCm: 37.2, heightCm: 69.0 },
+  XXL: { widthCm: 38.4, heightCm: 70.6 },
+  "3XL": { widthCm: 39.6, heightCm: 72.2 },
+  "4XL": { widthCm: 40.8, heightCm: 73.8 },
+  "5XL": { widthCm: 42.0, heightCm: 75.4 },
+  CUSTOM: { widthCm: 0, heightCm: 0 },
+};
+
+export const SHIRT_FRONT_PANEL_DIMENSIONS: Record<
+  GarmentSize,
+  { widthCm: number; heightCm: number }
+> = {
+  XXS: { widthCm: 29.5, heightCm: 55.0 },
+  XS: { widthCm: 30.7, heightCm: 56.5 },
+  S: { widthCm: 31.9, heightCm: 58.0 },
+  M: { widthCm: 33.1, heightCm: 59.5 },
+  L: { widthCm: 34.3, heightCm: 61.0 },
+  XL: { widthCm: 35.5, heightCm: 62.5 },
+  XXL: { widthCm: 36.7, heightCm: 64.0 },
+  "3XL": { widthCm: 37.9, heightCm: 65.5 },
+  "4XL": { widthCm: 39.1, heightCm: 67.0 },
+  "5XL": { widthCm: 40.3, heightCm: 69.0 },
+  CUSTOM: { widthCm: 0, heightCm: 0 },
+};
+
+export const PATTERN_COLORS: string[] = [
+  "#4ECDC4",
+  "#45B7AF",
+  "#96CEB4",
+  "#FFEAA7",
+  "#DDA0DD",
+  "#FFB6C1",
+  "#87CEEB",
+  "#98FB98",
+];

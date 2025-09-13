@@ -7,6 +7,7 @@ import { UseSellReturn, SellData } from "../types/sell.types";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { FULFILLERS } from "../../../lib/constants";
 import { CanvasHistory } from "../../Synth/types/synth.types";
+import { export300dpiWithMetadata } from "../../Synth/utils/export300dpi";
 
 export const useSell = (): UseSellReturn => {
   const { currentDesign } = useDesignContext();
@@ -164,13 +165,13 @@ export const useSell = (): UseSellReturn => {
       const zoneChildrenFront: Array<{
         childId: string;
         childContract: string;
-        canvasImage: string;
+        canvasImage: Blob;
       }> = [];
 
       const zoneChildrenBack: Array<{
         childId: string;
         childContract: string;
-        canvasImage: string;
+        canvasImage: Blob;
       }> = [];
 
       try {
@@ -184,42 +185,58 @@ export const useSell = (): UseSellReturn => {
               child?.child?.metadata?.tags?.includes("zone")
             ) || [];
 
-          for (const zoneChild of childrenFront) {
+          const frontBlobPromises = childrenFront.map(async (zoneChild) => {
             const childHistory = canvasHistory.find(
               (history) =>
                 history.childUri === zoneChild.uri &&
                 history.layerTemplateId === selectedLayer.front.templateId
             ) as CanvasHistory;
 
-            if (childHistory?.thumbnail) {
-              zoneChildrenFront.push({
-                canvasImage: childHistory.thumbnail as string,
-                childId: zoneChild.childId,
-                childContract: zoneChild.childContract,
-              });
+            if (childHistory) {
+              const blob = await export300dpiWithMetadata(childHistory, 300);
+              if (blob) {
+                return {
+                  canvasImage: blob,
+                  childId: zoneChild.childId,
+                  childContract: zoneChild.childContract,
+                };
+              }
             }
-          }
+            return null;
+          });
 
           const childrenBack =
             selectedLayer.back?.childReferences?.filter((child: any) =>
               child?.child?.metadata?.tags?.includes("zone")
             ) || [];
 
-          for (const zoneChild of childrenBack) {
+          const backBlobPromises = childrenBack.map(async (zoneChild) => {
             const childHistory = canvasHistory.find(
               (history) =>
                 history.childUri === zoneChild.uri &&
                 history.layerTemplateId === selectedLayer.back?.templateId
             ) as CanvasHistory;
 
-            if (childHistory?.thumbnail) {
-              zoneChildrenBack.push({
-                canvasImage: childHistory.thumbnail as string,
-                childId: zoneChild.childId,
-                childContract: zoneChild.childContract,
-              });
+            if (childHistory) {
+              const blob = await export300dpiWithMetadata(childHistory, 300);
+              if (blob) {
+                return {
+                  canvasImage: blob,
+                  childId: zoneChild.childId,
+                  childContract: zoneChild.childContract,
+                };
+              }
             }
-          }
+            return null;
+          });
+
+          const frontResults = await Promise.all(frontBlobPromises);
+          const backResults = await Promise.all(backBlobPromises);
+
+          zoneChildrenFront.push(
+            ...frontResults.filter((item) => item !== null)
+          );
+          zoneChildrenBack.push(...backResults.filter((item) => item !== null));
         }
       } catch (error: any) {
         console.error(error.message);
@@ -257,14 +274,52 @@ export const useSell = (): UseSellReturn => {
           : "http://localhost:3000";
 
       try {
+        const formData = new FormData();
+
+        const sellDataForJson = {
+          ...sellData,
+          front: {
+            ...sellData.front,
+            children: sellData.front.children.map((child, index) => ({
+              childId: child.childId,
+              childContract: child.childContract,
+              imageIndex: index,
+            })),
+          },
+          back: sellData.back
+            ? {
+                ...sellData.back,
+                children: sellData.back.children.map((child, index) => ({
+                  childId: child.childId,
+                  childContract: child.childContract,
+                  imageIndex: index,
+                })),
+              }
+            : sellData.back,
+        };
+
+        formData.append("sellData", JSON.stringify(sellDataForJson));
+
+        zoneChildrenFront.forEach((child, index) => {
+          formData.append(
+            `frontChild_${index}`,
+            child.canvasImage,
+            `front_${child.childId}.png`
+          );
+        });
+
+        zoneChildrenBack.forEach((child, index) => {
+          formData.append(
+            `backChild_${index}`,
+            child.canvasImage,
+            `back_${child.childId}.png`
+          );
+        });
+
         const response = await fetch(`${fgoUrl}/api/create-sell-session/`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
           mode: "cors",
-          body: JSON.stringify(sellData),
+          body: formData,
         });
 
         if (!response.ok) {

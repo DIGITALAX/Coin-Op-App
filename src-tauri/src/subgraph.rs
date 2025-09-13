@@ -1,5 +1,5 @@
 use serde::{ Deserialize, Serialize };
-use serde_json::{ Value, json };
+use serde_json::{ Value, json, from_str };
 
 const INFURA_GATEWAY: &str = "https://thedial.infura-ipfs.io/ipfs";
 
@@ -151,7 +151,7 @@ async fn fetch_ipfs_metadata(uri: &str, client: &reqwest::Client) -> Option<Meta
 
     let response = client.get(&url).send().await.ok()?;
     let text = response.text().await.ok()?;
-    let json: serde_json::Value = serde_json::from_str(&text).ok()?;
+    let json: Value = from_str(&text).ok()?;
 
     let title = json
         .get("title")
@@ -314,7 +314,7 @@ pub async fn fetch_templates() -> Result<Vec<TemplateData>, String> {
     }
     "#;
 
-    let query_body = serde_json::json!({
+    let query_body = json!({
         "query": query
     });
 
@@ -338,7 +338,7 @@ pub async fn fetch_templates() -> Result<Vec<TemplateData>, String> {
         .text().await
         .map_err(|e| format!("Failed to read response: {}", e))?;
 
-    let parsed: serde_json::Value = serde_json
+    let parsed: Value = serde_json
         ::from_str(&response_text)
         .map_err(|e| format!("Failed to parse JSON: {}", e))?;
 
@@ -549,7 +549,7 @@ pub async fn fetch_children_materials_colors() -> Result<Value, String> {
     }
     "#;
 
-    let query_body = serde_json::json!({
+    let query_body = json!({
         "query": query
     });
 
@@ -573,7 +573,7 @@ pub async fn fetch_children_materials_colors() -> Result<Value, String> {
         .text().await
         .map_err(|e| format!("Failed to read response: {}", e))?;
 
-    let parsed: serde_json::Value = serde_json
+    let parsed: Value = serde_json
         ::from_str(&response_text)
         .map_err(|e| format!("Failed to parse JSON: {}", e))?;
 

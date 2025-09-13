@@ -13,7 +13,7 @@ export const useDesignStorage = () => {
       if (!currentDesign) {
         return null;
       }
-      return fileGetItem<T>(key, currentDesign.id);
+      return fileGetItem<T>(key, currentDesign.id, currentDesign.name);
     },
     [currentDesign, fileGetItem]
   );
@@ -22,7 +22,7 @@ export const useDesignStorage = () => {
       if (!currentDesign) {
         return;
       }
-      return fileSetItem(key, value, currentDesign.id);
+      return fileSetItem(key, value, currentDesign.id, currentDesign.name);
     },
     [currentDesign, fileSetItem]
   );
@@ -31,7 +31,7 @@ export const useDesignStorage = () => {
       if (!currentDesign) {
         return;
       }
-      return removeItem(key, currentDesign.id);
+      return removeItem(key, currentDesign.id, currentDesign.name);
     },
     [currentDesign, removeItem]
   );

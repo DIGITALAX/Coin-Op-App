@@ -7,20 +7,40 @@ import {
   CanvasHistory as CanvasHistoryType,
 } from "./../types/synth.types";
 import { useDesignStorage } from "../../Activity/hooks/useDesignStorage";
+import { useFileStorage } from "../../Activity/hooks/useFileStorage";
 import { useApp } from "../../../context/AppContext";
 import { useDesignContext } from "../../../context/DesignContext";
+import { export300dpi } from "../utils/export300dpi";
+
 export const CanvasHistory = ({ onHistoryLoad }: CanvasHistoryProps) => {
   const { t } = useTranslation();
   const { getItem, setItem } = useDesignStorage();
+  const { getBinaryFileUrl, removeBinaryFile } = useFileStorage();
   const { selectedTemplate, isBackSide } = useApp();
   const { currentDesign } = useDesignContext();
   const [canvasHistory, setCanvasHistory] = useState<CanvasHistoryType[]>([]);
+  const [thumbnailUrls, setThumbnailUrls] = useState<Record<string, string>>(
+    {}
+  );
   useEffect(() => {
     const loadHistory = async () => {
       try {
         const history = (await getItem("canvasHistory")) || [];
         if (Array.isArray(history)) {
           setCanvasHistory(history);
+
+          const newThumbnailUrls: Record<string, string> = {};
+          for (const item of history) {
+            if (item.thumbnailPath && !thumbnailUrls[item.id]) {
+              try {
+                const url = await getBinaryFileUrl(item.thumbnailPath);
+                newThumbnailUrls[item.id] = url;
+              } catch (error) {}
+            }
+          }
+          if (Object.keys(newThumbnailUrls).length > 0) {
+            setThumbnailUrls((prev) => ({ ...prev, ...newThumbnailUrls }));
+          }
         } else {
           setCanvasHistory([]);
         }
@@ -31,7 +51,8 @@ export const CanvasHistory = ({ onHistoryLoad }: CanvasHistoryProps) => {
     loadHistory();
     const interval = setInterval(loadHistory, 1000);
     return () => clearInterval(interval);
-  }, [getItem, currentDesign?.id]);
+  }, [getItem, currentDesign?.id, getBinaryFileUrl]);
+
   const downloadThumbnail = async (
     historyItem: CanvasHistoryType,
     e: MouseEvent
@@ -39,8 +60,9 @@ export const CanvasHistory = ({ onHistoryLoad }: CanvasHistoryProps) => {
     e.stopPropagation();
 
     try {
+      const dpi = 300;
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-      const filename = `canvas_thumbnail_${historyItem.id}_${timestamp}.png`;
+      const filename = `canvas_thumbnail_${dpi}dpi_${historyItem.id}_${timestamp}.png`;
 
       const filePath = await save({
         defaultPath: filename,
@@ -50,25 +72,35 @@ export const CanvasHistory = ({ onHistoryLoad }: CanvasHistoryProps) => {
             extensions: ["png"],
           },
         ],
-        title: "Save Canvas Thumbnail",
+        title: "Save Canvas Thumbnail (300 DPI)",
       });
 
       if (!filePath) {
         return;
       }
 
-      await invoke("write_image_file", {
-        imageData: historyItem.thumbnail,
-        filePath: filePath,
-      });
-    } catch (error) {
-      console.error("Download failed:", error);
-    }
+      const uint8Array = await export300dpi(historyItem, dpi);
+
+      if (uint8Array) {
+        await invoke("save_png_with_dpi", {
+          path: filePath,
+          data: Array.from(uint8Array),
+          dpi: dpi,
+        });
+      }
+    } catch (error) {}
   };
 
   const deleteFromHistory = async (historyId: string, e: MouseEvent) => {
     e.stopPropagation();
     const deletedItem = canvasHistory.find((item) => item.id === historyId);
+
+    if (deletedItem?.thumbnailPath) {
+      try {
+        await removeBinaryFile(deletedItem.thumbnailPath);
+      } catch (error) {}
+    }
+
     const updatedHistory = canvasHistory.filter(
       (item) => item.id !== historyId
     );
@@ -110,6 +142,7 @@ export const CanvasHistory = ({ onHistoryLoad }: CanvasHistoryProps) => {
       }
     }
   };
+
   if (canvasHistory.length === 0) return null;
   return (
     <div className="mt-6">
@@ -126,7 +159,7 @@ export const CanvasHistory = ({ onHistoryLoad }: CanvasHistoryProps) => {
             className="flex-shrink-0 w-24 h-24 border border-oscurazul rounded cursor-pointer hover:opacity-70 bg-oscuro p-1 relative group overflow-visible"
           >
             <img
-              src={historyItem.thumbnail}
+              src={thumbnailUrls[historyItem.id] || ""}
               alt="canvas history"
               draggable={false}
               className="w-full h-full object-contain rounded"

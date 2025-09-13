@@ -1,7 +1,8 @@
 import { FunctionComponent, useState, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { GarmentSize, ExportDialogProps, HOODIE_FRONT_PANEL_DIMENSIONS, SHIRT_FRONT_PANEL_DIMENSIONS } from "../types/pattern.types";
+import { GarmentSize, ExportDialogProps } from "../types/pattern.types";
 import { useSvgExport } from "../hooks/useSvgExport";
+import { HOODIE_FRONT_PANEL_DIMENSIONS, SHIRT_FRONT_PANEL_DIMENSIONS } from "../../../lib/constants";
 
 export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
   isOpen,

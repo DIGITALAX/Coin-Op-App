@@ -4,11 +4,13 @@ import { save } from "@tauri-apps/plugin-dialog";
 import {
   ViewportPx,
   GarmentSize,
-  HOODIE_FRONT_PANEL_DIMENSIONS,
-  SHIRT_FRONT_PANEL_DIMENSIONS,
   PatternPiece,
   CustomDimensions,
 } from "../types/pattern.types";
+import {
+  HOODIE_FRONT_PANEL_DIMENSIONS,
+  SHIRT_FRONT_PANEL_DIMENSIONS,
+} from "../../../lib/constants";
 
 export const useSvgExport = () => {
   const generateManualSvg = useCallback(

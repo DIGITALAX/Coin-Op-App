@@ -266,6 +266,7 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
       >
         <canvas
           ref={canvasRef}
+          id="synth-canvas-id"
           className={`absolute inset-0 ${
             tool === "pencil" ? "cursor-crosshair" : "cursor-cell"
           }`}

@@ -196,9 +196,9 @@ export default function Generator({
           description,
           data: comfySettings.workflowJson,
         });
-        alert("Workflow saved to library successfully!");
+        alert(t("workflow_saved_successfully"));
       } catch (error) {
-        alert("Failed to save workflow to library.");
+        alert(t("workflow_save_failed"));
       }
     }
   };
@@ -220,17 +220,17 @@ export default function Generator({
             description,
             data: promptData,
           });
-          alert("Composite prompt saved to library successfully!");
+          alert(t("composite_prompt_saved_successfully"));
         } else {
           await createSynthPrompt({
             name,
             description,
             data: promptData,
           });
-          alert("Synth prompt saved to library successfully!");
+          alert(t("synth_prompt_saved_successfully"));
         }
       } catch (error) {
-        alert("Failed to save prompt to library.");
+        alert(t("prompt_save_failed"));
       }
     }
   };

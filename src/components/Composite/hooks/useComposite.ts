@@ -1,5 +1,6 @@
 import { useCallback, useState, useEffect, RefObject } from "react";
 import { useDesignStorage } from "../../Activity/hooks/useDesignStorage";
+import { useFileStorage } from "../../Activity/hooks/useFileStorage";
 import { useApp } from "../../../context/AppContext";
 import { useDesignContext } from "../../../context/DesignContext";
 import { Template } from "../../Format/types/format.types";
@@ -12,6 +13,7 @@ const useComposite = (
   compositeCanvasRef?: RefObject<CompositeCanvasRef | null>
 ) => {
   const { getItem, setItem, removeItem } = useDesignStorage();
+  const { getBinaryFileUrl } = useFileStorage();
   const { isBackSide, selectedTemplate } = useApp();
   const { currentDesign } = useDesignContext();
   const getStorageKey = useCallback(() => {
@@ -79,8 +81,8 @@ const useComposite = (
             item.childUri === originalChildUri &&
             item.layerTemplateId === selectedLayer.templateId
         ) as any;
-        if (historyItem && historyItem.canvasData) {
-          childImageData = historyItem.canvasData;
+        if (historyItem && historyItem.thumbnailPath) {
+          childImageData = await getBinaryFileUrl(historyItem.thumbnailPath);
         }
       }
       let imageToAdd: string;

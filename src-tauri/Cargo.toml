@@ -37,6 +37,7 @@ env_logger = "0.10"
 libc = "0.2"
 base64 = "0.21"
 image = { version = "0.24", features = ["png", "jpeg", "tiff"] }
+crc32fast = "1.3"
 printpdf = "0.7"
 rand = { version = "0.9", features = ["small_rng"] }
 jagua-rs = { features = ["spp"], git = "https://github.com/JeroenGar/jagua-rs.git", rev = "a7bd8e9a85ceca57dbc61e4188a06f7e1facb461"}

@@ -10,7 +10,7 @@ import { useApp } from "../../../context/AppContext";
 import { v4 as uuidv4 } from "uuid";
 
 export const useDesigns = () => {
-  const { getItem, setItem } = useFileStorage();
+  const { getItem, setItem, removeDesignFolder } = useFileStorage();
   const {
     selectTemplate,
     selectLayer,
@@ -91,20 +91,38 @@ export const useDesigns = () => {
           lastModified: now,
           description: request.description,
         };
-        await setItem(`design-${designId}`, design, "global");
-        const designsList = (await getItem("designs-list", "global")) || [];
-        const updatedList = Array.isArray(designsList)
-          ? [...designsList, designId]
-          : [designId];
-        await setItem("designs-list", updatedList, "global");
+        
+        try {
+          await setItem(`design-${designId}`, design, "global");
+        } catch (err) {
+          throw new Error(`Failed to save design metadata: ${err instanceof Error ? err.message : String(err)}`);
+        }
+        
+        try {
+          const designsList = (await getItem("designs-list", "global")) || [];
+          const updatedList = Array.isArray(designsList)
+            ? [...designsList, designId]
+            : [designId];
+          await setItem("designs-list", updatedList, "global");
+        } catch (err) {
+          throw new Error(`Failed to update designs list: ${err instanceof Error ? err.message : String(err)}`);
+        }
+        
         setCurrentDesign(design);
         window.dispatchEvent(
           new CustomEvent("newDesignCreated", { detail: { design } })
         );
-        await refreshDesigns();
+        
+        try {
+          await refreshDesigns();
+        } catch (err) {
+          throw new Error(`Failed to refresh designs: ${err instanceof Error ? err.message : String(err)}`);
+        }
+        
         return design;
       } catch (error) {
-        throw error;
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        throw new Error(errorMessage.startsWith('Failed') ? errorMessage : `Failed to create design: ${errorMessage}`);
       } finally {
         setIsLoading(false);
       }
@@ -197,55 +215,20 @@ export const useDesigns = () => {
     async (designId: string) => {
       try {
         setIsLoading(true);
+
+        const designData = await getItem(`design-${designId}`, "global");
+        const designName = (designData as Design).name;
+
         const designsList = (await getItem("designs-list", "global")) || [];
         const updatedList = Array.isArray(designsList)
           ? designsList.filter((id) => id !== designId)
           : [];
         await setItem("designs-list", updatedList, "global");
+
         await setItem(`design-${designId}`, null, "global");
 
-        const dataTypes = [
-          "canvasHistory",
-          "aiGenerationHistory",
-          "aiCompositeHistory",
-          "comfyuiSettings",
-          "fulfillment",
-          "pattern",
-          "nestingSettings",
-          "aiProvider",
-          "openai_settings",
-          "replicate_settings",
-          "openai_selectedModel",
-          "replicate_selectedModel",
-          "comfyui_selectedModel",
-          "openai_selectedLora",
-          "replicate_selectedLora",
-          "comfyui_selectedLora",
-        ];
-
-        for (const dataType of dataTypes) {
-          try {
-            await setItem(dataType, null, designId);
-          } catch (error) {}
-        }
-
-        const designBasedKeys = [
-          `compositeImage_${designId}_front`,
-          `compositeImage_${designId}_back`,
-          `compositeCanvasChildren_${designId}_front`,
-          `compositeCanvasChildren_${designId}_back`,
-          `interactiveCanvas_${designId}_front`,
-          `interactiveCanvas_${designId}_back`,
-        ];
-
-        for (const key of designBasedKeys) {
-          try {
-            await setItem(key, null, designId);
-          } catch (error) {}
-        }
-        if (currentDesign?.id === designId) {
-          setCurrentDesign(null);
-        }
+        await removeDesignFolder(designId, designName);
+        
         await refreshDesigns();
       } catch (error) {
         throw error;
@@ -253,7 +236,7 @@ export const useDesigns = () => {
         setIsLoading(false);
       }
     },
-    [getItem, setItem, currentDesign, refreshDesigns]
+    [getItem, setItem, removeDesignFolder, currentDesign, refreshDesigns]
   );
   const updateDesignThumbnail = useCallback(
     async (designId: string, thumbnail: string) => {
@@ -273,7 +256,7 @@ export const useDesigns = () => {
         }
       } catch (error) {}
     },
-    [getItem, setItem, currentDesign, refreshDesigns]
+    [getItem, setItem]
   );
 
   useEffect(() => {

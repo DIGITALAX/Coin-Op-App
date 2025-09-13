@@ -26,7 +26,7 @@ export interface CompositeCanvasProps {
   onCanvasChange?: (canvas: HTMLCanvasElement) => void;
 }
 export interface CompositeCanvasRef {
-  addChild: (imageUrl: string, placementUri: string, transforms?: { x?: number; y?: number; scale?: number; rotation?: number; flip?: number }) => void;
+  addChild: (imagePath: string, placementUri: string, transforms?: { x?: number; y?: number; scale?: number; rotation?: number; flip?: number }) => void;
   clearAll: () => void;
   captureCanvas: () => Promise<string | null>;
 }

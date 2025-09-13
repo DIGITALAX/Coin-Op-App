@@ -8,7 +8,6 @@ import {
   MouseEvent,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { INFURA_GATEWAY } from "../../../lib/constants";
 import Perspective from "perspectivejs";
 import { useDesignStorage } from "../../Activity/hooks/useDesignStorage";
 import { useApp } from "../../../context/AppContext";
@@ -18,21 +17,8 @@ import {
   CompositeCanvasProps,
   CompositeCanvasRef,
 } from "../types/composite.types";
-import { getCurrentTemplate } from "../../Synth/utils/templateHelpers";
+import { getImageUrl } from "../../../lib/imageUtils";
 
-const getImageUrl = (uri: string): string => {
-  if (uri.startsWith("data:")) {
-    return uri;
-  }
-  if (uri.startsWith("ipfs://")) {
-    const hash = uri.replace("ipfs://", "");
-    return `${INFURA_GATEWAY}/ipfs/${hash}`;
-  }
-  if (uri.startsWith("Qm") || uri.startsWith("baf")) {
-    return `${INFURA_GATEWAY}/ipfs/${uri}`;
-  }
-  return uri;
-};
 const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
   ({ backgroundImage, onCanvasChange }, ref) => {
     const { t } = useTranslation();
@@ -40,7 +26,6 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
     const { setItem, getItem } = useDesignStorage();
     const { selectedLayer, isBackSide } = useApp();
     const { currentDesign } = useDesignContext();
-    const currentTemplate = getCurrentTemplate(selectedLayer, isBackSide);
     const [children, setChildren] = useState<ChildElement[]>([]);
     const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
     const [mode, setMode] = useState<"normal" | "warp">("normal");

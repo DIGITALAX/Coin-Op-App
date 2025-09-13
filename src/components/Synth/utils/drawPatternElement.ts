@@ -1,10 +1,13 @@
 import { SvgPatternType } from "../types/synth.types";
 const drawPatternElement = (
   element: SvgPatternType,
-  ctx: CanvasRenderingContext2D | null
+  ctx: CanvasRenderingContext2D | null,
+  dpi?: number
 ) => {
   ctx?.setLineDash([0, 0]);
-  (ctx as CanvasRenderingContext2D).lineWidth = 10;
+  const baseStrokeWidth = 10;
+  const dpiScale = dpi ? (dpi / 96) : 1;
+  (ctx as CanvasRenderingContext2D).lineWidth = baseStrokeWidth * dpiScale;
   (ctx as CanvasRenderingContext2D).strokeStyle = "#FFC800";
   (ctx as CanvasRenderingContext2D).fillStyle = "#000000";
   (ctx as CanvasRenderingContext2D).imageSmoothingEnabled = false;
@@ -80,12 +83,13 @@ const drawPatternElement = (
     case "image":
       ctx?.save();
       ctx?.clip();
+      const exportScale = dpi ? (dpi / 96) : devicePixelRatio;
       ctx?.drawImage(
         element.image!,
         element.x1!,
         element.y1!,
-        (element?.width as number) * devicePixelRatio,
-        (element?.height as number) * devicePixelRatio
+        (element?.width as number) * exportScale,
+        (element?.height as number) * exportScale
       );
       ctx?.restore();
       break;

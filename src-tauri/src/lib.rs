@@ -506,6 +506,166 @@ async fn fetch_children_materials_colors() -> Result<Value, String> {
     subgraph::fetch_children_materials_colors().await
 }
 
+#[tauri::command]
+async fn remove_directory_recursive(app: tauri::AppHandle, path: String) -> Result<(), String> {
+    use tauri::Manager;
+    
+    let app_data_dir = app.path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+    
+    let full_path = app_data_dir.join(&path);
+    
+    if full_path.exists() {
+        fs::remove_dir_all(&full_path)
+            .map_err(|e| format!("Failed to remove directory: {}", e))?;
+    }
+    
+    Ok(())
+}
+
+#[tauri::command]
+async fn save_binary_file(app: tauri::AppHandle, path: String, data: Vec<u8>) -> Result<(), String> {
+    use tauri::Manager;
+    
+    let app_data_dir = app.path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+    
+    let full_path = app_data_dir.join(&path);
+    
+    if let Some(parent) = full_path.parent() {
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create parent directories: {}", e))?;
+    }
+    
+    fs::write(&full_path, data)
+        .map_err(|e| format!("Failed to write binary file: {}", e))?;
+    
+    Ok(())
+}
+
+
+#[tauri::command]
+fn add_dpi_metadata(data: Vec<u8>, dpi: u32) -> Result<Vec<u8>, String> {
+    let img = image::load_from_memory(&data)
+        .map_err(|e| format!("Failed to load image: {}", e))?;
+    
+    let mut output = Vec::new();
+    {
+        let encoder = image::codecs::png::PngEncoder::new(&mut output);
+        
+        img.write_with_encoder(encoder)
+            .map_err(|e| format!("Failed to encode PNG: {}", e))?;
+    }
+    
+    let mut final_output = Vec::new();
+    
+    final_output.extend_from_slice(&[137, 80, 78, 71, 13, 10, 26, 10]);
+    
+    let mut cursor = 8;
+    
+    while cursor < output.len() {
+        if cursor + 8 > output.len() { break; }
+        let length = u32::from_be_bytes([
+            output[cursor], output[cursor + 1], 
+            output[cursor + 2], output[cursor + 3]
+        ]);
+        
+        let chunk_type = &output[cursor + 4..cursor + 8];
+        
+        if chunk_type == b"IHDR" {
+            let chunk_size = 8 + length as usize + 4; 
+            final_output.extend_from_slice(&output[cursor..cursor + chunk_size]);
+            cursor += chunk_size;
+            
+            let pixels_per_meter = ((dpi as f64) / 0.0254) as u32;
+            let phys_data = [
+                (pixels_per_meter >> 24) as u8, (pixels_per_meter >> 16) as u8,
+                (pixels_per_meter >> 8) as u8, pixels_per_meter as u8,
+                (pixels_per_meter >> 24) as u8, (pixels_per_meter >> 16) as u8,
+                (pixels_per_meter >> 8) as u8, pixels_per_meter as u8,
+                1,
+            ];
+            
+            final_output.extend_from_slice(&9u32.to_be_bytes());
+            final_output.extend_from_slice(b"pHYs"); 
+            final_output.extend_from_slice(&phys_data);
+            
+            let mut crc_data = Vec::new();
+            crc_data.extend_from_slice(b"pHYs");
+            crc_data.extend_from_slice(&phys_data);
+            let crc = crc32fast::hash(&crc_data);
+            final_output.extend_from_slice(&crc.to_be_bytes());
+            
+        } else {
+            let chunk_size = 8 + length as usize + 4;
+            if cursor + chunk_size <= output.len() {
+                final_output.extend_from_slice(&output[cursor..cursor + chunk_size]);
+            }
+            cursor += chunk_size;
+        }
+    }
+    
+    Ok(final_output)
+}
+
+
+#[tauri::command]
+async fn save_png_with_dpi(app: tauri::AppHandle, path: String, data: Vec<u8>, dpi: u32) -> Result<(), String> {
+    use tauri::Manager;
+    
+    let app_data_dir = app.path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+    
+    let full_path = app_data_dir.join(&path);
+    
+    if let Some(parent) = full_path.parent() {
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create parent directories: {}", e))?;
+    }
+    
+    let png_with_dpi = add_dpi_metadata(data, dpi)?;
+    
+    fs::write(&full_path, png_with_dpi)
+        .map_err(|e| format!("Failed to write PNG file: {}", e))?;
+    
+    Ok(())
+}
+
+#[tauri::command]
+async fn read_binary_file_as_base64(app: tauri::AppHandle, path: String) -> Result<String, String> {
+    use tauri::Manager;
+    
+    let app_data_dir = app.path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+    
+    let full_path = app_data_dir.join(&path);
+    
+    let data = fs::read(&full_path)
+        .map_err(|e| format!("Failed to read binary file: {}", e))?;
+    
+    Ok(general_purpose::STANDARD.encode(data))
+}
+
+#[tauri::command]
+async fn copy_binary_file(app: tauri::AppHandle, source_path: String, target_path: String) -> Result<(), String> {
+    use tauri::Manager;
+    
+    let app_data_dir = app.path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+    
+    let source_full_path = app_data_dir.join(&source_path);
+    
+    fs::copy(&source_full_path, &target_path)
+        .map_err(|e| format!("Failed to copy file: {}", e))?;
+    
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     env_logger::init();
@@ -540,7 +700,13 @@ pub fn run() {
                 pattern_nesting::clear_sparrow_data,
                 pattern_nesting::cancel_sparrow_process,
                 fetch_template_children,
-                fetch_children_materials_colors
+                fetch_children_materials_colors,
+                remove_directory_recursive,
+                save_binary_file,
+                save_png_with_dpi,
+                add_dpi_metadata,
+                read_binary_file_as_base64,
+                copy_binary_file
             ]
         )
         .run(tauri::generate_context!())

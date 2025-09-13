@@ -118,6 +118,37 @@ value={currentRotationPreset?.name || "custom"}
             ))}
 {!currentRotationPreset && <option value="custom">{t("custom")}</option>}
           </select>
+          
+          {!currentRotationPreset && (
+            <div className="mt-2">
+              <input
+                type="text"
+                placeholder={t("enter_angles_separated_by_commas")}
+                value={localSettings.allowedRotations.join(", ")}
+                onChange={(e) => {
+                  const angleString = e.target.value;
+                  const angles = angleString
+                    .split(",")
+                    .map(s => s.trim())
+                    .filter(s => s !== "")
+                    .map(s => parseFloat(s))
+                    .filter(n => !isNaN(n) && n >= 0 && n < 360);
+                  
+                  if (angles.length > 0) {
+                    handleRotationPresetChange(angles);
+                  }
+                }}
+                disabled={disabled}
+                className={`w-full bg-negro border border-white/20 rounded px-2 py-1 text-white text-xxxs ${
+                  disabled ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              />
+              <div className="text-white/40 text-xxxs mt-1">
+                {t("example")}: 0, 45, 90, 180, 270
+              </div>
+            </div>
+          )}
+          
           <div className="text-white/40 text-xxxs mt-1">
             {currentRotationPreset
               ? `${

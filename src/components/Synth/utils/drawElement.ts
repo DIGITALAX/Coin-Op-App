@@ -3,7 +3,8 @@ import getSvgPathFromStroke from "./getSvgPathFromStroke";
 import { ElementInterface } from "../types/synth.types";
 const drawElement = (
   element: ElementInterface,
-  ctx: CanvasRenderingContext2D | null
+  ctx: CanvasRenderingContext2D | null,
+  dpi?: number
 ) => {
   ctx?.save();
   switch (element?.type) {
@@ -19,16 +20,18 @@ const drawElement = (
       }
       if (element.points.length === 1) {
         const point = element.points[0];
-        const radius = ((element.strokeWidth || 10) * devicePixelRatio) / 2;
+        const exportScale = dpi ? (dpi / 96) : devicePixelRatio;
+        const radius = ((element.strokeWidth || 10) * exportScale) / 2;
         ctx?.beginPath();
         ctx?.arc(point.x, point.y, radius, 0, 2 * Math.PI);
         ctx?.fill();
       } else {
+        const exportScale = dpi ? (dpi / 96) : devicePixelRatio;
         const pathData = getSvgPathFromStroke(
           getStroke(
             element?.points as { x: number; y: number; pressure?: number }[],
             {
-              size: (element?.strokeWidth as number) * devicePixelRatio,
+              size: (element?.strokeWidth as number) * exportScale,
               thinning: 0.5,
               smoothing: 0.5,
               streamline: 0.5,

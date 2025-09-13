@@ -8,7 +8,7 @@ export interface SellData {
     children: {
       childId: string;
       childContract: string;
-      canvasImage: string;
+      canvasImage: Blob;
     }[];
   };
   back?: {
@@ -18,7 +18,7 @@ export interface SellData {
     children: {
       childId: string;
       childContract: string;
-      canvasImage: string;
+      canvasImage: Blob;
     }[];
   };
   fulfiller: Fulfiller;
