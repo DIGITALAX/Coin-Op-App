@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import { useApp } from "../../../context/AppContext";
 import { useDesignContext } from "../../../context/DesignContext";
 import { INFURA_GATEWAY } from "../../../lib/constants";
-import PageNavigation from "../../Common/modules/PageNavigation";
 import DesignCreationModal from "../../Design/modules/DesignCreationModal";
 import useLayer from "../hooks/useLayer";
 import { CreateDesignRequest, Design } from "../../Design/types/design.types";
@@ -62,11 +61,8 @@ export default function Layer() {
 
   const handleCreateDesign = () => {
     if (!canCreateDesign()) return;
-    const primaryLayer = selectedFront || selectedBack;
-    if (primaryLayer) {
-      selectLayer(primaryLayer);
-      setShowDesignModal(true);
-    }
+
+    setShowDesignModal(true);
   };
   const handleDesignCreated = async (
     request: CreateDesignRequest
@@ -90,24 +86,52 @@ export default function Layer() {
     return (
       <div className="relative w-full h-full flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ama"></div>
-          <div className="text-white font-satB text-lg tracking-wider">
+          <img
+            src="/images/settings.png"
+            className="w-6 h-6 animate-spin"
+            draggable={false}
+          />
+          <div className="text-white font-slim text-sm tracking-wider">
             {t("loading_templates")}
           </div>
         </div>
-        <PageNavigation currentPage="/Layer" />
       </div>
     );
   }
 
   return (
-    <div className="relative w-full h-full flex items-start justify-start">
+    <div className="relative w-full flex items-start justify-start">
       <div className="mb-6">
-        <h2 className="text-lg font-satB text-white tracking-wider mb-4">
-          {t("select_layer")}
-        </h2>
+        <div className="relative w-full h-fit flex justify-between items-center gap-5 text-xs font-pixel mb-4 pr-12">
+          <h2 className="text-white tracking-wider w-fit h-fit relative flex whitespace-nowrap">
+            {t("select_layer")}
+          </h2>
+          {(selectedFront || selectedBack) && (
+            <button
+              onClick={handleCreateDesign}
+              disabled={!canCreateDesign()}
+              className={`relative lowercase py-1 px-2 text-xs font-count transition-all rounded-sm border-2 border-azul ${
+                canCreateDesign()
+                  ? "bg-white text-black hover:opacity-80 cursor-pointer"
+                  : "bg-viol text-white/50 cursor-not-allowed"
+              }`}
+              style={{ transform: "skewX(-15deg)" }}
+            >
+              <span
+                style={{ transform: "skewX(15deg)" }}
+                className="relative inline-block"
+              >
+                {requiresBothSides() && (!selectedFront || !selectedBack)
+                  ? !selectedFront
+                    ? t("select_front_to_continue")
+                    : t("select_back_to_continue")
+                  : t("create_design")}
+              </span>
+            </button>
+          )}
+        </div>
         <div className="relative flex flex-col gap-2 mb-4">
-          <h2 className="text-base font-sat text-white tracking-wider mb-4">
+          <h2 className="text-xs font-agency text-white tracking-wider mb-4">
             {t("front")}
           </h2>
           <div className="relative w-full flex flex-wrap gap-8 items-center justify-start">
@@ -121,9 +145,9 @@ export default function Layer() {
                   .map((layer, index) => (
                     <div
                       key={index}
-                      className={`relative w-48 h-44 flex flex-col items-center justify-center cursor-pointer overflow-hidden hover:opacity-70 ${
+                      className={`relative w-44 h-40 flex flex-col items-center justify-center cursor-pointer overflow-hidden hover:opacity-70 ${
                         (selectedFront || selectedLayer?.front)?.templateId ===
-                          layer.templateId && "opacity-40 border-2 border-ama"
+                          layer.templateId && "opacity-40 border-ligero border"
                       }`}
                       onClick={() => handleFrontClick(layer)}
                     >
@@ -148,7 +172,7 @@ export default function Layer() {
                             />
                           </div>
                         </div>
-                        <div className="relative w-full h-fit flex flex-row font-mana text-white text-xxxs px-1.5 gap-1.5 justify-between">
+                        <div className="relative w-full h-fit flex flex-row font-dos text-white text-xxxs px-1.5 gap-1.5 justify-between">
                           <div className="relative w-fit h-fit">FGO</div>
                           <div className="relative w-fit h-fit">
                             TID-{layer.templateId}
@@ -170,7 +194,7 @@ export default function Layer() {
               : Array.from({ length: 6 }).map((_, index) => (
                   <div
                     key={index}
-                    className="relative w-48 h-44 flex flex-col items-center justify-center cursor-pointer opacity-50"
+                    className="relative w-44 h-40 flex flex-col items-center justify-center cursor-pointer opacity-50"
                   >
                     <div className="absolute w-full h-full">
                       <img
@@ -186,7 +210,7 @@ export default function Layer() {
         </div>
         {requiresBothSides() && (
           <div className="relative flex flex-col gap-2">
-            <h2 className="text-base font-sat text-white tracking-wider mb-4">
+            <h2 className="text-xs font-agency text-white tracking-wider mb-4">
               {t("back")}
             </h2>
             <div className="relative w-full flex flex-wrap gap-8 items-center justify-start">
@@ -200,9 +224,10 @@ export default function Layer() {
                     .map((layer, index) => (
                       <div
                         key={index}
-                        className={`relative w-48 h-44 flex flex-col items-center justify-center cursor-pointer overflow-hidden hover:opacity-70 ${
+                        className={`relative w-44 h-40 flex flex-col items-center justify-center cursor-pointer overflow-hidden hover:opacity-70 ${
                           (selectedBack || selectedLayer?.back)?.templateId ===
-                            layer.templateId && "opacity-40 border-2 border-ama"
+                            layer.templateId &&
+                          "opacity-40 border border-ligero"
                         }`}
                         onClick={() => handleBackClick(layer)}
                       >
@@ -239,7 +264,7 @@ export default function Layer() {
                               </div>
                             </div>
                           </div>
-                          <div className="relative w-full h-fit flex flex-row font-mana text-white text-xxxs px-1.5 gap-1.5 justify-between">
+                          <div className="relative w-full h-fit flex flex-row font-dos text-white text-xxxs px-1.5 gap-1.5 justify-between">
                             <div className="relative w-fit h-fit">FGO</div>
                             <div className="relative w-fit h-fit">
                               TID-{layer.templateId}
@@ -278,27 +303,7 @@ export default function Layer() {
             </div>
           </div>
         )}
-        {(selectedFront || selectedBack) && (
-          <div className="relative w-full flex justify-center mt-8">
-            <button
-              onClick={handleCreateDesign}
-              disabled={!canCreateDesign()}
-              className={`px-8 py-3 rounded-lg font-satB text-lg tracking-wider transition-all ${
-                canCreateDesign()
-                  ? "bg-ama text-black hover:bg-ama/80 cursor-pointer"
-                  : "bg-gray-600 text-gray-400 cursor-not-allowed"
-              }`}
-            >
-              {requiresBothSides() && (!selectedFront || !selectedBack)
-                ? !selectedFront
-                  ? t("select_front_to_continue")
-                  : t("select_back_to_continue")
-                : t("create_design")}
-            </button>
-          </div>
-        )}
       </div>
-      <PageNavigation currentPage="/Layer" />
       {showDesignModal && (selectedFront || selectedBack) && (
         <DesignCreationModal
           isOpen={showDesignModal}
@@ -308,8 +313,8 @@ export default function Layer() {
           frontLayerTemplateId={selectedFront?.templateId || ""}
           backLayerTemplateId={selectedBack?.templateId}
           childUri={
-            ((selectedFront)?.childReferences || []).filter(
-              (ref) => ref.child?.metadata?.tags?.includes("zone")
+            (selectedFront?.childReferences || []).filter((ref) =>
+              ref.child?.metadata?.tags?.includes("zone")
             )?.[0]?.child.metadata.image || ""
           }
           onDesignCreated={handleDesignCreated}

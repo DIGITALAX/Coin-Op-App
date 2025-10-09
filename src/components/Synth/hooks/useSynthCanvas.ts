@@ -472,7 +472,7 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
     });
     
     const timestamp = Date.now();
-    const fileName = `canvas_${selectedPatternChild.uri.replace(/[^a-zA-Z0-9]/g, '_')}_${currentTemplate?.templateId}_${timestamp}.png`;
+    const fileName = `canvas_${selectedPatternChild.uri?.replace(/[^a-zA-Z0-9]/g, '_')}_${currentTemplate?.templateId}_${timestamp}.png`;
     
     if (!currentDesign) return;
     

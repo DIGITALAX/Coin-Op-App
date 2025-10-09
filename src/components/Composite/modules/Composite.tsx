@@ -1,6 +1,5 @@
 import { useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import PageNavigation from "../../Common/modules/PageNavigation";
 import InteractiveCanvas from "../../Synth/modules/InteractiveCanvas";
 import Generator from "../../Synth/modules/Generator";
 import CompositeHistory from "./CompositeHistory";
@@ -81,92 +80,69 @@ export default function Composite() {
   return (
     <div className="relative w-full h-full flex flex-col p-4 bg-black">
       <div className="mb-6">
-        <h2 className="text-lg font-satB text-white tracking-wider mb-2">
+        <h2 className="text-xs font-pixel text-white tracking-wider mb-2">
           {t("composite_preview")}
         </h2>
         {currentDesign && (
-          <p className="text-ama font-mana text-xxxs mb-2">
+          <p className="text-white font-agency text-xs mb-2">
             {t("project")}: {currentDesign.name}
           </p>
         )}
         {selectedLayer ? (
-          <p className="text-white font-mana text-xxxs">
+          <p className="text-white font-agency text-xs">
             {t("layer")}: TID-{currentTemplate?.templateId} | {t("price")}: $
             {parseFloat(currentTemplate?.price!) / 1e18} | {t("children")}:{" "}
             {currentTemplate?.childReferences?.length || 0}
           </p>
         ) : (
-          <p className="text-red-400 font-mana text-xxxs">
+          <p className="text-rosa font-agency text-xs">
             {t("no_layer_selected")}
           </p>
         )}
       </div>
-      <div className="flex-1 flex flex-col overflow-y-scroll gap-6">
-        <div className="flex flex-row items-center justify-center gap-6">
-          <div className="flex-1 border border-ama rounded-lg p-4 bg-gray-800 max-w-2xl">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-white font-satB text-sm">{t("composite_canvas")}</h3>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleDownloadCanvas}
-                  className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors"
-                >
-                  {t("download_canvas")}
-                </button>
-                {generatedImage && (
-                  <button
-                    onClick={deleteGeneratedImage}
-                    className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors"
-                  >
-                    {t("clear_background")}
-                  </button>
-                )}
-              </div>
-            </div>
-            <CompositeCanvas
-              ref={compositeCanvasRef}
-              backgroundImage={generatedImage || undefined}
-            />
-          </div>
-          <div className="flex items-center justify-center">
-            {selectedLayer ? (
-              <div className="border border-gray-600 rounded-lg p-4 bg-gray-900">
-                <h4 className="text-white font-satB text-sm mb-2">
-                  {t("child_elements")}
-                </h4>
-                <p className="text-gray-400 text-xs mb-3">
-                  {t("click_children_to_add")}
-                </p>
-                <InteractiveCanvas
-                  templateChild={templateChild}
-                  size="large"
-                  onChildClick={handleChildClick}
-                />
-              </div>
-            ) : (
-              <div className="text-gray-400 font-sat text-sm">
-                {t("select_layer_to_view")}
-              </div>
+      <div className="flex-1 flex flex-col gap-6 overflow-y-auto overflow-x-hidden">
+        <InteractiveCanvas
+          templateChild={templateChild}
+          onChildClick={handleChildClick}
+        />
+        <div className="flex justify-between items-center w-full px-2">
+          <h3 className="text-white font-agency text-xs">{t("composite_canvas")}</h3>
+          <div className="flex gap-2 flex-shrink-0">
+            <button
+              onClick={handleDownloadCanvas}
+              className="lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-white text-black hover:opacity-80"
+              style={{ transform: "skewX(-15deg)" }}
+            >
+              <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+                {t("download_canvas")}
+              </span>
+            </button>
+            {generatedImage && (
+              <button
+                onClick={deleteGeneratedImage}
+                className="lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-white text-black hover:opacity-80"
+                style={{ transform: "skewX(-15deg)" }}
+              >
+                <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+                  {t("clear_background")}
+                </span>
+              </button>
             )}
           </div>
         </div>
-        <div className="flex-1 flex w-full items-center flex-col gap-4">
-          <div className="border border-oscurazul rounded p-4 bg-oscuro">
-            <h3 className="text-white font-satB text-sm mb-2">
-              {t("generate_background")}
-            </h3>
-            <Generator
-              mode="composite"
-              onImageGenerated={handleImageGenerated}
-              getCanvasImage={async () =>
-                compositeCanvasRef.current?.captureCanvas() || null
-              }
-            />
-          </div>
-        </div>
+        <CompositeCanvas
+          ref={compositeCanvasRef}
+          backgroundImage={generatedImage || undefined}
+        />
+        <Generator
+          mode="composite"
+          onImageGenerated={handleImageGenerated}
+          getCanvasImage={async () =>
+            compositeCanvasRef.current?.captureCanvas() || null
+          }
+        />
         <CompositeHistory onImageSelected={handleHistoryImageSelected} />
       </div>
-      <PageNavigation currentPage="/Composite" />
     </div>
   );
 }

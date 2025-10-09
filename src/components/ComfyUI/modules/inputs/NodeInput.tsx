@@ -39,7 +39,7 @@ export default function NodeInput({
             <textarea
               value={localValue.toString()}
               onChange={(e) => handleChange(e.target.value)}
-              className="w-full px-4 py-3 bg-black border border-ama rounded font-mana text-sm text-white resize-none"
+              className="w-full px-2 py-1 bg-black border border-ligero rounded font-mana text-sm text-white resize-none"
               rows={12}
               placeholder={`Enter ${name.toLowerCase()}...`}
             />
@@ -55,7 +55,7 @@ export default function NodeInput({
               type="text"
               value={localValue.toString()}
               onChange={(e) => handleChange(e.target.value)}
-              className="w-full px-2 py-1 bg-black border border-ama rounded font-mana text-xxxs text-white"
+              className="w-full px-2 py-1 bg-black border border-ligero rounded font-mana text-xxxs text-white"
               placeholder={`Enter ${name.toLowerCase()}...`}
             />
           </div>
@@ -72,7 +72,7 @@ export default function NodeInput({
             step="1"
             value={localValue.toString()}
             onChange={(e) => handleChange(parseInt(e.target.value) || 0)}
-            className="w-full px-2 py-1 bg-black border border-ama rounded font-mana text-xxxs text-white"
+            className="w-full px-2 py-1 bg-black border border-ligero rounded font-mana text-xxxs text-white"
           />
         </div>
       );
@@ -87,7 +87,7 @@ export default function NodeInput({
             step="0.1"
             value={localValue.toString()}
             onChange={(e) => handleChange(parseFloat(e.target.value) || 0)}
-            className="w-full px-2 py-1 bg-black border border-ama rounded font-mana text-xxxs text-white"
+            className="w-full px-2 py-1 bg-black border border-ligero rounded font-mana text-xxxs text-white"
           />
         </div>
       );
@@ -152,12 +152,12 @@ export default function NodeInput({
                 Upload
               </button>
               {localValue && typeof localValue === 'object' && localValue.name && (
-                <span className="text-gray-400 font-mana text-xxxs truncate">
+                <span className="text-crema font-mana text-xxxs truncate">
                   {localValue.name}
                 </span>
               )}
               {localValue && typeof localValue === 'string' && (
-                <span className="text-gray-400 font-mana text-xxxs truncate">
+                <span className="text-crema font-mana text-xxxs truncate">
                   {localValue}
                 </span>
               )}
@@ -168,18 +168,19 @@ export default function NodeInput({
                   <img 
                     src={localValue.url} 
                     alt="Preview" 
-                    className="max-w-full max-h-32 object-contain rounded border border-ama"
+                    className="max-w-full max-h-32 object-contain rounded border border-ligero"
+                    draggable={false}
                   />
                 ) : localValue.type?.startsWith('video/') ? (
                   <video 
                     src={localValue.url} 
                     controls 
-                    className="max-w-full max-h-32 rounded border border-ama"
+                    className="max-w-full max-h-32 rounded border border-ligero"
                   >
                     Your browser does not support video playback.
                   </video>
                 ) : (
-                  <div className="px-2 py-1 bg-black border border-ama rounded text-white font-mana text-xxxs">
+                  <div className="px-2 py-1 bg-black border border-ligero rounded text-white font-mana text-xxxs">
                     {localValue.name} - {localValue.type}
                   </div>
                 )}
@@ -200,7 +201,7 @@ export default function NodeInput({
             onChange={(e) => handleChange(e.target.value)}
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
-            className="w-full px-2 py-1 bg-black border border-ama rounded font-mana text-xxxs text-white"
+            className="w-full px-2 py-1 bg-black border border-ligero rounded font-mana text-xxxs text-white"
             disabled={loading}
           >
             {models.map((vae) => (
@@ -234,14 +235,14 @@ export default function NodeInput({
               onChange={(e) => setSearchTerm(e.target.value)}
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
-              className="w-full px-2 py-1 bg-black border border-ama rounded font-mana text-xxxs text-white"
+              className="w-full px-2 py-1 bg-black border border-ligero rounded font-mana text-xxxs text-white"
             />
             <select
               value={localValue.toString()}
               onChange={(e) => handleChange(e.target.value)}
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
-              className="w-full px-2 py-1 bg-black border border-ama rounded font-mana text-xxxs text-white max-h-32 overflow-y-auto"
+              className="w-full px-2 py-1 bg-black border border-ligero rounded font-mana text-xxxs text-white max-h-32 overflow-y-auto"
               disabled={loading}
               size={Math.min(filteredModels.length + 1, 6)}
             >
@@ -267,7 +268,7 @@ export default function NodeInput({
             onChange={(e) => handleChange(e.target.value)}
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
-            className="w-full px-2 py-1 bg-black border border-ama rounded font-mana text-xxxs text-white"
+            className="w-full px-2 py-1 bg-black border border-ligero rounded font-mana text-xxxs text-white"
             disabled={loading}
           >
             {models.map((unet) => (
@@ -291,7 +292,7 @@ export default function NodeInput({
             onChange={(e) => handleChange(e.target.value)}
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
-            className="w-full px-2 py-1 bg-black border border-ama rounded font-mana text-xxxs text-white"
+            className="w-full px-2 py-1 bg-black border border-ligero rounded font-mana text-xxxs text-white"
             disabled={loading}
           >
             {models.map((clip) => (
@@ -315,7 +316,7 @@ export default function NodeInput({
               onChange={(e) => handleChange(e.target.value)}
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
-              className="w-full px-2 py-1 bg-black border border-ama rounded font-mana text-xxxs text-white"
+              className="w-full px-2 py-1 bg-black border border-ligero rounded font-mana text-xxxs text-white"
             >
               {getSamplers().map((sampler) => (
                 <option key={sampler} value={sampler}>
@@ -336,7 +337,7 @@ export default function NodeInput({
               onChange={(e) => handleChange(e.target.value)}
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
-              className="w-full px-2 py-1 bg-black border border-ama rounded font-mana text-xxxs text-white"
+              className="w-full px-2 py-1 bg-black border border-ligero rounded font-mana text-xxxs text-white"
             >
               {getSchedulers().map((scheduler) => (
                 <option key={scheduler} value={scheduler}>
@@ -356,7 +357,7 @@ export default function NodeInput({
               type="text"
               value={localValue.toString()}
               onChange={(e) => handleChange(e.target.value)}
-              className="w-full px-2 py-1 bg-black border border-ama rounded font-mana text-xxxs text-white"
+              className="w-full px-2 py-1 bg-black border border-ligero rounded font-mana text-xxxs text-white"
               placeholder={`Enter ${name.toLowerCase()}...`}
             />
           </div>

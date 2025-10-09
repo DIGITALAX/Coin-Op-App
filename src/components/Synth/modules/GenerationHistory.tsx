@@ -43,18 +43,19 @@ export default function GenerationHistory() {
   return (
     generationHistory.length > 0 && (
       <div className="mt-6">
-        <h2 className="text-lg font-sat text-white tracking-wider mb-4">
+        <h2 className="text-ligero font-dos text-xs tracking-wider mb-4">
           {t("ai_generation_history")}
         </h2>
-        <div className="bg-oscuro border border-gray-600 rounded p-6">
+        <div className="bg-turq1 border border-aqua rounded p-6">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 max-h-96 overflow-y-auto">
             {generationHistory.map((item) => (
               <div key={item.id} className="relative group">
-                <div className="aspect-square bg-gray-700 rounded border border-gray-600 overflow-hidden">
+                <div className="aspect-square bg-turq rounded border border-aqua overflow-hidden hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition-all">
                   <img
                     src={item.imageData}
                     alt={item.prompt.slice(0, 30)}
                     className="w-full h-full object-cover cursor-pointer hover:opacity-80"
+                    draggable={false}
                     onClick={() => addImageToCanvas(item.imageData, false)}
                     title={`${t("click_to_add_to_canvas")}: ${item.prompt}`}
                   />
@@ -66,11 +67,11 @@ export default function GenerationHistory() {
                       e.stopPropagation();
                       addImageToCanvas(item.imageData, false);
                     }}
-                    className="w-4 h-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center font-sat cursor-pointer transition-colors shadow-lg"
+                    className="w-5 h-5 bg-white hover:opacity-80 text-black rounded-sm flex items-center justify-center font-agency text-xs cursor-pointer transition-opacity shadow-lg"
                     title={t("load_to_canvas")}
                   >
                     +
-                  </div>{" "}
+                  </div>
                   <div
                     onClick={async (e) => {
                       e.preventDefault();
@@ -112,7 +113,7 @@ export default function GenerationHistory() {
                         alert(`${t("save_failed")}: ${error}`);
                       }
                     }}
-                    className="w-4 h-4 bg-green-600 hover:bg-green-700 text-white rounded-full flex items-center justify-center font-sat cursor-pointer transition-colors shadow-lg"
+                    className="w-5 h-5 bg-white hover:opacity-80 text-black rounded-sm flex items-center justify-center font-agency text-xs cursor-pointer transition-opacity shadow-lg"
                     title={t("save_image")}
                   >
                     ↓
@@ -123,26 +124,26 @@ export default function GenerationHistory() {
                       e.stopPropagation();
                       handleDeleteFromHistory(item.id);
                     }}
-                    className="w-4 h-4 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center font-sat cursor-pointer transition-colors shadow-lg"
+                    className="w-5 h-5 bg-rosa hover:opacity-80 text-white rounded-sm flex items-center justify-center font-agency text-xs cursor-pointer transition-opacity shadow-lg"
                     title={t("delete_image")}
                   >
                     ×
                   </div>
                 </div>
                 <div
-                  className="mt-2 text-xs font-sat text-gray-400 truncate"
+                  className="mt-2 text-xs font-dos text-ligero truncate"
                   title={item.prompt}
                 >
                   {item.prompt.slice(0, 20)}...
                 </div>
-                <div className="text-xs font-sat text-gray-500">
+                <div className="text-xs font-dos text-ligero">
                   {item.model} • {new Date(item.timestamp).toLocaleTimeString()}
                 </div>
               </div>
             ))}
           </div>
-          <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-600">
-            <span className="text-sm font-sat text-gray-400">
+          <div className="flex justify-between items-center mt-4 pt-4 border-t border-aqua">
+            <span className="text-xs font-dos text-ligero">
               {generationHistory.length} {t("generations_saved")}
             </span>
             <div
@@ -150,9 +151,12 @@ export default function GenerationHistory() {
                 setGenerationHistory([]);
                 await setItem("aiGenerationHistory", []);
               }}
-              className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded font-sat text-xs cursor-pointer"
+              className="lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-rosa text-white hover:opacity-80 cursor-pointer"
+              style={{ transform: "skewX(-15deg)" }}
             >
-              {t("clear_history")}
+              <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+                {t("clear_history")}
+              </span>
             </div>
           </div>
         </div>

@@ -9,14 +9,14 @@ export default function KSamplerNode({
   const height = Math.max(node.size.height, 400);
   return (
     <div
-      className="bg-red-600 border-2 border-red-400 rounded-lg shadow-lg relative w-full flex flex-col items-center"
+      className="bg-rosa border-2 border-red-400 rounded-lg shadow-lg relative w-full flex flex-col items-center"
       style={{
         width: width,
         minHeight: height,
       }}
     >
       <NodePorts node={node} />
-      <div className="bg-red-700 w-full px-3 py-2 rounded-t-lg">
+      <div className="bg-rosa w-full px-3 py-2 rounded-t-lg">
         <h3 className="font-mana text-xxxs text-white font-bold">
           {node.title}
         </h3>

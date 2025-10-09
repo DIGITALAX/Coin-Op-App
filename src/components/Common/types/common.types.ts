@@ -38,10 +38,6 @@ export interface NetworkConfig {
   };
 }
 
-export interface PageNavigationProps {
-  currentPage: string;
-}
-
 export interface AppContextType {
   selectedTemplate: GroupedTemplate | undefined;
   selectTemplate: (templateChoice: GroupedTemplate) => void;

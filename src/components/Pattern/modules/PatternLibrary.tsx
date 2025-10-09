@@ -128,46 +128,52 @@ export const PatternLibrary: FunctionComponent = () => {
   const garmentType = getGarmentType();
 
   return (
-    <div className="bg-black/20 rounded-lg p-2">
-      <h3 className="text-white font-mana text-sm mb-4">
+    <div className="bg-black rounded p-2">
+      <h3 className="text-white font-agency text-xs mb-4">
         {t("pattern_library")}
       </h3>
       {garmentType ? (
         <>
-          <div className="w-full p-4 rounded border text-center bg-black/30 text-white border-white/20">
-            <div className="text-xs font-mana">
-              {garmentType === "tshirt" ? "T-SHIRT" : "HOODIE"} {t("pattern")}
+          <div className="w-full p-4 rounded border text-center bg-black text-white border-crema">
+            <div className="text-xs font-agency">
+              {garmentType === "tshirt" ? t("shirt") : t("hoodie")}{" "}
+              {t("pattern")}
             </div>
-            <div className="text-xxxs mt-1">
+            <div className="text-xs mt-1 text-crema">
               {isLoading
                 ? t("loading")
                 : `${loadedPatterns.length} ${t("pieces_loaded")}`}
               {loadedPatterns.length > 0 && (
-                <span className="text-verde ml-1">✓</span>
+                <span className="text-white ml-1">✓</span>
               )}
             </div>
           </div>
-          <div className="mt-4 p-3 bg-black/30 rounded">
-            <h4 className="text-white/70 text-xs mb-2">
+          <div className="mt-4 p-3 bg-black rounded">
+            <h4 className="text-crema font-agency text-xs mb-2">
               {t("pattern_pieces")}
             </h4>
             {loadedPatterns.length > 0 ? (
               loadedPatterns.map((piece) => (
-                <div key={piece.id} className="text-white/60 text-xxxs mb-1">
+                <div
+                  key={piece.id}
+                  className="text-crema font-agency text-xs mb-1"
+                >
                   • {piece.name} (x{piece.quantity})
                 </div>
               ))
             ) : (
-              <div className="text-white/40 text-xxxs">
+              <div className="text-crema font-agency text-xs">
                 {t("no_pattern_pieces")}
               </div>
             )}
           </div>
         </>
       ) : (
-        <div className="text-white/50 text-center py-8">
-          <div className="text-sm mb-2">{t("pattern_library")}</div>
-          <div className="text-xs">{t("select_garment_template_first")}</div>
+        <div className="text-crema text-center py-8">
+          <div className="text-xs font-agency mb-2">{t("pattern_library")}</div>
+          <div className="text-xs font-agency">
+            {t("select_garment_template_first")}
+          </div>
         </div>
       )}
     </div>

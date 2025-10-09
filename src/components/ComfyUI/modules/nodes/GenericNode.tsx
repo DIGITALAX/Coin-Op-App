@@ -11,17 +11,17 @@ export default function GenericNode({ node, onInputChange }: GenericNodeProps) {
   } = useGenericNode(node);
   return (
     <div
-      className="bg-gray-600 border-2 border-gray-400 rounded-lg shadow-lg relative"
+      className="bg-crema border-2 border-crema rounded-lg shadow-lg relative"
       style={{
         width: width,
         minHeight: height,
       }}
     >
-      <div className="bg-gray-700 px-3 py-2 rounded-t-lg">
+      <div className="bg-crema px-3 py-2 rounded-t-lg">
         <h3 className="font-mana text-xxxs text-white font-bold">
           {node.title}
         </h3>
-        <p className="font-mana text-xxxs text-gray-200 opacity-75">
+        <p className="font-mana text-xxxs text-crema opacity-75">
           {node.class_type}
         </p>
       </div>

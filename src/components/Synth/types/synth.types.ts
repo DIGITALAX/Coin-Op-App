@@ -122,7 +122,6 @@ export interface SynthCanvasProps {
 }
 
 export interface ShowCanvasProps {
-  size?: "small" | "large";
   convertCoordinatesToPixels: (
     x: number,
     y: number,

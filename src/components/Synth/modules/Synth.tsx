@@ -1,6 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import PageNavigation from "../../Common/modules/PageNavigation";
 import SynthCanvas from "./SynthCanvas";
 import { useApp } from "../../../context/AppContext";
 import { Child } from "../../Format/types/format.types";
@@ -100,7 +99,7 @@ export default function Synth() {
     async (childUri: string) => {
       if (!selectedLayer) return;
       let originalChildUri = childUri;
-      if (childUri.startsWith("data:")) {
+      if (childUri?.startsWith("data:")) {
         const childIndex = templateChild?.childReferences.findIndex(
           (c) => c.uri === childUri
         );
@@ -258,16 +257,16 @@ export default function Synth() {
   return (
     <div className="relative w-full h-full flex flex-col p-4 bg-black">
       <div className="mb-6">
-        <h2 className="text-lg font-satB text-white tracking-wider mb-2">
+        <h2 className="text-xs font-pixel text-white tracking-wider mb-4">
           {t("synth_canvas")}
         </h2>
         {currentDesign && (
-          <p className="text-ama font-mana text-xxxs mb-2">
+          <p className="text-white font-agency text-xs mb-2">
             {t("project")}: {currentDesign.name}
           </p>
         )}
         {selectedLayer ? (
-          <p className="text-white font-mana text-xxxs">
+          <p className="text-crema font-agency text-xs">
             {t("layer")}: TID-{selectedLayer.front.templateId} | {t("price")}: $
             {(
               (Number(selectedLayer.front.price) +
@@ -278,7 +277,7 @@ export default function Synth() {
             {selectedLayer.back && ` + ${t("back")}: TID-${selectedLayer.back.templateId}`}
           </p>
         ) : (
-          <p className="text-red-400 font-mana text-xxxs">
+          <p className="text-crema font-agency text-xs">
             {t("no_layer_selected")}
           </p>
         )}
@@ -286,7 +285,6 @@ export default function Synth() {
       <div className="flex-1 p-6 flex flex-col h-full overflow-hidden">
         <InteractiveCanvas
           templateChild={templateChild}
-          size="small"
           onChildClick={handleChildClick}
         />
         <div className="flex-1 overflow-y-auto">
@@ -296,7 +294,7 @@ export default function Synth() {
             onStateChange={handleGeneratorStateChange}
             onComfySettingsUpdate={handleComfySettingsUpdate}
           />
-          <div className="bg-oscuro border border-oscurazul rounded p-6 h-[600px]">
+          <div className="bg-white border border-crema rounded p-6 h-[600px]">
             {showNodeEditor &&
             generatorState.aiProvider === "comfy" &&
             generatorState.comfySettings.workflowJson ? (
@@ -309,7 +307,7 @@ export default function Synth() {
               <SynthCanvas onCanvasSave={updateChildCanvas} />
             ) : (
               <div className="h-full flex items-center justify-center">
-                <p className="text-gray-400 font-sat text-sm">
+                <p className="text-crema font-agency text-sm">
                   {!selectedTemplate
                     ? t("select_template_to_start")
                     : t("select_layer_to_enable")}
@@ -352,7 +350,6 @@ export default function Synth() {
           <GenerationHistory />
         </div>
       </div>
-      <PageNavigation currentPage="/Synth" />
     </div>
   );
 }

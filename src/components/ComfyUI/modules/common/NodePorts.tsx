@@ -16,7 +16,7 @@ export default function NodePorts({ node }: NodePortsProps) {
       case "IMAGE":
         return "bg-purple-500";
       default:
-        return "bg-gray-500";
+        return "bg-crema";
     }
   };
   return (

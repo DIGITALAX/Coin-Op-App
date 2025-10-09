@@ -55,13 +55,13 @@ export default function DesignCreationModal({
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-gray-900 border border-gray-600 rounded-lg p-6 max-w-md w-full mx-4">
-        <h2 className="text-xl font-satB text-white mb-4">
+      <div className="bg-oscuro border-2 border-azul rounded-lg p-6 max-w-md w-full mx-4">
+        <h2 className="text-xs font-pixel text-white mb-4">
           {t("create_new_design")}
         </h2>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-sat text-gray-300 mb-2">
+            <label className="block text-xs font-agency text-white mb-2">
               {t("design_name")} *
             </label>
             <input
@@ -69,29 +69,29 @@ export default function DesignCreationModal({
               value={designName}
               onChange={(e) => setDesignName(e.target.value)}
               placeholder={t("enter_design_name")}
-              className="w-full px-3 py-2 bg-gray-800 border border-gray-600 text-white rounded font-sat text-sm placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 bg-black border border-oscurazul text-white rounded font-agency text-xs placeholder-crema focus:border-azul focus:outline-none"
               disabled={isCreating}
               maxLength={50}
             />
           </div>
           <div>
-            <label className="block text-sm font-sat text-gray-300 mb-2">
+            <label className="block text-xs font-agency text-white mb-2">
               {t("description_optional")}
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder={t("describe_design_concept")}
-              className="w-full px-3 py-2 bg-gray-800 border border-gray-600 text-white rounded font-sat text-sm placeholder-gray-500 focus:border-blue-500 focus:outline-none resize-none"
+              className="w-full px-3 py-2 bg-black border border-oscurazul text-white rounded font-agency text-xs placeholder-crema focus:border-azul focus:outline-none resize-none"
               rows={3}
               disabled={isCreating}
               maxLength={200}
             />
           </div>
           {error && (
-            <div className="text-red-400 text-sm font-sat">{error}</div>
+            <div className="text-rosa text-xs font-agency">{error}</div>
           )}
-          <div className="text-xs text-gray-500 space-y-1">
+          <div className="text-xs text-white font-agency space-y-1">
             <p>
               {t("template_type")}: {templateId}
             </p>
@@ -109,16 +109,22 @@ export default function DesignCreationModal({
           <button
             onClick={handleClose}
             disabled={isCreating}
-            className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:text-gray-500 text-white rounded font-sat text-sm transition-colors"
+            className="flex-1 lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-viol text-white hover:opacity-80 disabled:bg-viol disabled:text-white/50"
+            style={{ transform: "skewX(-15deg)" }}
           >
-            {t("cancel")}
+            <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+              {t("cancel")}
+            </span>
           </button>
           <button
             onClick={handleCreate}
             disabled={isCreating || !designName.trim()}
-            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded font-sat text-sm transition-colors"
+            className="flex-1 lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-white text-black hover:opacity-80 disabled:bg-viol disabled:text-white/50"
+            style={{ transform: "skewX(-15deg)" }}
           >
-            {isCreating ? t("creating") : t("create_design")}
+            <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+              {isCreating ? t("creating") : t("create_design")}
+            </span>
           </button>
         </div>
       </div>

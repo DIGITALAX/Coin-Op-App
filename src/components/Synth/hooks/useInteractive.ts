@@ -131,9 +131,9 @@ const useInteractive = (templateChild: Template | null) => {
   };
 
   const getImageSrc = (uri: string) => {
-    return uri.startsWith("data:")
+    return uri?.startsWith("data:")
       ? uri
-      : uri.replace("ipfs://", `${INFURA_GATEWAY}/ipfs/`);
+      : uri?.replace("ipfs://", `${INFURA_GATEWAY}/ipfs/`);
   };
 
   const parseSvgContent = (svgString: string) => {

@@ -36,33 +36,33 @@ export default function ComfyUINodeEditor({
   const { connections } = useConnectionRenderer(workflow, renderNodes);
   return (
     <div className="relative w-full h-full flex flex-col bg-black">
-      <div className="flex items-center gap-3 p-3 bg-gris border-b border-ama">
+      <div className="flex items-center gap-3 p-3 bg-white border-b border-crema">
         <div
           onClick={resetView}
-          className="px-3 py-1.5 bg-gris text-white rounded font-mana text-xxxs hover:opacity-70"
+          className="px-3 py-1.5 bg-crema text-black rounded-sm font-agency text-xs hover:opacity-70"
         >
           {t("reset_view")}
         </div>
         {workflow && (
           <div
             onClick={deleteWorkflow}
-            className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded font-mana text-xxxs cursor-pointer transition-colors"
+            className="px-3 py-1.5 bg-rosa text-white rounded-sm font-agency text-xs cursor-pointer transition-colors hover:opacity-80"
           >
             {t("delete_workflow")}
           </div>
         )}
         {workflow && (
           <div className="flex items-center gap-4 ml-auto">
-            <span className="text-white font-mana text-xxxs">
+            <span className="text-black font-agency text-xs">
               {t("nodes")}: {workflow.nodes.length}
             </span>
-            <span className="text-white font-mana text-xxxs">
+            <span className="text-black font-agency text-xs">
               {t("connections")}: {workflow.connections?.length || 0}
             </span>
-            <span className="text-white font-mana text-xxxs">
+            <span className="text-black font-agency text-xs">
               {t("zoom")}: {Math.round(canvasState.zoom * 100).toFixed(0)}%
             </span>
-            <span className="text-white font-mana text-xxxs">
+            <span className="text-black font-agency text-xs">
               {t("pan")}: {Math.round(canvasState.pan.x)},{" "}
               {Math.round(canvasState.pan.y)}
             </span>
@@ -71,22 +71,22 @@ export default function ComfyUINodeEditor({
       </div>
       {loading && (
         <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="text-white font-mana">
-            <div className="animate-spin w-8 h-8 border-2 border-ama border-t-transparent rounded-full mx-auto mb-2"></div>
+          <div className="text-white font-agency">
+            <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-2"></div>
             {t("parsing_workflow")}...
           </div>
         </div>
       )}
       {error && (
-        <div className="bg-red-900 border-l-4 border-red-500 p-4">
+        <div className="bg-rosa border-l-4 border-red-500 p-4">
           <div className="flex">
             <div className="ml-3">
-              <p className="text-red-200 font-mana text-sm">{t("error")}</p>
-              <p className="text-red-300 text-xs mt-1">{error}</p>
+              <p className="text-white font-agency text-sm">{t("error")}</p>
+              <p className="text-white text-xs mt-1">{error}</p>
             </div>
             <div
               onClick={() => setError(null)}
-              className="ml-auto text-red-400 hover:text-red-200"
+              className="ml-auto text-white hover:opacity-70 cursor-pointer"
             >
               ×
             </div>
@@ -95,7 +95,7 @@ export default function ComfyUINodeEditor({
       )}
       <div
         ref={containerRef}
-        className="flex-1 relative overflow-hidden bg-gray-900 cursor-grab active:cursor-grabbing"
+        className="flex-1 relative overflow-hidden bg-white cursor-grab active:cursor-grabbing"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}

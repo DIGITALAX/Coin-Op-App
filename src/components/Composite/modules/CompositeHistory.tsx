@@ -73,19 +73,20 @@ export default function CompositeHistory({
   };
   return (
     compositeHistory.length > 0 && (
-      <div className="mt-6">
-        <h2 className="text-lg font-sat text-white tracking-wider mb-4">
+      <div>
+        <h2 className="text-xs font-pixel text-white tracking-wider mb-4">
           {t("composite_generation_history")}
         </h2>
-        <div className="bg-oscuro border border-gray-600 rounded p-6">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 max-h-96 overflow-y-auto">
+        <div className="bg-turq1 border border-aqua rounded p-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
             {compositeHistory.map((item) => (
               <div key={item.id} className="relative group">
-                <div className="aspect-square bg-gray-700 rounded border border-gray-600 overflow-hidden">
+                <div className="aspect-square bg-turq rounded border border-aqua overflow-hidden hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition-all">
                   <img
                     src={item.imageData}
+                    draggable={false}
                     alt={item.prompt.slice(0, 30)}
-                    className="w-full h-full object-cover cursor-pointer hover:opacity-80"
+                    className="w-full h-full object-cover cursor-pointer"
                     onClick={() => onImageSelected?.(item.imageData)}
                     title={`${t("click_to_use_as_background")}: ${item.prompt}`}
                   />
@@ -97,7 +98,7 @@ export default function CompositeHistory({
                       e.stopPropagation();
                       onImageSelected?.(item.imageData);
                     }}
-                    className="w-4 h-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center font-sat cursor-pointer transition-colors shadow-lg"
+                    className="w-5 h-5 bg-white rounded-sm font-agency cursor-pointer transition-colors flex items-center justify-center"
                     title={t("use_as_background")}
                   >
                     ↑
@@ -143,7 +144,7 @@ export default function CompositeHistory({
                         alert(`${t("save_failed")}: ${error}`);
                       }
                     }}
-                    className="w-4 h-4 bg-green-600 hover:bg-green-700 text-white rounded-full flex items-center justify-center font-sat cursor-pointer transition-colors shadow-lg"
+                    className="w-5 h-5 bg-white rounded-sm font-agency cursor-pointer transition-colors flex items-center justify-center"
                     title={t("save_image")}
                   >
                     ↓
@@ -154,34 +155,37 @@ export default function CompositeHistory({
                       e.stopPropagation();
                       handleDeleteFromHistory(item.id);
                     }}
-                    className="w-4 h-4 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center font-sat cursor-pointer transition-colors shadow-lg"
+                    className="w-5 h-5 bg-white rounded-sm font-agency cursor-pointer transition-colors flex items-center justify-center"
                     title={t("delete_image")}
                   >
                     ×
                   </div>
                 </div>
                 <div
-                  className="mt-2 text-xs font-sat text-gray-400 truncate"
+                  className="mt-2 text-xs font-agency text-white truncate"
                   title={item.prompt}
                 >
                   {item.prompt.slice(0, 20)}...
                 </div>
-                <div className="text-xs font-sat text-gray-500">
+                <div className="text-xs font-agency text-ligero">
                   {item.model} • {new Date(item.timestamp).toLocaleTimeString()}
                 </div>
               </div>
             ))}
           </div>
-          <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-600">
-            <span className="text-sm font-sat text-gray-400">
+          <div className="flex justify-between items-center mt-4 pt-4 border-t border-aqua">
+            <span className="text-xs font-agency text-white">
               {compositeHistory.length} {t("composite_generations_saved")}
             </span>
-            <div
+            <button
               onClick={handleClearHistory}
-              className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded font-sat text-xs cursor-pointer"
+              className="lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-white text-black hover:opacity-80"
+              style={{ transform: "skewX(-15deg)" }}
             >
-              {t("clear_history")}
-            </div>
+              <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+                {t("clear_history")}
+              </span>
+            </button>
           </div>
         </div>
       </div>

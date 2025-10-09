@@ -59,7 +59,7 @@ const useComposite = (
       let originalChildUri = childUri;
 
       if (saved && (saved).length > 0) {
-        if (childUri.startsWith("data:")) {
+        if (childUri?.startsWith("data:")) {
           const childIndex = templateChild?.childReferences.findIndex(
             (c) => c.uri === childUri
           );

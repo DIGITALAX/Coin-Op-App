@@ -123,15 +123,15 @@ export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-gray-900 border border-ama rounded-lg p-6 max-w-md w-full mx-4">
+    <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
+      <div className="bg-oscuro border-2 border-azul rounded-lg p-6 max-w-md w-full mx-4">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-white font-satB text-lg">
+          <h2 className="text-white font-pixel text-xs">
             {t("export_to_print")}
           </h2>
           <button
             onClick={onClose}
-            className="text-white hover:text-ama transition-colors"
+            className="text-white hover:text-crema transition-colors text-xl"
           >
             ×
           </button>
@@ -139,13 +139,14 @@ export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
 
         <div className="space-y-4 mb-6">
           <div>
-            <label className="block text-white font-mana text-xs mb-2">
+            <label className="block text-white font-agency text-xs mb-2">
               {isShirt ? t("shirt_size") : t("hoodie_size")}
             </label>
             <select
               value={size}
               onChange={(e) => setSize(e.target.value as GarmentSize)}
-              className="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 font-mana text-sm"
+              className="w-full appearance-none bg-black text-white border border-crema rounded px-3 py-2 font-agency text-xs"
+              style={{ backgroundImage: 'none' }}
             >
               {(Object.keys(dimensionTable) as Array<keyof typeof dimensionTable>).map((sizeKey) => {
                 if (sizeKey === "CUSTOM") return null;
@@ -162,12 +163,12 @@ export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
 
           {size === "CUSTOM" && (
             <div className="space-y-3">
-              <label className="block text-white font-mana text-xs mb-2">
+              <label className="block text-white font-agency text-xs mb-2">
                 {t("custom_front_panel_dimensions")}
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-gray-400 font-mana text-xs mb-1">
+                  <label className="block text-crema font-agency text-xs mb-1">
                     {t("width_cm")}
                   </label>
                   <input
@@ -177,12 +178,12 @@ export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
                     min="10"
                     max="100"
                     step="0.1"
-                    className="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 font-mana text-sm"
+                    className="w-full bg-black text-white border border-crema rounded px-3 py-2 font-agency text-xs"
                     placeholder="34.8"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-400 font-mana text-xs mb-1">
+                  <label className="block text-crema font-agency text-xs mb-1">
                     {t("height_cm")}
                   </label>
                   <input
@@ -192,7 +193,7 @@ export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
                     min="10"
                     max="150"
                     step="0.1"
-                    className="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 font-mana text-sm"
+                    className="w-full bg-black text-white border border-crema rounded px-3 py-2 font-agency text-xs"
                     placeholder="65.8"
                   />
                 </div>
@@ -203,10 +204,10 @@ export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
 
         {exportStatus && (
           <div
-            className={`mb-4 p-3 rounded font-mana text-xs ${
+            className={`mb-4 p-3 rounded font-agency text-xs ${
               exportStatus.includes("successful")
-                ? "bg-verde/20 border border-verde/50 text-verde"
-                : "bg-red-500/20 border border-red-500/50 text-red-300"
+                ? "bg-black border border-crema text-white"
+                : "bg-black border border-rosa text-white"
             }`}
           >
             {exportStatus}
@@ -216,20 +217,26 @@ export const ExportDialog: FunctionComponent<ExportDialogProps> = ({
         <div className="flex space-x-3">
           <button
             onClick={isExporting ? handleCancel : onClose}
-            className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-mana text-sm rounded transition-colors"
+            className="lowercase flex-1 px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-viol text-white hover:opacity-80"
+            style={{ transform: "skewX(-15deg)" }}
           >
-            {isExporting ? "Cancel Export" : t("cancel")}
+            <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+              {isExporting ? "Cancel Export" : t("cancel")}
+            </span>
           </button>
           <button
             onClick={handleExport}
             disabled={isExporting || !svgElement}
-            className={`flex-1 px-4 py-2 rounded font-mana text-sm transition-colors ${
+            className={`lowercase flex-1 px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul ${
               isExporting || !svgElement
-                ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                : "bg-ama hover:bg-ama/90 text-black"
+                ? "bg-viol text-white/50 cursor-not-allowed"
+                : "bg-white text-black hover:opacity-80"
             }`}
+            style={{ transform: "skewX(-15deg)" }}
           >
-            {isExporting ? t("exporting") : t("export")}
+            <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+              {isExporting ? t("exporting") : t("export")}
+            </span>
           </button>
         </div>
       </div>

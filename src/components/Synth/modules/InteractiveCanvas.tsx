@@ -8,7 +8,6 @@ import { useState, useEffect } from "react";
 
 export default function InteractiveCanvas({
   templateChild,
-  size = "small",
   onChildClick,
 }: InteractiveCanvasProps) {
   const { t } = useTranslation();
@@ -62,48 +61,10 @@ export default function InteractiveCanvas({
     loadImageUrls();
   }, [templateChild, getBinaryFileUrl]);
 
-  const isLarge = size === "large";
-
-  if (isLarge) {
-    return (
-      <div className="flex flex-col justify-center items-center gap-4">
-        {canFlip && (
-          <button
-            onClick={flipCanvas}
-            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm rounded transition-colors"
-          >
-            {isBackSide ? t("show_front") : t("show_back")}
-          </button>
-        )}
-        <ShowCanvas
-          key={`${isBackSide ? "back" : "front"}-${imageLoaded}-${
-            templateChild?.uri || "none"
-          }`}
-          imageUrls={imageUrls}
-          canvasWidth={canvasWidth}
-          templateChild={templateChild}
-          size={size}
-          getImageSrc={getImageSrc}
-          currentTemplate={currentTemplate}
-          onChildClick={onChildClick}
-          convertCoordinatesToPixels={convertCoordinatesToPixels}
-          baseTemplateChild={baseTemplateChild}
-          imageRef={imageRef}
-          setCanvasWidth={setCanvasWidth}
-          imageDimensions={imageDimensions}
-          setImageDimensions={setImageDimensions}
-          canvasContainerRef={canvasContainerRef}
-          parsedSvgCache={parsedSvgCache}
-          createReactElement={createReactElement}
-          onImageLoad={onImageLoad}
-        />
-      </div>
-    );
-  }
   return (
     <div
       ref={containerRef}
-      className="absolute z-50 flex flex-col items-center"
+      className="fixed z-50 flex flex-col items-center bg-white border border-crema rounded overflow-hidden shadow-lg"
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
@@ -113,37 +74,39 @@ export default function InteractiveCanvas({
       }}
     >
       <div
-        className={`w-full h-6 bg-ama/20 rounded-t-lg flex items-center justify-center ${
+        className={`w-full h-5 bg-crema border-b border-crema flex items-center justify-center ${
           isDragging ? "cursor-grabbing" : "cursor-grab"
         }`}
         onMouseDown={handleMouseDown}
       >
         <div className="flex space-x-1">
-          <div className="w-1 h-1 bg-ama rounded-full"></div>
-          <div className="w-1 h-1 bg-ama rounded-full"></div>
-          <div className="w-1 h-1 bg-ama rounded-full"></div>
+          <div className="w-1 h-1 bg-white rounded-full"></div>
+          <div className="w-1 h-1 bg-white rounded-full"></div>
+          <div className="w-1 h-1 bg-white rounded-full"></div>
         </div>
       </div>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          setIsCollapsed(!isCollapsed);
-        }}
-        className="w-full py-1 bg-ama hover:bg-ama/80 text-black font-bold text-xs transition-colors"
-      >
-        {isCollapsed ? t("show_canvas") : t("hide_canvas")}
-      </button>
-      {canFlip && (
+      <div className="relative w-full h-fit flex flex-row border-b border-crema">
         <button
           onClick={(e) => {
             e.stopPropagation();
-            flipCanvas();
+            setIsCollapsed(!isCollapsed);
           }}
-          className="w-full py-1 bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs transition-colors"
+          className="relative flex-1 py-1 bg-white hover:bg-crema text-black font-agency text-xs transition-colors"
         >
-          {isBackSide ? t("show_front") : t("show_back")}
+          {isCollapsed ? t("show_canvas") : t("hide_canvas")}
         </button>
-      )}
+        {canFlip && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              flipCanvas();
+            }}
+            className="relative flex-1 py-1 bg-white hover:bg-crema border-l border-crema text-black font-agency text-xs transition-colors"
+          >
+            {isBackSide ? t("show_front") : t("show_back")}
+          </button>
+        )}
+      </div>
       <div style={{ display: isCollapsed ? "none" : "block" }}>
         <ShowCanvas
           key={`${isBackSide ? "back" : "front"}-${imageLoaded}-${
@@ -151,7 +114,6 @@ export default function InteractiveCanvas({
           }`}
           canvasWidth={canvasWidth}
           templateChild={templateChild}
-          size={size}
           imageUrls={imageUrls}
           getImageSrc={getImageSrc}
           currentTemplate={currentTemplate}
@@ -173,7 +135,6 @@ export default function InteractiveCanvas({
 }
 
 const ShowCanvas = ({
-  size,
   convertCoordinatesToPixels,
   baseTemplateChild,
   imageRef,
@@ -203,8 +164,8 @@ const ShowCanvas = ({
 
   return (
     <div
-      ref={size == "small" ? canvasContainerRef : null}
-      className={`relative bg-gray-800 ${size == "large" ? "block" : ""}`}
+      ref={canvasContainerRef}
+      className={`relative bg-black`}
     >
       <img
         ref={imageRef}
@@ -350,6 +311,7 @@ const ShowCanvas = ({
                       alt={`Pattern ${index}`}
                       width={w}
                       height={h}
+                      draggable={false}
                       className="absolute"
                       style={{
                         left: `${pixelPosition.left}px`,

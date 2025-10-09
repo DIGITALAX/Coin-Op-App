@@ -1,132 +1,159 @@
 import { useTranslation } from "react-i18next";
-import PageNavigation from "../../Common/modules/PageNavigation";
 import { useDesignContext } from "../../../context/DesignContext";
 import { useSell } from "../hooks/useSell";
 
 export default function Sell() {
   const { t } = useTranslation();
   const { currentDesign } = useDesignContext();
-  const { handleCoinOpMarket, isProcessing, hasComposite, isCheckingComposite } = useSell();
+  const {
+    handleCoinOpMarket,
+    isProcessing,
+    hasComposite,
+    isCheckingComposite,
+  } = useSell();
 
   if (!currentDesign) {
     return (
-      <div className="relative w-full h-full flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-lg font-satB text-white tracking-wider mb-4">
-            {t("sell")}
-          </h2>
-          <p className="text-red-400 font-mana text-sm">
-            {t("no_design_selected")}
-          </p>
+      <div className="relative w-full h-full flex flex-col">
+        <div className="flex-1 flex flex-col items-center justify-center text-center px-8">
+          <div className="max-w-2xl space-y-8">
+            <div className="space-y-4">
+              <h1 className="font-ark text-white text-lg tracking-wider mb-4">
+                {t("sell")}
+              </h1>
+              <p className="font-agency text-rosa text-sm">
+                {t("no_design_selected")}
+              </p>
+            </div>
+          </div>
         </div>
-        <PageNavigation currentPage="/Sell" />
       </div>
     );
   }
 
   return (
     <div className="relative w-full h-full flex flex-col">
-      <div className="flex-1 overflow-y-auto">
-        <div className="w-full max-w-4xl mx-auto p-6">
-          <div className="mb-6">
-            <h2 className="text-lg font-satB text-white tracking-wider mb-4">
+      <div className="flex-1 flex flex-col items-center justify-center text-center px-8 overflow-y-auto">
+        <div className="max-w-2xl justify-center items-center flex flex-col gap-8 py-8">
+          <div className="space-y-4">
+            <h1 className="font-ark text-white text-3xl tracking-wider mb-4">
               {t("sell")}
-            </h2>
-            <p className="text-ama font-mana text-xs mb-2">
+            </h1>
+            <p className="font-agency text-crema text-lg mb-2">
               {t("project")}: {currentDesign.name}
             </p>
-            <p className="text-white font-mana text-sm mb-8">
+            <p className="font-agency text-white text-sm opacity-80">
               {t("sell_description")}
             </p>
           </div>
 
-          <div className="space-y-6">
-            <div className="border border-ama rounded-md p-6">
-              <h3 className="text-white font-satB text-sm mb-4 tracking-wider">
-                {t("selling_options")}
-              </h3>
+          <div className="space-y-8 w-full">
+            <div className="space-y-4">
+              <h2 className="font-agency text-white text-sm tracking-wider">
+                {t("selling_options")}:
+              </h2>
 
-              <div className="space-y-4">
-                <div className="w-full border border-ama bg-black rounded-md p-6">
-                  <div className="mb-4">
-                    <h4 className="text-white font-satB text-base mb-2">
-                      {t("coin_op_option")}
-                    </h4>
-                    <p className="text-white font-mana text-xs opacity-80 mb-3">
-                      {t("coin_op_description")}
-                    </p>
+              <div className="space-y-6">
+                <div className="text-left space-y-3">
+                  <h3 className="font-agency text-white text-sm">
+                    {t("coin_op_option")}
+                  </h3>
+                  <p className="font-dos text-white opacity-80 text-xs">
+                    {t("coin_op_description")}
+                  </p>
+                  <div className="relative w-fit h-fit flex flex-row gap-2 items-center">
+                    <div className="relative w-fit h-fit flex">
+                      <img
+                        draggable={false}
+                        src="/images/arrow.png"
+                        className="relative w-8 h-8 object-contain flex"
+                      />
+                    </div>
+                    <button
+                      onClick={handleCoinOpMarket}
+                      disabled={
+                        isProcessing || isCheckingComposite || !hasComposite
+                      }
+                      className={`relative whitespace-nowrap w-fit h-fit flex uppercase text-base justify-center text-center font-slim transition-colors ${
+                        isCheckingComposite || !hasComposite
+                          ? "text-crema cursor-not-allowed"
+                          : isProcessing
+                          ? "text-crema"
+                          : "text-white hover:text-rosa"
+                      }`}
+                    >
+                      <div className="relative w-fit h-fit z-10 flex">
+                        {isCheckingComposite
+                          ? t("loading")
+                          : !hasComposite
+                          ? t("complete_composite")
+                          : isProcessing
+                          ? t("sending")
+                          : t("send_to_coin")}
+                      </div>
+                    </button>
                   </div>
-                  <button
-                    onClick={handleCoinOpMarket}
-                    disabled={isProcessing || isCheckingComposite || !hasComposite}
-                    className={`w-full py-3 font-satB text-sm rounded transition-colors ${
-                      isCheckingComposite || !hasComposite
-                        ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                        : isProcessing
-                        ? "bg-gray-600 text-gray-400"
-                        : "bg-ama hover:bg-ama/90 text-black"
-                    }`}
-                  >
-                    {isCheckingComposite
-                      ? t("loading")
-                      : !hasComposite
-                      ? t("complete_composite")
-                      : isProcessing
-                      ? t("sending")
-                      : t("send_to_coin")}
-                  </button>
                 </div>
 
-                <div className="border border-white/30 rounded-md p-6 bg-black/50">
-                  <div className="mb-4">
-                    <h4 className="text-white font-satB text-base mb-2">
-                      {t("independent_option")}
-                    </h4>
-                    <p className="text-white font-mana text-xs opacity-80 mb-3">
-                      {t("independent_description")}
-                    </p>
-                    <p className="text-gray-400 font-mana text-xs mb-4">
-                      {t("independent_assistance")}
-                    </p>
+                <div className="text-left space-y-3">
+                  <h3 className="font-agency text-white text-sm">
+                    {t("independent_option")}
+                  </h3>
+                  <p className="font-dos text-white opacity-80 text-xs">
+                    {t("independent_description")}
+                  </p>
+                  <p className="font-dos text-crema text-xs">
+                    {t("independent_assistance")}
+                  </p>
+                  <div className="relative w-fit h-fit flex flex-row gap-2 items-center">
+                    <div className="relative w-fit h-fit flex">
+                      <img
+                        draggable={false}
+                        src="/images/arrow.png"
+                        className="relative w-8 h-8 object-contain flex"
+                      />
+                    </div>
+                    <button
+                      onClick={() => {
+                        const fgoUrl =
+                          "https://fgo.themanufactory.xyz/account/";
+                        import("@tauri-apps/plugin-opener").then(
+                          ({ openUrl }) => {
+                            openUrl(fgoUrl);
+                          }
+                        );
+                      }}
+                      className={`relative whitespace-nowrap w-fit h-fit flex uppercase text-base justify-center text-center font-slim transition-colors text-white hover:text-rosa`}
+                    >
+                      <div className="relative w-fit h-fit z-10 flex">
+                        {t("create_with_fgo")}
+                      </div>
+                    </button>
                   </div>
-                  <button
-                    onClick={() => {
-                      const fgoUrl = "https://fgo.themanufactory.xyz/account/";
-                      import("@tauri-apps/plugin-opener").then(
-                        ({ openUrl }) => {
-                          openUrl(fgoUrl);
-                        }
-                      );
-                    }}
-                    className="w-full py-3 bg-ama hover:bg-ama/90 text-black font-satB text-sm rounded transition-colors"
-                  >
-                    {t("create_with_fgo")}
-                  </button>
                 </div>
               </div>
             </div>
 
-            <div className="border border-ama rounded-md p-6">
-              <h3 className="text-ama font-satB text-sm mb-4 tracking-wider">
-                {t("fulfillment_option")}
-              </h3>
-              <p className="text-white font-mana text-xs mb-4">
+            <div className="text-left space-y-3">
+              <h2 className="font-agency text-white text-sm tracking-wider">
+                {t("fulfillment_option")}:
+              </h2>
+              <p className="font-dos text-white opacity-80 text-xs">
                 {t("fulfillment_description")}
               </p>
             </div>
 
-            <div className="border border-yellow-500/50 rounded-md p-6 bg-yellow-500/5">
-              <h3 className="text-yellow-400 font-satB text-sm mb-3 tracking-wider">
-                {t("important_notice")}
-              </h3>
-              <p className="text-white font-mana text-xs">
+            <div className="text-left space-y-3">
+              <h2 className="font-agency text-amarillo text-sm tracking-wider">
+                {t("important_notice")}:
+              </h2>
+              <p className="font-dos text-white opacity-80 text-xs">
                 {t("listing_notice")}
               </p>
             </div>
           </div>
         </div>
       </div>
-      <PageNavigation currentPage="/Sell" />
     </div>
   );
 }

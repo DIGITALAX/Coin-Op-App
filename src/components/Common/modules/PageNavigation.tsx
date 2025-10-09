@@ -1,12 +1,16 @@
 import { Link } from "react-router-dom";
 import { INFURA_GATEWAY } from "../../../lib/constants";
 import usePageNavigation from "../hooks/usePageNavigation";
-import { PageNavigationProps } from "../types/common.types";
+import { SetStateAction } from "react";
 
-export default function PageNavigation({ currentPage }: PageNavigationProps) {
-  const { prevPage, nextPage } = usePageNavigation(currentPage);
+export default function PageNavigation({
+  setHideHeader,
+}: {
+  setHideHeader: (e: SetStateAction<boolean>) => void;
+}) {
+  const { prevPage, nextPage } = usePageNavigation();
   return (
-    <div className="absolute bottom-2 right-4 flex gap-3 items-center">
+    <div className="flex w-fit h-fit gap-3 items-center">
       {prevPage && (
         <Link
           to={prevPage}
@@ -20,6 +24,16 @@ export default function PageNavigation({ currentPage }: PageNavigationProps) {
           />
         </Link>
       )}
+      <div
+        onClick={() => setHideHeader((prev) => !prev)}
+        className="relative cursor-pointer w-fit h-fit flex justify-end"
+      >
+        <img
+          draggable={false}
+          src="/images/settings.png"
+          className="relative flex w-4 h-4"
+        />
+      </div>
       {nextPage && (
         <Link
           to={nextPage}

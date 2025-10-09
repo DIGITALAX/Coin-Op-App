@@ -7,7 +7,6 @@ import { usePattern } from "../hooks/usePattern";
 import { usePackingCanvas } from "../hooks/usePackingCanvas";
 import { PatternPiece } from "../types/pattern.types";
 import { useApp } from "../../../context/AppContext";
-import PageNavigation from "../../Common/modules/PageNavigation";
 
 const Pattern: FunctionComponent = () => {
   const { t } = useTranslation();
@@ -145,28 +144,28 @@ const Pattern: FunctionComponent = () => {
   if (!currentDesign) {
     return (
       <div className="relative w-full h-full flex items-center justify-center p-4 bg-black">
-        <div className="text-white font-mana">{t("loading_design")}</div>
+        <div className="text-white font-agency">{t("loading_design")}</div>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full h-full flex flex-col p-4 bg-black overflow-x-hidden">
+    <div className="relative w-full h-full flex flex-col p-4 bg-black">
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-satB text-white tracking-wider">
+          <h2 className="text-xs font-pixel text-white tracking-wider">
             {t("sewing_patterns")}
           </h2>
         </div>
         {currentDesign && (
-          <p className="text-ama font-mana text-xxxs mb-2">
+          <p className="text-white font-agency text-xs mb-2">
             {t("project")}: {currentDesign.name}
           </p>
         )}
       </div>
       {isApplicableTemplate() ? (
-        <div className="flex-1 flex overflow-y-scroll overflow-x-hidden">
-          <div className="w-80 flex-shrink-0 pr-4 flex flex-col gap-6">
+        <div className="flex-1 flex">
+          <div className="w-80 flex-shrink-0 pr-4 flex flex-col gap-6 overflow-y-auto">
             <PatternLibrary />
             <NestingSettingsPanel
               settings={nestingSettings}
@@ -174,7 +173,7 @@ const Pattern: FunctionComponent = () => {
               disabled={isNesting || isSparrowRunning}
             />
           </div>
-          <div className="flex-1 min-w-0 overflow-x-hidden">
+          <div className="flex-1 min-w-0 overflow-y-auto">
             <PackingCanvas selectedPieces={loadedPatterns} />
           </div>
         </div>
@@ -186,9 +185,9 @@ const Pattern: FunctionComponent = () => {
               <div className="text-sm mb-2">
                 {t("sewing_patterns_apparel_only")}
               </div>
-              <div className="text-xs text-white/30">
+              <div className="text-xs text-crema">
                 {t("current_template")}:{" "}
-                <span className="text-ama">{selectedTemplate?.name}</span> (
+                <span className="text-white">{selectedTemplate?.name}</span> (
                 {selectedTemplate?.template_type})
               </div>
               <div className="text-xs text-white/30 mt-2">
@@ -198,34 +197,36 @@ const Pattern: FunctionComponent = () => {
           </div>
         </div>
       )}
-      <PageNavigation currentPage="/Pattern" />
       {showSewingExportDialog && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-oscuro border border-ama rounded-lg p-6 max-w-md">
-            <h3 className="text-white font-mana text-sm mb-4">
+          <div className="bg-oscuro border-2 border-azul rounded-lg p-6 max-w-md">
+            <h3 className="text-white font-pixel text-xs mb-4">
               {t("export_sewing_pattern")}
             </h3>
             <div className="space-y-4">
-              <p className="text-white/70 text-xs">
+              <p className="text-crema font-agency text-xs">
                 {t("choose_format_production")}
               </p>
               <div className="space-y-2">
-                <div className="px-4 py-3 bg-verde/20 hover:bg-verde/30 border border-verde/50 rounded cursor-pointer text-white text-xs font-mana">
+                <div className="px-2 py-1 border border-crema rounded cursor-pointer text-white text-xs font-agency">
                   <div className="font-bold">
                     {t("professional_pdf_pattern")}
                   </div>
-                  <div className="text-xs text-white/60">
+                  <div className="text-xs text-crema">
                     {t("basic_pattern_info")}
                   </div>
                 </div>
               </div>
               <div className="flex gap-2 justify-end mt-6">
-                <div
+                <button
                   onClick={() => setShowSewingExportDialog(false)}
-                  className="px-4 py-2 bg-gris hover:opacity-70 text-white rounded font-mana text-xxxs cursor-pointer"
+                  className="lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-viol text-white hover:opacity-80"
+                  style={{ transform: "skewX(-15deg)" }}
                 >
-                  {t("cancel")}
-                </div>
+                  <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+                    {t("cancel")}
+                  </span>
+                </button>
               </div>
             </div>
           </div>
@@ -233,34 +234,36 @@ const Pattern: FunctionComponent = () => {
       )}
       {showExportDialog && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-oscuro border border-ama rounded-lg p-6 max-w-md">
-            <h3 className="text-white font-mana text-sm mb-4">
+          <div className="bg-oscuro border-2 border-azul rounded-lg p-6 max-w-md">
+            <h3 className="text-white font-pixel text-xs mb-4">
               {t("export_design_pattern")}
             </h3>
             <div className="space-y-4">
               {isExporting && (
-                <p className="text-ama font-mana text-xxxs animate-pulse">
+                <p className="text-white font-agency text-xs animate-pulse">
                   {exportProgress}
                 </p>
               )}
               <div className="flex gap-2 justify-end">
-                <div
+                <button
                   onClick={() => setShowExportDialog(false)}
-                  className="px-4 py-2 bg-gris hover:opacity-70 text-white rounded font-mana text-xxxs cursor-pointer"
+                  className="lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-viol text-white hover:opacity-80"
+                  style={{ transform: "skewX(-15deg)" }}
                 >
-                  {t("cancel")}
-                </div>
-                <div
+                  <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+                    {t("cancel")}
+                  </span>
+                </button>
+                <button
                   onClick={handleExportPattern}
-                  className={`px-4 py-2 rounded font-mana text-xxxs cursor-pointer ${
-                    isExporting
-                      ? "bg-gris/40 text-white/50 cursor-not-allowed"
-                      : "bg-ama hover:opacity-70 text-black"
-                  }`}
-                  style={{ pointerEvents: isExporting ? "none" : "auto" }}
+                  disabled={isExporting}
+                  className="lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-white text-black hover:opacity-80 disabled:bg-viol disabled:text-white/50"
+                  style={{ transform: "skewX(-15deg)" }}
                 >
-                  {isExporting ? t("exporting") : t("export")}
-                </div>
+                  <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+                    {isExporting ? t("exporting") : t("export")}
+                  </span>
+                </button>
               </div>
             </div>
           </div>

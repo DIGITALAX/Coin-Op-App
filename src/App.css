@@ -46,6 +46,46 @@
   src: url("/fonts/Manaspace.ttf");
 }
 
+@font-face {
+  font-family: "Bobby";
+  src: url("/fonts/Bobby.ttf");
+}
+
+@font-face {
+  font-family: "Countdown";
+  src: url("/fonts/Countdown.otf");
+}
+
+@font-face {
+  font-family: "Arkipelago";
+  src: url("/fonts/Arkipelago.otf");
+}
+
+@font-face {
+  font-family: "Agency";
+  src: url("/fonts/Agency.ttf");
+}
+
+@font-face {
+  font-family: "Awkward";
+  src: url("/fonts/Awkward.ttf");
+}
+
+@font-face {
+  font-family: "Pixeloid";
+  src: url("/fonts/PixeloidMono.otf");
+}
+
+@font-face {
+  font-family: "Slim";
+  src: url("/fonts/Slim.otf");
+}
+
+@font-face {
+  font-family: "PerfectDOS";
+  src: url("/fonts/PerfectDOS.ttf");
+}
+
 @theme {
   --font-xxxs: 0.5rem;
   --font-xxs: 0.6rem;
@@ -59,6 +99,14 @@
   --font-mana: "Manaspace";
   --font-vcr: "Vcr";
   --font-bit: "Bitblox";
+  --font-count: "Countdown";
+  --font-ark: "Arkipelago";
+  --font-agency: "Agency";
+  --font-bobby: "Bobby";
+  --font-awk: "Awkward";
+  --font-pixel: "Pixeloid";
+  --font-slim: "Slim";
+  --font-dos: "PerfectDOS";
 
   --color-azul: #2a36f6;
   --color-eme: #6dd400;
@@ -78,6 +126,15 @@
   --color-leg: #32c5ff;
   --color-mod: #6236ff;
   --color-sol: #ffc800;
+  --color-amarillo: #e0ee52;
+  --color-rosa: #ef48ff;
+  --color-mar: #00084f;
+  --color-viol: #6e00fe;
+  --color-crema: #e3e0cd;
+  --color-aqua: #1550af;
+  --color-turq: #030d6a;
+  --color-turq1: #00084f;
+  --color-ligero: #1c8bbb;
 
   --bg-cross: url("https://thedial.infura-ipfs.io/ipfs/QmPKU1ck9PLyFchFpe2vzJh3eyxSYij28ixTdRzaHi4E1p");
 }
@@ -93,6 +150,9 @@
   .font-mega {
     font-family: var(--font-mega);
   }
+  .font-awk {
+    font-family: var(--font-awk);
+  }
   .font-monu {
     font-family: var(--font-monu);
   }
@@ -101,6 +161,12 @@
   }
   .font-sat {
     font-family: var(--font-sat);
+  }
+  .font-pixel {
+    font-family: var(--font-pixel);
+  }
+  .font-bobby {
+    font-family: var(--font-bobby);
   }
   .font-satB {
     font-family: var(--font-satB);
@@ -116,6 +182,21 @@
   }
   .font-mana {
     font-family: var(--font-mana);
+  }
+  .font-agency {
+    font-family: var(--font-agency);
+  }
+  .font-count {
+    font-family: var(--font-count);
+  }
+  .font-ark {
+    font-family: var(--font-ark);
+  }
+  .font-slim {
+    font-family: var(--font-slim);
+  }
+  .font-dos {
+    font-family: var(--font-dos);
   }
 
   .bg-cross {
@@ -138,7 +219,6 @@ html {
   background-color: black;
 }
 
-
 html::-webkit-scrollbar {
   width: 0;
   height: 0;
@@ -159,8 +239,6 @@ html::-webkit-scrollbar-track:active {
 html::-webkit-scrollbar-thumb:active {
   background-color: transparent !important;
 }
-
-
 
 button:hover {
   cursor: pointer;

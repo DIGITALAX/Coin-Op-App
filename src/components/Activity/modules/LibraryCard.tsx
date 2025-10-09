@@ -5,6 +5,15 @@ import { SynthPrompt, CompositePrompt, LibraryCardProps } from "../types/activit
 export default function LibraryCard({ item, type, onLoad, onDelete, isDeleting }: LibraryCardProps) {
   const { t } = useTranslation();
   const [showDetails, setShowDetails] = useState(false);
+
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
   const getTypeLabel = () => {
     switch (type) {
       case 'workflow':
@@ -17,18 +26,7 @@ export default function LibraryCard({ item, type, onLoad, onDelete, isDeleting }
         return t('library_item');
     }
   };
-  const getTypeColor = () => {
-    switch (type) {
-      case 'workflow':
-        return 'text-blue-400';
-      case 'synthPrompt':
-        return 'text-green-400';
-      case 'compositePrompt':
-        return 'text-purple-400';
-      default:
-        return 'text-gray-400';
-    }
-  };
+
   const getPreviewContent = () => {
     if (type === 'workflow') {
       return t('comfyui_json_workflow');
@@ -37,14 +35,18 @@ export default function LibraryCard({ item, type, onLoad, onDelete, isDeleting }
     return prompt.prompt?.substring(0, 100) + (prompt.prompt?.length > 100 ? '...' : '');
   };
   return (
-    <div className="bg-oscuro border border-oscurazul rounded-lg overflow-hidden hover:border-ama transition-colors">
+    <div className={`group text-ligero font-dos bg-turq1 border border-aqua rounded-lg overflow-hidden cursor-pointer transition-all duration-200 ${
+      isDeleting
+        ? "opacity-50 cursor-not-allowed"
+        : "hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20"
+    }`}>
       <div className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1 min-w-0">
-            <h3 className="text-white font-satB text-sm truncate mb-1">
+            <h3 className="text-white text-sm truncate mb-1">
               {item.name}
             </h3>
-            <p className={`font-mana text-xxxs ${getTypeColor()}`}>
+            <p className={`text-xs`}>
               {getTypeLabel()}
               {item.isDefault && ` (${t('default')})`}
             </p>
@@ -52,69 +54,69 @@ export default function LibraryCard({ item, type, onLoad, onDelete, isDeleting }
           <button
             onClick={() => onDelete(item.id)}
             disabled={isDeleting}
-            className={`ml-2 p-1 text-red-400 hover:text-red-300 transition-colors ${
-              isDeleting ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
+            className="w-6 h-6 bg-rosa hover:opacity-80 disabled:bg-crema font-sat text-white rounded-sm text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
             title={t('delete_item')}
           >
-            {isDeleting ? (
-              <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
-            ) : (
-              "×"
-            )}
+            ×
           </button>
         </div>
         {item.description && (
-          <p className="text-gray-400 font-mana text-xxxs mb-3 line-clamp-2">
+          <p className="text-xs mb-3 line-clamp-2">
             {item.description}
           </p>
         )}
-        <div className="bg-black/30 rounded p-2 mb-3">
-          <p className="text-gray-300 font-mono text-xxxs line-clamp-3">
-            {getPreviewContent()}
-          </p>
+        <div className="text-xs mb-3 p-2 bg-black/30 rounded">
+          <p className="line-clamp-2">{getPreviewContent()}</p>
         </div>
-        <div className="flex items-center justify-between text-xxxs text-gray-500 font-mana mb-3">
-          <span>Created: {new Date(item.createdAt).toLocaleDateString()}</span>
-          <span>Modified: {new Date(item.lastModified).toLocaleDateString()}</span>
+        <div className="text-xs space-y-1 mb-3">
+          <div className="flex justify-between">
+            <span>{t('created')}:</span>
+            <span>{formatDate(item.createdAt)}</span>
+          </div>
         </div>
         <div className="flex gap-2">
           <button
-            onClick={() => onLoad(item.id, type)}
-            className="flex-1 px-3 py-2 bg-ama text-black font-satB text-xxxs rounded hover:opacity-80 transition-opacity"
+            onClick={(e) => { e.stopPropagation(); onLoad(item.id, type); }}
+            className="flex-1 px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-white text-black hover:opacity-80"
+            style={{ transform: "skewX(-15deg)" }}
           >
-            {t('load')}
+            <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+              {t('load')}
+            </span>
           </button>
           <button
-            onClick={() => setShowDetails(!showDetails)}
-            className="px-3 py-2 bg-gris text-white font-satB text-xxxs rounded hover:opacity-80 transition-opacity"
+            onClick={(e) => { e.stopPropagation(); setShowDetails(!showDetails); }}
+            className="px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-viol text-white hover:opacity-80"
+            style={{ transform: "skewX(-15deg)" }}
           >
-            {showDetails ? t('hide') : t('details')}
+            <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+              {showDetails ? t('hide_uppercase') : t('details')}
+            </span>
           </button>
         </div>
         {showDetails && (
-          <div className="mt-3 pt-3 border-t border-oscurazul">
-            <div className="space-y-2 text-xxxs">
-              <div className="text-gray-400 font-mana">
+          <div className="mt-3 pt-3 border-t border-aqua">
+            <div className="space-y-2 text-xs">
+              <div>
                 <span className="text-white">{t('id')}:</span> {item.id}
               </div>
               {type !== 'workflow' && (
                 <>
-                  <div className="text-gray-400 font-mana">
+                  <div className="text-crema font-mana">
                     <span className="text-white">Prompt:</span>
                   </div>
                   <div className="bg-black/30 rounded p-2 max-h-20 overflow-y-auto">
-                    <p className="font-mono text-xxxs text-gray-300">
+                    <p className="font-mono text-xxxs text-crema">
                       {(item as SynthPrompt | CompositePrompt).prompt}
                     </p>
                   </div>
                   {(item as SynthPrompt | CompositePrompt).negativePrompt && (
                     <>
-                      <div className="text-gray-400 font-mana">
+                      <div className="text-crema font-mana">
                         <span className="text-white">Negative Prompt:</span>
                       </div>
                       <div className="bg-black/30 rounded p-2 max-h-20 overflow-y-auto">
-                        <p className="font-mono text-xxxs text-gray-300">
+                        <p className="font-mono text-xxxs text-crema">
                           {(item as SynthPrompt | CompositePrompt).negativePrompt}
                         </p>
                       </div>

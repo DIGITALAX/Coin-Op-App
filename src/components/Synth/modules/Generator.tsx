@@ -282,15 +282,15 @@ export default function Generator({
   }, [aiProvider, handleProviderChange, handleLoadWorkflow, handleLoadPrompt]);
   return (
     <div className="mb-6">
-      <h2 className="text-lg font-sat text-white tracking-wider mb-4">
+      <h2 className="text-xs font-pixel text-white tracking-wider mb-4">
         {t("ai_image_generator")}
-      </h2>
-      <div className="bg-oscuro border border-gray-600 rounded p-6">
+      </h2> 
+      <div className="bg-oscuro border border-oscurazul rounded p-6">
         <div className="space-y-6">
           {aiProvider !== "comfy" && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-sat text-gray-400">
+                <label className="block text-xs font-agency text-white">
                   {t("prompt")}
                 </label>
                 <LibrarySelector
@@ -306,28 +306,28 @@ export default function Generator({
                 placeholder={t("describe_image_generate")}
                 maxLength={getPromptMaxLength()}
                 rows={3}
-                className="w-full px-3 py-2 border rounded font-sat text-sm resize-none bg-gray-700 border-gray-600 text-white"
+                className="w-full px-3 py-2 border rounded font-agency text-xs resize-none bg-oscuro border-oscurazul text-white"
               />
-              <p className="text-xs font-sat text-gray-500 mt-1">
+              <p className="text-xs font-agency text-crema mt-1">
                 {prompt.length}/{getPromptMaxLength()} {t("characters")}
               </p>
             </div>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div>
-              <label className="block text-sm font-sat text-gray-400 mb-2">
+              <label className="block text-xs font-agency text-white mb-2">
                 {t("api_provider")}
               </label>
               <div className="relative">
                 <div
                   onClick={() => setShowProviderDropdown(!showProviderDropdown)}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded font-sat text-sm cursor-pointer flex items-center justify-between"
+                  className="w-full px-3 py-2 bg-oscuro border border-oscurazul text-white rounded font-agency text-xs cursor-pointer flex items-center justify-between"
                 >
                   <span>
                     {providerOptions.find((p) => p.value === aiProvider)?.label}
                   </span>
                   <svg
-                    className={`w-4 h-4 fill-current text-gray-400 transition-transform ${
+                    className={`w-4 h-4 fill-current text-white transition-transform ${
                       showProviderDropdown ? "rotate-180" : ""
                     }`}
                     viewBox="0 0 20 20"
@@ -336,12 +336,12 @@ export default function Generator({
                   </svg>
                 </div>
                 {showProviderDropdown && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-gray-700 border border-gray-600 rounded font-sat text-sm z-10">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-black border border-oscurazul rounded font-agency text-xs z-10">
                     {providerOptions.map((option) => (
                       <div
                         key={option.value}
                         onClick={() => handleProviderChange(option.value)}
-                        className="px-3 py-2 text-white hover:bg-gray-600 cursor-pointer"
+                        className="px-3 py-2 text-white hover:bg-oscurazul cursor-pointer"
                       >
                         {option.label}
                       </div>
@@ -352,7 +352,7 @@ export default function Generator({
             </div>
             {aiProvider !== "comfy" && (
               <div>
-                <label className="block text-sm font-sat text-gray-400 mb-2">
+                <label className="block text-xs font-agency text-white mb-2">
 {t("api_key")} ({t("auto_saved")})
                 </label>
                 <div className="relative">
@@ -361,11 +361,11 @@ export default function Generator({
                     value={apiKeys[aiProvider as keyof typeof apiKeys]}
                     onChange={(e) => handleApiKeyChange(e.target.value)}
                     placeholder={`Enter ${aiProvider.toUpperCase()} API key`}
-                    className="w-full px-3 py-2 pr-10 bg-gray-700 border border-gray-600 text-white rounded font-sat text-sm"
+                    className="w-full px-3 py-2 pr-10 bg-oscuro border border-oscurazul text-white rounded font-agency text-xs"
                   />
                   <div
                     onClick={() => setShowApiKey(!showApiKey)}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white cursor-pointer"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-crema hover:text-white cursor-pointer"
                     title={showApiKey ? t("hide_api_key") : t("show_api_key")}
                   >
                     {showApiKey ? (
@@ -410,7 +410,7 @@ export default function Generator({
             {aiProvider === "comfy" && (
               <>
                 <div>
-                  <label className="block text-sm font-sat text-gray-400 mb-2">
+                  <label className="block text-xs font-agency text-white mb-2">
 {t("comfyui_url")}
                   </label>
                   <input
@@ -418,12 +418,12 @@ export default function Generator({
                     value={comfySettings.url}
                     onChange={(e) => handleComfyUrlChange(e.target.value)}
                     placeholder="http://localhost:8188"
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded font-sat text-sm"
+                    className="w-full px-3 py-2 bg-oscuro border border-oscurazul text-white rounded font-agency text-xs"
                   />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-sat text-gray-400">
+                    <label className="block text-xs font-agency text-white">
 {t("workflow_json")}
                     </label>
                     <LibrarySelector
@@ -442,20 +442,26 @@ export default function Generator({
                     />
                     <label
                       htmlFor="workflow-upload"
-                      className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-sat text-sm cursor-pointer"
+                      className="lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-viol text-white hover:opacity-80 cursor-pointer"
+                      style={{ transform: "skewX(-15deg)" }}
                     >
-{t("upload_workflow")}
+                      <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+                        {t("upload_workflow")}
+                      </span>
                     </label>
                     {comfySettings.workflowFileName && (
                       <>
-                        <span className="text-sm text-gray-400 font-sat">
+                        <span className="text-xs text-white font-agency">
                           {comfySettings.workflowFileName}
                         </span>
                         <div
                           onClick={toggleNodeEditor}
-                          className="px-3 py-2 bg-ama text-black rounded font-mana text-xxxs hover:opacity-70"
+                          className="lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-white text-black hover:opacity-80 cursor-pointer"
+                          style={{ transform: "skewX(-15deg)" }}
                         >
-                          {showNodeEditor ? t("hide") : t("edit")} {t("nodes")}
+                          <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+                            {showNodeEditor ? t("hide") : t("edit")} {t("nodes")}
+                          </span>
                         </div>
                       </>
                     )}
@@ -465,17 +471,17 @@ export default function Generator({
             )}
             {aiProvider !== "comfy" && (
               <div>
-                <label className="block text-sm font-sat text-gray-400 mb-2">
+                <label className="block text-xs font-agency text-white mb-2">
                   {t("model")}
                 </label>
                 <div className="relative">
                   <div
                     onClick={() => setShowModelDropdown(!showModelDropdown)}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded font-sat text-sm cursor-pointer flex items-center justify-between"
+                    className="w-full px-3 py-2 bg-oscuro border border-oscurazul text-white rounded font-agency text-xs cursor-pointer flex items-center justify-between"
                   >
                     <span>{selectedModel || t("select_model")}</span>
                     <svg
-                      className={`w-4 h-4 fill-current text-gray-400 transition-transform ${
+                      className={`w-4 h-4 fill-current text-white transition-transform ${
                         showModelDropdown ? "rotate-180" : ""
                       }`}
                       viewBox="0 0 20 20"
@@ -484,7 +490,7 @@ export default function Generator({
                     </svg>
                   </div>
                   {showModelDropdown && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-gray-700 border border-gray-600 rounded font-sat text-sm z-10">
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-black border border-oscurazul rounded font-agency text-xs z-10">
                       {getModelsForProvider(aiProvider).map((model) => (
                         <div
                           key={model}
@@ -492,7 +498,7 @@ export default function Generator({
                             setSelectedModel(model);
                             setShowModelDropdown(false);
                           }}
-                          className="px-3 py-2 text-white hover:bg-gray-600 cursor-pointer"
+                          className="px-3 py-2 text-white hover:bg-oscurazul cursor-pointer"
                         >
                           {model.toUpperCase()}
                         </div>
@@ -505,16 +511,16 @@ export default function Generator({
             {aiProvider !== "comfy" &&
               getLorasForProvider(aiProvider).length > 0 && (
                 <div>
-                  <label className="block text-sm font-sat text-gray-400 mb-2">
+                  <label className="block text-xs font-agency text-white mb-2">
                     {t("lora")}
                   </label>
                   <div className="relative">
                     <div
                       onClick={() => setShowLoraDropdown(!showLoraDropdown)}
-                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded font-sat text-sm cursor-pointer flex items-center justify-between"
+                      className="w-full px-3 py-2 bg-oscuro border border-oscurazul text-white rounded font-agency text-xs cursor-pointer flex items-center justify-between"
                     >
                       <svg
-                        className={`w-4 h-4 fill-current text-gray-400 transition-transform ${
+                        className={`w-4 h-4 fill-current text-white transition-transform ${
                           showLoraDropdown ? "rotate-180" : ""
                         }`}
                         viewBox="0 0 20 20"
@@ -523,7 +529,7 @@ export default function Generator({
                       </svg>
                     </div>
                     {showLoraDropdown && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-gray-700 border border-gray-600 rounded font-sat text-sm z-10">
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-black border border-oscurazul rounded font-agency text-xs z-10">
                         {getLorasForProvider(aiProvider).map((lora) => (
                           <div
                             key={lora}
@@ -531,7 +537,7 @@ export default function Generator({
                               setSelectedLora(lora);
                               setShowLoraDropdown(false);
                             }}
-                            className="px-3 py-2 text-white hover:bg-gray-600 cursor-pointer"
+                            className="px-3 py-2 text-white hover:bg-oscurazul cursor-pointer"
                           >
                             {lora.toUpperCase()}
                           </div>
@@ -545,7 +551,7 @@ export default function Generator({
               (aiProvider === "comfy" && comfySettings.hasImageInput) ||
               aiProvider === "replicate") && (
               <div>
-                <label className="block text-sm font-sat text-gray-400 mb-2">
+                <label className="block text-xs font-agency text-white mb-2">
 {t("canvas_input")}
                 </label>
                 <div
@@ -553,19 +559,19 @@ export default function Generator({
                   onClick={handleCanvasInputToggle}
                 >
                   <div className="relative">
-                    <div className="w-4 h-4 bg-gray-700 border border-gray-600 rounded flex items-center justify-center">
+                    <div className="w-4 h-4 bg-oscurazul border border-oscurazul rounded flex items-center justify-center">
                       <div
-                        className={`w-2 h-2 bg-oscurazul rounded ${
+                        className={`w-2 h-2 bg-white rounded ${
                           useCanvasAsInput ? "" : "hidden"
                         }`}
                       ></div>
                     </div>
                   </div>
-                  <span className="font-sat text-white">
+                  <span className="font-agency text-white text-xs">
 {t("use_canvas_as_input")}
                   </span>
                 </div>
-                <p className="text-xs font-sat text-gray-500 mt-2">
+                <p className="text-xs font-agency text-crema mt-2">
                   {useCanvasAsInput
                     ? aiProvider === "openai"
 ? t("canvas_png_dall_e_unavailable")
@@ -582,7 +588,7 @@ export default function Generator({
             )}
             {mode !== "composite" && (
               <div>
-                <label className="block text-sm font-sat text-gray-400 mb-2">
+                <label className="block text-xs font-agency text-white mb-2">
 {t("canvas_output")}
                 </label>
                 <div
@@ -590,17 +596,17 @@ export default function Generator({
                   onClick={() => setOverwriteCanvas(!overwriteCanvas)}
                 >
                   <div className="relative">
-                    <div className="w-4 h-4 bg-gray-700 border border-gray-600 rounded flex items-center justify-center">
+                    <div className="w-4 h-4 bg-oscurazul border border-oscurazul rounded flex items-center justify-center">
                       <div
-                        className={`w-2 h-2 bg-oscurazul rounded ${
+                        className={`w-2 h-2 bg-white rounded ${
                           overwriteCanvas ? "" : "hidden"
                         }`}
                       ></div>
                     </div>
                   </div>
-<span className="font-sat text-white">{t("overwrite_canvas")}</span>
+<span className="font-agency text-white text-xs">{t("overwrite_canvas")}</span>
                 </div>
-                <p className="text-xs font-sat text-gray-500 mt-2">
+                <p className="text-xs font-agency text-crema mt-2">
                   {overwriteCanvas
 ? t("replace_all_canvas")
                     : t("add_generated_image")}
@@ -611,7 +617,8 @@ export default function Generator({
               {!isGenerating ? (
                 <button
                   onClick={generateImage}
-                  className="flex-1 px-3 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white rounded font-sat text-sm cursor-pointer transition-colors"
+                  className="flex-1 lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-white text-black hover:opacity-80 disabled:bg-viol disabled:text-white/50 cursor-pointer"
+                  style={{ transform: "skewX(-15deg)" }}
                   disabled={
                     aiProvider === "comfy"
                       ? !comfySettings.url || !comfySettings.workflowJson
@@ -620,47 +627,54 @@ export default function Generator({
                         !prompt.trim()
                   }
                 >
-                  {t("generate_image")}
+                  <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+                    {t("generate_image")}
+                  </span>
                 </button>
               ) : (
                 <>
-                  <div className="flex-1 px-3 py-2 bg-gray-600 text-white rounded font-sat text-sm text-center">
-{t("generating")}
+                  <div className="flex-1 lowercase px-2 py-1 text-xs font-count rounded-sm border-2 border-azul bg-viol text-white text-center" style={{ transform: "skewX(-15deg)" }}>
+                    <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+                      {t("generating")}
+                    </span>
                   </div>
                   <div
                     onClick={cancelGeneration}
-                    className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-sat text-sm cursor-pointer transition-colors"
+                    className="lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-rosa text-white hover:opacity-80 cursor-pointer"
+                    style={{ transform: "skewX(-15deg)" }}
                     title={t("cancel_generation")}
                   >
-{t("cancel")}
+                    <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+                      {t("cancel")}
+                    </span>
                   </div>
                 </>
               )}
             </div>
           </div>
           {aiProvider === "openai" && selectedModel && (
-            <div className="border-t border-gray-600 pt-6">
+            <div className="border-t border-oscurazul pt-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-md font-sat text-white tracking-wider">
+                <h3 className="text-xs font-pixel text-white tracking-wider">
                   {t("openai_settings")}
                 </h3>
-                <span className="text-xs font-sat px-2 py-1 rounded bg-blue-600/20 text-blue-400">
+                <span className="text-xs font-agency px-2 py-1 rounded bg-azul/20 text-azul">
                   {useCanvasAsInput ? t("image_edit_mode") : t("generation_mode")}
                 </span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-sm font-sat text-gray-400 mb-2">
+                  <label className="block text-xs font-agency text-white mb-2">
                     {t("size")}
                   </label>
                   <div className="relative">
                     <div
                       onClick={() => setShowSizeDropdown(!showSizeDropdown)}
-                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded font-sat text-sm cursor-pointer flex items-center justify-between"
+                      className="w-full px-3 py-2 bg-oscuro border border-oscurazul text-white rounded font-agency text-xs cursor-pointer flex items-center justify-between"
                     >
                       <span>{openAiSettings.size}</span>
                       <svg
-                        className={`w-4 h-4 fill-current text-gray-400 transition-transform ${
+                        className={`w-4 h-4 fill-current text-white transition-transform ${
                           showSizeDropdown ? "rotate-180" : ""
                         }`}
                         viewBox="0 0 20 20"
@@ -669,7 +683,7 @@ export default function Generator({
                       </svg>
                     </div>
                     {showSizeDropdown && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-gray-700 border border-gray-600 rounded font-sat text-sm z-20">
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-black border border-oscurazul rounded font-agency text-xs z-20">
                         {getOpenAiSizeOptions().map((size) => (
                           <div
                             key={size}
@@ -680,7 +694,7 @@ export default function Generator({
                               }));
                               setShowSizeDropdown(false);
                             }}
-                            className="px-3 py-2 text-white hover:bg-gray-600 cursor-pointer"
+                            className="px-3 py-2 text-white hover:bg-oscurazul cursor-pointer"
                           >
                             {size}
                           </div>
@@ -690,7 +704,7 @@ export default function Generator({
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-sat text-gray-400 mb-2">
+                  <label className="block text-xs font-agency text-white mb-2">
 {t("quality")}
                   </label>
                   <div className="relative">
@@ -698,11 +712,11 @@ export default function Generator({
                       onClick={() =>
                         setShowQualityDropdown(!showQualityDropdown)
                       }
-                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded font-sat text-sm cursor-pointer flex items-center justify-between"
+                      className="w-full px-3 py-2 bg-oscuro border border-oscurazul text-white rounded font-agency text-xs cursor-pointer flex items-center justify-between"
                     >
                       <span>{openAiSettings.quality.toUpperCase()}</span>
                       <svg
-                        className={`w-4 h-4 fill-current text-gray-400 transition-transform ${
+                        className={`w-4 h-4 fill-current text-white transition-transform ${
                           showQualityDropdown ? "rotate-180" : ""
                         }`}
                         viewBox="0 0 20 20"
@@ -711,7 +725,7 @@ export default function Generator({
                       </svg>
                     </div>
                     {showQualityDropdown && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-gray-700 border border-gray-600 rounded font-sat text-sm z-20">
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-black border border-oscurazul rounded font-agency text-xs z-20">
                         {getOpenAiQualityOptions().map((quality) => (
                           <div
                             key={quality}
@@ -722,7 +736,7 @@ export default function Generator({
                               }));
                               setShowQualityDropdown(false);
                             }}
-                            className="px-3 py-2 text-white hover:bg-gray-600 cursor-pointer"
+                            className="px-3 py-2 text-white hover:bg-oscurazul cursor-pointer"
                           >
                             {quality.toUpperCase()}
                           </div>
@@ -733,17 +747,17 @@ export default function Generator({
                 </div>
                 {getOpenAiStyleOptions().length > 0 && (
                   <div>
-                    <label className="block text-sm font-sat text-gray-400 mb-2">
+                    <label className="block text-xs font-agency text-white mb-2">
                       {t("style")}
                     </label>
                     <div className="relative">
                       <div
                         onClick={() => setShowStyleDropdown(!showStyleDropdown)}
-                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded font-sat text-sm cursor-pointer flex items-center justify-between"
+                        className="w-full px-3 py-2 bg-oscuro border border-oscurazul text-white rounded font-agency text-xs cursor-pointer flex items-center justify-between"
                       >
                         <span>{openAiSettings.style.toUpperCase()}</span>
                         <svg
-                          className={`w-4 h-4 fill-current text-gray-400 transition-transform ${
+                          className={`w-4 h-4 fill-current text-white transition-transform ${
                             showStyleDropdown ? "rotate-180" : ""
                           }`}
                           viewBox="0 0 20 20"
@@ -752,7 +766,7 @@ export default function Generator({
                         </svg>
                       </div>
                       {showStyleDropdown && (
-                        <div className="absolute top-full left-0 right-0 mt-1 bg-gray-700 border border-gray-600 rounded font-sat text-sm z-20">
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-black border border-oscurazul rounded font-agency text-xs z-20">
                           {getOpenAiStyleOptions().map((style) => (
                             <div
                               key={style}
@@ -763,7 +777,7 @@ export default function Generator({
                                 }));
                                 setShowStyleDropdown(false);
                               }}
-                              className="px-3 py-2 text-white hover:bg-gray-600 cursor-pointer"
+                              className="px-3 py-2 text-white hover:bg-oscurazul cursor-pointer"
                             >
                               {style.toUpperCase()}
                             </div>
@@ -775,7 +789,7 @@ export default function Generator({
                 )}
                 {getOpenAiBackgroundOptions().length > 0 && (
                   <div>
-                    <label className="block text-sm font-sat text-gray-400 mb-2">
+                    <label className="block text-xs font-agency text-white mb-2">
                       {t("background")}
                     </label>
                     <div className="relative">
@@ -783,11 +797,11 @@ export default function Generator({
                         onClick={() =>
                           setShowBackgroundDropdown(!showBackgroundDropdown)
                         }
-                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded font-sat text-sm cursor-pointer flex items-center justify-between"
+                        className="w-full px-3 py-2 bg-oscuro border border-oscurazul text-white rounded font-agency text-xs cursor-pointer flex items-center justify-between"
                       >
                         <span>{openAiSettings.background.toUpperCase()}</span>
                         <svg
-                          className={`w-4 h-4 fill-current text-gray-400 transition-transform ${
+                          className={`w-4 h-4 fill-current text-white transition-transform ${
                             showBackgroundDropdown ? "rotate-180" : ""
                           }`}
                           viewBox="0 0 20 20"
@@ -796,7 +810,7 @@ export default function Generator({
                         </svg>
                       </div>
                       {showBackgroundDropdown && (
-                        <div className="absolute top-full left-0 right-0 mt-1 bg-gray-700 border border-gray-600 rounded font-sat text-sm z-20">
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-black border border-oscurazul rounded font-agency text-xs z-20">
                           {getOpenAiBackgroundOptions().map((bg) => (
                             <div
                               key={bg}
@@ -807,7 +821,7 @@ export default function Generator({
                                 }));
                                 setShowBackgroundDropdown(false);
                               }}
-                              className="px-3 py-2 text-white hover:bg-gray-600 cursor-pointer"
+                              className="px-3 py-2 text-white hover:bg-oscurazul cursor-pointer"
                             >
                               {bg.toUpperCase()}
                             </div>
@@ -819,7 +833,7 @@ export default function Generator({
                 )}
                 {getOpenAiInputFidelityOptions().length > 0 && (
                   <div>
-                    <label className="block text-sm font-sat text-gray-400 mb-2">
+                    <label className="block text-xs font-agency text-white mb-2">
                       {t("input_fidelity")}
                     </label>
                     <div className="relative">
@@ -829,13 +843,13 @@ export default function Generator({
                             !showInputFidelityDropdown
                           )
                         }
-                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded font-sat text-sm cursor-pointer flex items-center justify-between"
+                        className="w-full px-3 py-2 bg-oscuro border border-oscurazul text-white rounded font-agency text-xs cursor-pointer flex items-center justify-between"
                       >
                         <span>
                           {openAiSettings.inputFidelity.toUpperCase()}
                         </span>
                         <svg
-                          className={`w-4 h-4 fill-current text-gray-400 transition-transform ${
+                          className={`w-4 h-4 fill-current text-white transition-transform ${
                             showInputFidelityDropdown ? "rotate-180" : ""
                           }`}
                           viewBox="0 0 20 20"
@@ -844,7 +858,7 @@ export default function Generator({
                         </svg>
                       </div>
                       {showInputFidelityDropdown && (
-                        <div className="absolute top-full left-0 right-0 mt-1 bg-gray-700 border border-gray-600 rounded font-sat text-sm z-20">
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-black border border-oscurazul rounded font-agency text-xs z-20">
                           {getOpenAiInputFidelityOptions().map((fidelity) => (
                             <div
                               key={fidelity}
@@ -855,7 +869,7 @@ export default function Generator({
                                 }));
                                 setShowInputFidelityDropdown(false);
                               }}
-                              className="px-3 py-2 text-white hover:bg-gray-600 cursor-pointer"
+                              className="px-3 py-2 text-white hover:bg-oscurazul cursor-pointer"
                             >
                               {fidelity.toUpperCase()}
                             </div>
@@ -863,7 +877,7 @@ export default function Generator({
                         </div>
                       )}
                     </div>
-                    <p className="text-xs font-sat text-gray-500 mt-1">
+                    <p className="text-xs font-agency text-crema mt-1">
                       {openAiSettings.inputFidelity === "high"
 ? t("match_input_style")
 : t("allow_creative_interpretation")}
@@ -874,15 +888,15 @@ export default function Generator({
             </div>
           )}
           {aiProvider === "replicate" && selectedModel && (
-            <div className="border-t border-gray-600 pt-6">
+            <div className="border-t border-oscurazul pt-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-md font-sat text-white tracking-wider">
+                <h3 className="text-xs font-pixel text-white tracking-wider">
                   {t("replicate_settings")}
                 </h3>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-sat text-gray-400 mb-2">
+                  <label className="block text-xs font-agency text-white mb-2">
                     {t("inference_steps")}
                   </label>
                   <input
@@ -899,14 +913,14 @@ export default function Generator({
                         });
                       }
                     }}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded font-sat text-sm"
+                    className="w-full px-3 py-2 bg-oscuro border border-oscurazul text-white rounded font-agency text-xs"
                   />
-                  <p className="text-xs font-sat text-gray-500 mt-1">
+                  <p className="text-xs font-agency text-crema mt-1">
                     Higher = better quality, slower (1-100)
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-sat text-gray-400 mb-2">
+                  <label className="block text-xs font-agency text-white mb-2">
                     {t("aspect_ratio")}
                   </label>
                   <div className="relative">
@@ -914,11 +928,11 @@ export default function Generator({
                       onClick={() =>
                         setShowAspectRatioDropdown(!showAspectRatioDropdown)
                       }
-                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded font-sat text-sm cursor-pointer flex items-center justify-between"
+                      className="w-full px-3 py-2 bg-oscuro border border-oscurazul text-white rounded font-agency text-xs cursor-pointer flex items-center justify-between"
                     >
                       <span>{replicateSettings.aspectRatio}</span>
                       <svg
-                        className={`w-4 h-4 fill-current text-gray-400 transition-transform ${
+                        className={`w-4 h-4 fill-current text-white transition-transform ${
                           showAspectRatioDropdown ? "rotate-180" : ""
                         }`}
                         viewBox="0 0 20 20"
@@ -927,7 +941,7 @@ export default function Generator({
                       </svg>
                     </div>
                     {showAspectRatioDropdown && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-gray-700 border border-gray-600 rounded font-sat text-sm z-20">
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-black border border-oscurazul rounded font-agency text-xs z-20">
                         {["1:1", "16:9", "9:16", "4:3", "3:4"].map((ratio) => (
                           <div
                             key={ratio}
@@ -938,7 +952,7 @@ export default function Generator({
                               });
                               setShowAspectRatioDropdown(false);
                             }}
-                            className="px-3 py-2 text-white hover:bg-gray-600 cursor-pointer"
+                            className="px-3 py-2 text-white hover:bg-oscurazul cursor-pointer"
                           >
                             {ratio}
                           </div>
@@ -946,7 +960,7 @@ export default function Generator({
                       </div>
                     )}
                   </div>
-                  <p className="text-xs font-sat text-gray-500 mt-1">
+                  <p className="text-xs font-agency text-crema mt-1">
                     Image dimensions ratio
                   </p>
                 </div>

@@ -58,7 +58,7 @@ export const usePattern = () => {
         )!;
         for (const child of childrenWithCoordinates) {
           const childUri = child.child.metadata.image;
-          const fullChildUrl = childUri.startsWith("ipfs://")
+          const fullChildUrl = childUri?.startsWith("ipfs://")
             ? `${INFURA_GATEWAY}/ipfs/${childUri.replace("ipfs://", "")}`
             : childUri;
           const childResponse = await fetch(fullChildUrl);

@@ -31,17 +31,23 @@ export default function LibrarySelector({ type, mode = 'synth', onSelect, onSave
       <div className={`flex gap-2 ${className}`}>
         <button
           onClick={() => setIsOpen(true)}
-          className="px-3 py-2 bg-gris text-white font-satB text-xxxs rounded hover:opacity-80 transition-opacity"
+          className="lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-viol text-white hover:opacity-80"
+          style={{ transform: "skewX(-15deg)" }}
           title={`${t('load_from_library')} ${typeLabel}`}
         >
-          {type === 'workflow' ? t('load_workflows') : (mode === 'composite' ? t('load_composite_prompts') : t('load_synth_prompts'))}
+          <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+            {type === 'workflow' ? t('load_workflows') : (mode === 'composite' ? t('load_composite_prompts') : t('load_synth_prompts'))}
+          </span>
         </button>
         <button
           onClick={() => setShowSaveModal(true)}
-          className="px-3 py-2 bg-ama text-black font-satB text-xxxs rounded hover:opacity-80 transition-opacity"
+          className="lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-white text-black hover:opacity-80"
+          style={{ transform: "skewX(-15deg)" }}
           title={`${t('save_current_to_library')} ${type}`}
         >
-          {t('save_to_library')}
+          <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+            {t('save_to_library')}
+          </span>
         </button>
       </div>
     );
@@ -49,28 +55,28 @@ export default function LibrarySelector({ type, mode = 'synth', onSelect, onSave
   if (showSaveModal) {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-black border border-oscurazul rounded-lg p-6 w-full max-w-md mx-4">
-          <h3 className={`font-satB text-lg ${typeColor} mb-4`}>
+        <div className="bg-oscuro border-2 border-azul rounded-lg p-6 w-full max-w-md mx-4">
+          <h3 className="font-pixel text-xs text-white mb-4">
             {type === 'workflow' ? t('save_workflow_to_library') : t('save_prompt_to_library')}
           </h3>
           <div className="space-y-4">
             <div>
-              <label className="block text-white font-mana text-xxxs mb-2">{t('name')} *</label>
+              <label className="block text-white font-agency text-xs mb-2">{t('name')} *</label>
               <input
                 type="text"
                 value={saveName}
                 onChange={(e) => setSaveName(e.target.value)}
-                className="w-full px-3 py-2 bg-black border border-oscurazul rounded text-white font-mana text-xxxs focus:border-ama outline-none"
+                className="w-full px-3 py-2 bg-black border border-oscurazul rounded text-white font-agency text-xs focus:border-azul outline-none"
                 placeholder={`${t('enter_name')} ${type}`}
                 autoFocus
               />
             </div>
             <div>
-              <label className="block text-white font-mana text-xxxs mb-2">{t('description')}</label>
+              <label className="block text-white font-agency text-xs mb-2">{t('description')}</label>
               <textarea
                 value={saveDescription}
                 onChange={(e) => setSaveDescription(e.target.value)}
-                className="w-full px-3 py-2 bg-black border border-oscurazul rounded text-white font-mana text-xxxs focus:border-ama outline-none resize-none"
+                className="w-full px-3 py-2 bg-black border border-oscurazul rounded text-white font-agency text-xs focus:border-azul outline-none resize-none"
                 placeholder={t('optional_description')}
                 rows={3}
               />
@@ -83,20 +89,26 @@ export default function LibrarySelector({ type, mode = 'synth', onSelect, onSave
                 setSaveName("");
                 setSaveDescription("");
               }}
-              className="px-4 py-2 bg-gris text-white font-satB text-xxxs rounded hover:opacity-80 transition-opacity"
+              className="lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-viol text-white hover:opacity-80"
+              style={{ transform: "skewX(-15deg)" }}
             >
-              {t('cancel')}
+              <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+                {t('cancel')}
+              </span>
             </button>
             <button
               onClick={handleSave}
               disabled={!saveName.trim()}
-              className={`px-4 py-2 font-satB text-xxxs rounded transition-opacity ${
+              className={`lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul ${
                 saveName.trim()
-                  ? 'bg-ama text-black hover:opacity-80'
-                  : 'bg-gris/50 text-gray-400 cursor-not-allowed'
+                  ? 'bg-white text-black hover:opacity-80'
+                  : 'bg-viol text-white/50 cursor-not-allowed'
               }`}
+              style={{ transform: "skewX(-15deg)" }}
             >
-              {t('save')}
+              <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+                {t('save')}
+              </span>
             </button>
           </div>
         </div>
@@ -105,24 +117,24 @@ export default function LibrarySelector({ type, mode = 'synth', onSelect, onSave
   }
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-oscuro border border-oscurazul rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[80vh] overflow-hidden flex flex-col">
+      <div className="bg-oscuro border-2 border-azul rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[80vh] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between mb-6">
-          <h3 className={`font-satB text-lg ${typeColor}`}>
+          <h3 className="font-pixel text-xs text-white">
             {t('library')} {typeLabel} ({items.length})
           </h3>
           <button
             onClick={() => setIsOpen(false)}
-            className="text-gray-400 hover:text-white transition-colors text-xl font-bold"
+            className="text-white hover:opacity-80 transition-opacity text-xl font-bold"
           >
             ×
           </button>
         </div>
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="text-gray-500 font-sat text-lg mb-2">
+            <div className="text-white font-agency text-xs mb-2">
               {t('no_yet')} {typeLabel}
             </div>
-            <div className="text-gray-400 font-mana text-sm max-w-md">
+            <div className="text-crema font-agency text-xs max-w-md">
               {t('save_your_first')} {type} {t('to_see_it_appear_here')}.
             </div>
           </div>
@@ -132,32 +144,32 @@ export default function LibrarySelector({ type, mode = 'synth', onSelect, onSave
               {items.map((item) => (
                 <div
                   key={item.id}
-                  className="bg-black/30 border border-oscurazul rounded p-4 hover:border-ama transition-colors cursor-pointer"
+                  className="bg-black/30 border-2 border-oscurazul rounded p-4 hover:border-azul transition-colors cursor-pointer"
                   onClick={() => handleSelect(item)}
                 >
                   <div className="flex items-start justify-between mb-3">
-                    <h4 className="text-white font-satB text-sm truncate">
+                    <h4 className="text-white font-agency text-xs truncate">
                       {item.name}
                     </h4>
                     {item.isDefault && (
-                      <span className="px-2 py-1 bg-ama/20 text-ama font-mana text-xxxs rounded">
+                      <span className="px-2 py-1 bg-azul/20 text-azul font-agency text-xs rounded">
                         {t('default')}
                       </span>
                     )}
                   </div>
                   {item.description && (
-                    <p className="text-gray-400 font-mana text-xxxs mb-3 line-clamp-2">
+                    <p className="text-crema font-agency text-xs mb-3 line-clamp-2">
                       {item.description}
                     </p>
                   )}
                   {type === 'prompt' && (
                     <div className="bg-black/50 rounded p-2 mb-3">
-                      <p className="text-gray-300 font-mono text-xxxs line-clamp-3">
+                      <p className="text-crema font-agency text-xs line-clamp-3">
                         {(item as SynthPrompt).prompt}
                       </p>
                     </div>
                   )}
-                  <div className="flex items-center justify-between text-xxxs text-gray-500 font-mana">
+                  <div className="flex items-center justify-between text-xs text-crema font-agency">
                     <span>{t('created')}: {new Date(item.createdAt).toLocaleDateString()}</span>
                     <span>{t('modified')}: {new Date(item.lastModified).toLocaleDateString()}</span>
                   </div>
@@ -169,9 +181,12 @@ export default function LibrarySelector({ type, mode = 'synth', onSelect, onSave
         <div className="flex justify-center mt-6">
           <button
             onClick={() => setIsOpen(false)}
-            className="px-6 py-2 bg-gris text-white font-satB text-sm rounded hover:opacity-80 transition-opacity"
+            className="lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-viol text-white hover:opacity-80"
+            style={{ transform: "skewX(-15deg)" }}
           >
-            {t('close')}
+            <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+              {t('close')}
+            </span>
           </button>
         </div>
       </div>

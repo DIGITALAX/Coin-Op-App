@@ -51,8 +51,8 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
   }, [setElements, loadFromHistory]);
   if (!selectedLayer) {
     return (
-      <div className="w-full h-full flex items-center justify-center border border-ama rounded">
-        <p className="text-white font-mana text-sm">{t("no_layer_selected")}</p>
+      <div className="w-full h-full flex items-center justify-center border border-crema rounded">
+        <p className="text-crema font-agency text-sm">{t("no_layer_selected")}</p>
       </div>
     );
   }
@@ -62,26 +62,26 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
         <div className="flex flex-wrap items-center gap-3">
           <div
             onClick={() => setTool("pencil")}
-            className={`px-3 py-1.5 rounded font-mana text-xxxs cursor-pointer ${
+            className={`px-3 py-1.5 rounded-sm font-agency text-xs cursor-pointer ${
               tool === "pencil"
-                ? "bg-ama text-black"
-                : "bg-gris text-white hover:opacity-70"
+                ? "bg-white text-black"
+                : "bg-crema text-black hover:opacity-70"
             }`}
           >
             {t("brush")}
           </div>
           <div
             onClick={() => setTool("erase")}
-            className={`px-3 py-1.5 rounded font-mana text-xxxs cursor-pointer ${
+            className={`px-3 py-1.5 rounded-sm font-agency text-xs cursor-pointer ${
               tool === "erase"
-                ? "bg-ama text-black"
-                : "bg-gris text-white hover:opacity-70"
+                ? "bg-white text-black"
+                : "bg-crema text-black hover:opacity-70"
             }`}
           >
             {t("eraser")}
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-white font-mana text-xxxs">{t("size")}:</span>
+            <span className="text-black font-agency text-xs">{t("size")}:</span>
             <input
               type="range"
               min="1"
@@ -90,12 +90,12 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
               onChange={(e) => setBrushWidth(Number(e.target.value))}
               className="w-16"
             />
-            <span className="text-white font-mana text-xxxs w-6">
+            <span className="text-black font-agency text-xs w-6">
               {brushWidth}
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-white font-mana text-xxxs">{t("color")}:</span>
+            <span className="text-black font-agency text-xs">{t("color")}:</span>
             <input
               type="color"
               value={hex}
@@ -107,13 +107,13 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
         <div className="flex flex-wrap items-center gap-2">
           <div
             onClick={recenterCanvas}
-            className="px-3 py-1.5 bg-gris hover:opacity-70 text-white rounded font-mana text-xxxs cursor-pointer"
+            className="px-3 py-1.5 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs cursor-pointer"
           >
             {t("recenter")}
           </div>
           <div
             onClick={saveCanvasToHistory}
-            className="px-3 py-1.5 bg-gris hover:opacity-70 text-white rounded font-mana text-xxxs cursor-pointer"
+            className="px-3 py-1.5 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs cursor-pointer"
           >
             {t("save")}
           </div>
@@ -130,22 +130,22 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
               };
               input.click();
             }}
-            className="px-3 py-1.5 bg-gris hover:opacity-70 text-white rounded font-mana text-xxxs cursor-pointer"
+            className="px-3 py-1.5 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs cursor-pointer"
           >
             {t("load_image")}
           </div>
           <div
             onClick={clearCanvas}
-            className="px-3 py-1.5 bg-gris hover:opacity-70 text-white rounded font-mana text-xxxs cursor-pointer"
+            className="px-3 py-1.5 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs cursor-pointer"
           >
             {t("clear")}
           </div>
           <div
             onClick={() => undoHistory.length > 0 && undo()}
-            className={`px-3 py-1.5 text-white rounded font-mana text-xxxs cursor-pointer ${
+            className={`px-3 py-1.5 text-black rounded-sm font-agency text-xs cursor-pointer ${
               undoHistory.length === 0
-                ? "bg-gris/40 cursor-not-allowed"
-                : "bg-gris hover:opacity-70"
+                ? "bg-crema/40 cursor-not-allowed"
+                : "bg-crema hover:opacity-70"
             }`}
             title= {t("undo")}
           >
@@ -153,10 +153,10 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
           </div>
           <div
             onClick={() => redoHistory.length > 0 && redo()}
-            className={`px-3 py-1.5 text-white rounded font-mana text-xxxs cursor-pointer ${
+            className={`px-3 py-1.5 text-black rounded-sm font-agency text-xs cursor-pointer ${
               redoHistory.length === 0
-                ? "bg-gris/40 cursor-not-allowed"
-                : "bg-gris hover:opacity-70"
+                ? "bg-crema/40 cursor-not-allowed"
+                : "bg-crema hover:opacity-70"
             }`}
             title={t("redo")}
           >
@@ -164,13 +164,13 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
           </div>
         </div>
         {selectedImageElement && (
-          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-ama">
-            <span className="text-white font-mana text-xxxs">{t("size")}:</span>
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-crema">
+            <span className="text-black font-agency text-xs">{t("size")}:</span>
             <HoldButton
               onAction={() => {
                 if (adjustImageWidth) adjustImageWidth(-5);
               }}
-              className="px-2 py-1 bg-gris hover:opacity-70 text-white rounded font-mana text-xxxs"
+              className="px-2 py-1 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs"
             >
               W-
             </HoldButton>
@@ -178,7 +178,7 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
               onAction={() => {
                 if (adjustImageWidth) adjustImageWidth(5);
               }}
-              className="px-2 py-1 bg-gris hover:opacity-70 text-white rounded font-mana text-xxxs"
+              className="px-2 py-1 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs"
             >
               W+
             </HoldButton>
@@ -186,7 +186,7 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
               onAction={() => {
                 if (adjustImageHeight) adjustImageHeight(-5);
               }}
-              className="px-2 py-1 bg-gris hover:opacity-70 text-white rounded font-mana text-xxxs"
+              className="px-2 py-1 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs"
             >
               H-
             </HoldButton>
@@ -194,16 +194,16 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
               onAction={() => {
                 if (adjustImageHeight) adjustImageHeight(5);
               }}
-              className="px-2 py-1 bg-gris hover:opacity-70 text-white rounded font-mana text-xxxs"
+              className="px-2 py-1 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs"
             >
               H+
             </HoldButton>
-            <span className="text-white font-mana text-xxxs ml-2">{t("move")}:</span>
+            <span className="text-black font-agency text-xs ml-2">{t("move")}:</span>
             <HoldButton
               onAction={() => {
                 if (moveImage) moveImage(0, -3);
               }}
-              className="px-2 py-1 bg-gris hover:opacity-70 text-white rounded font-mana text-xxxs"
+              className="px-2 py-1 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs"
             >
               ↑
             </HoldButton>
@@ -211,7 +211,7 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
               onAction={() => {
                 if (moveImage) moveImage(0, 3);
               }}
-              className="px-2 py-1 bg-gris hover:opacity-70 text-white rounded font-mana text-xxxs"
+              className="px-2 py-1 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs"
             >
               ↓
             </HoldButton>
@@ -219,7 +219,7 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
               onAction={() => {
                 if (moveImage) moveImage(-3, 0);
               }}
-              className="px-2 py-1 bg-gris hover:opacity-70 text-white rounded font-mana text-xxxs"
+              className="px-2 py-1 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs"
             >
               ←
             </HoldButton>
@@ -227,16 +227,16 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
               onAction={() => {
                 if (moveImage) moveImage(3, 0);
               }}
-              className="px-2 py-1 bg-gris hover:opacity-70 text-white rounded font-mana text-xxxs"
+              className="px-2 py-1 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs"
             >
               →
             </HoldButton>
-            <span className="text-white font-mana text-xxxs ml-2">{t("rotate")}:</span>
+            <span className="text-black font-agency text-xs ml-2">{t("rotate")}:</span>
             <div
               onClick={() => {
                 if (rotateImage) rotateImage(-15);
               }}
-              className="px-2 py-1 bg-gris hover:opacity-70 text-white rounded font-mana text-xxxs cursor-pointer"
+              className="px-2 py-1 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs cursor-pointer"
             >
               ↶
             </div>
@@ -244,16 +244,16 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
               onClick={() => {
                 if (rotateImage) rotateImage(15);
               }}
-              className="px-2 py-1 bg-gris hover:opacity-70 text-white rounded font-mana text-xxxs cursor-pointer"
+              className="px-2 py-1 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs cursor-pointer"
             >
               ↷
             </div>
-            <span className="text-white font-mana text-xxxs ml-2">{t("delete")}:</span>
+            <span className="text-black font-agency text-xs ml-2">{t("delete")}:</span>
             <div
               onClick={() => {
                 if (deleteImage) deleteImage();
               }}
-              className="px-2 py-1 bg-gris hover:opacity-70 text-white rounded font-mana text-xxxs cursor-pointer"
+              className="px-2 py-1 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs cursor-pointer"
             >
               ×
             </div>{" "}
@@ -262,7 +262,7 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
       </div>
       <div
         ref={containerRef}
-        className="h-full w-full rounded-md border border-oscurazul relative overflow-hidden bg-oscurazul"
+        className="h-full w-full rounded border border-crema relative overflow-hidden bg-black"
       >
         <canvas
           ref={canvasRef}
@@ -287,19 +287,13 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
             {getVisibleChildren().map((child, index) => (
               <div
                 key={index}
-                className={`relative w-20 h-full flex flex-row items-center justify-center gap-2 border hover:opacity-70 rounded-lg cursor-pointer ${
+                className={`relative w-20 h-full flex flex-row items-center justify-center gap-2 border hover:opacity-70 rounded cursor-pointer bg-black ${
                   selectedPatternChild?.uri === child?.uri
-                    ? "border-white"
-                    : "border-oscurazul"
+                    ? "border-rosa"
+                    : "border-crema"
                 }`}
                 onClick={() => setSelectedPatternChild(child)}
               >
-                <img
-                  src={`${INFURA_GATEWAY}/ipfs/QmPKU1ck9PLyFchFpe2vzJh3eyxSYij28ixTdRzaHi4E1p`}
-                  className="rounded-lg absolute w-full h-full object-cover"
-                  draggable={false}
-                  alt="background"
-                />
                 <div className="relative w-full h-full flex items-center justify-center">
                   <img
                     src={`${INFURA_GATEWAY}/ipfs/${
@@ -322,12 +316,12 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
         </div>
         <div className="relative w-fit h-full flex flex-row items-center justify-center gap-1.5">
           <div
-            className="relative w-5 h-5 flex items-center justify-center cursor-pointer active:scale-95"
+            className="relative w-5 h-5 flex items-center justify-center cursor-pointer active:scale-95 rotate-180"
             onClick={() => navigateChild("prev")}
           >
             <img
-              src={`${INFURA_GATEWAY}/ipfs/Qma3jm41B4zYQBxag5sJSmfZ45GNykVb8TX9cE3syLafz2`}
-              className="w-full h-full"
+              src="/images/arrow.png"
+              className="w-full h-full object-contain"
               draggable={false}
               alt="previous"
             />
@@ -337,8 +331,8 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
             onClick={() => navigateChild("next")}
           >
             <img
-              src={`${INFURA_GATEWAY}/ipfs/QmcBVNVZWGBDcAxF4i564uSNGZrUvzhu5DKkXESvhY45m6`}
-              className="w-full h-full"
+              src="/images/arrow.png"
+              className="w-full h-full object-contain"
               draggable={false}
               alt="next"
             />

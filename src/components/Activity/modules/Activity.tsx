@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import PageNavigation from "../../Common/modules/PageNavigation";
 import { useDesignContext } from "../../../context/DesignContext";
 import { useLibrary } from "../../../context/LibraryContext";
 import { useApp } from "../../../context/AppContext";
@@ -13,24 +12,28 @@ export default function Activity() {
   const { isLoadingTemplates } = useApp();
   const { availableDesigns, isLoading, loadDesign, deleteDesign } =
     useDesignContext();
-  const { 
-    workflows, 
-    synthPrompts, 
-    compositePrompts, 
-    stats, 
+  const {
+    workflows,
+    synthPrompts,
+    compositePrompts,
+    stats,
     isLoading: libraryLoading,
     deleteWorkflow,
     deleteSynthPrompt,
-    deleteCompositePrompt
+    deleteCompositePrompt,
   } = useLibrary();
   const navigate = useNavigate();
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
-  const [isDeletingLibrary, setIsDeletingLibrary] = useState<string | null>(null);
+  const [isDeletingLibrary, setIsDeletingLibrary] = useState<string | null>(
+    null
+  );
   const [showDeleteModal, setShowDeleteModal] = useState<{
     designId: string;
     designName: string;
   } | null>(null);
-  const [activeTab, setActiveTab] = useState<'projects' | 'library'>('projects');
+  const [activeTab, setActiveTab] = useState<"projects" | "library">(
+    "projects"
+  );
   const handleLoadDesign = async (designId: string) => {
     try {
       await loadDesign(designId);
@@ -61,38 +64,44 @@ export default function Activity() {
   const handleCancelDelete = () => {
     setShowDeleteModal(null);
   };
-  const handleLoadLibraryItem = async (id: string, type: 'workflow' | 'synthPrompt' | 'compositePrompt') => {
+  const handleLoadLibraryItem = async (
+    id: string,
+    type: "workflow" | "synthPrompt" | "compositePrompt"
+  ) => {
     try {
       switch (type) {
-        case 'workflow':
-          localStorage.setItem('loadWorkflowId', id);
-          localStorage.setItem('switchToComfyUI', 'true');
-          navigate('/Synth');
+        case "workflow":
+          localStorage.setItem("loadWorkflowId", id);
+          localStorage.setItem("switchToComfyUI", "true");
+          navigate("/Synth");
           break;
-        case 'synthPrompt':
-          navigate('/Synth');
-          localStorage.setItem('loadSynthPromptId', id);
+        case "synthPrompt":
+          navigate("/Synth");
+          localStorage.setItem("loadSynthPromptId", id);
           break;
-        case 'compositePrompt':
-          navigate('/Composite');
-          localStorage.setItem('loadCompositePromptId', id);
+        case "compositePrompt":
+          navigate("/Composite");
+          localStorage.setItem("loadCompositePromptId", id);
           break;
       }
     } catch (error) {
       alert(t("failed_to_load_library_item"));
     }
   };
-  const handleDeleteLibraryItem = async (id: string, type: 'workflow' | 'synthPrompt' | 'compositePrompt') => {
+  const handleDeleteLibraryItem = async (
+    id: string,
+    type: "workflow" | "synthPrompt" | "compositePrompt"
+  ) => {
     try {
       setIsDeletingLibrary(id);
       switch (type) {
-        case 'workflow':
+        case "workflow":
           await deleteWorkflow(id);
           break;
-        case 'synthPrompt':
+        case "synthPrompt":
           await deleteSynthPrompt(id);
           break;
-        case 'compositePrompt':
+        case "compositePrompt":
           await deleteCompositePrompt(id);
           break;
       }
@@ -103,16 +112,19 @@ export default function Activity() {
     }
   };
 
-  if (isLoadingTemplates) {
+  if (!isLoadingTemplates) {
     return (
       <div className="relative w-full h-full flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ama"></div>
-          <div className="text-white font-satB text-lg tracking-wider">
-            {t('loading_templates')}
+          <img
+            src="/images/settings.png"
+            className="w-6 h-6 animate-spin"
+            draggable={false}
+          />
+          <div className="text-white font-slim text-sm tracking-wider">
+            {t("loading_templates")}
           </div>
         </div>
-        <PageNavigation currentPage="/Activity" />
       </div>
     );
   }
@@ -120,53 +132,66 @@ export default function Activity() {
   return (
     <div className="relative w-full h-full flex flex-col p-4 bg-black">
       <div className="mb-6">
-        <h2 className="text-lg font-satB text-white tracking-wider mb-4">
+        <h2 className="text-2xl font-ark text-white tracking-wider mb-4">
           {t("activity")}
         </h2>
-        <div className="flex items-center gap-4 mb-4">
-          <button
-            onClick={() => setActiveTab('projects')}
-            className={`px-4 py-2 font-satB text-sm rounded transition-colors ${
-              activeTab === 'projects'
-                ? 'bg-ama text-black'
-                : 'bg-gris text-white hover:opacity-70'
-            }`}
-          >
-            {t("projects")} ({availableDesigns.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('library')}
-            className={`px-4 py-2 font-satB text-sm rounded transition-colors ${
-              activeTab === 'library'
-                ? 'bg-ama text-black'
-                : 'bg-gris text-white hover:opacity-70'
-            }`}
-          >
-            {t("library")} ({stats.workflowsCount + stats.synthPromptsCount + stats.compositePromptsCount})
-          </button>
+        <div className="relative w-full justify-between flex flex-row gap-2">
+          <p className="text-crema font-agency text-sm">
+            {activeTab === "projects"
+              ? t("manage_designs")
+              : t("manage_library")}
+          </p>
+          <div className="flex flex-row items-center gap-4 mb-4">
+            <button
+              onClick={() => setActiveTab("projects")}
+              className={`relative lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul ${
+                activeTab === "projects" ? "bg-white" : "bg-viol"
+              }`}
+              style={{ transform: "skewX(-15deg)" }}
+            >
+              <span
+                style={{ transform: "skewX(15deg)" }}
+                className="relative inline-block"
+              >
+                {t("projects")} ({availableDesigns.length})
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab("library")}
+              className={`relative lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul ${
+                activeTab === "library" ? "bg-white" : "bg-viol"
+              }`}
+              style={{ transform: "skewX(-15deg)" }}
+            >
+              <span
+                style={{ transform: "skewX(15deg)" }}
+                className="relative inline-block"
+              >
+                {t("library")} (
+                {stats.workflowsCount +
+                  stats.synthPromptsCount +
+                  stats.compositePromptsCount}
+                )
+              </span>
+            </button>
+          </div>
         </div>
-        <p className="text-gray-400 font-mana text-xxxs">
-          {activeTab === 'projects' 
-            ? t('manage_designs')
-            : t('manage_library')
-          }
-        </p>
       </div>
       <div className="flex-1 overflow-y-scroll">
-        {activeTab === 'projects' ? (
+        {activeTab === "projects" ? (
           <>
             {isLoading ? (
               <div className="flex items-center justify-center h-64">
-                <div className="text-gray-400 font-sat text-sm">
+                <div className="text-crema font-sat text-sm">
                   {t("loading_designs")}
                 </div>
               </div>
             ) : availableDesigns.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-center">
-                <div className="text-gray-500 font-sat text-lg mb-2">
+                <div className="text-crema font-sat text-lg mb-2">
                   {t("no_designs_yet")}
                 </div>
-                <div className="text-gray-400 font-mana text-sm max-w-md">
+                <div className="text-crema font-mana text-sm max-w-md">
                   {t("start_creating_designs")}
                 </div>
               </div>
@@ -184,9 +209,13 @@ export default function Activity() {
               </div>
             )}
             {availableDesigns.length > 0 && (
-              <div className="mt-8 pt-4 border-t border-gray-700">
-                <div className="text-sm text-gray-400 font-sat">
-                  {availableDesigns.length} {availableDesigns.length !== 1 ? t("designs_saved_locally") : t("design_saved_locally")} {t("saved_locally")}
+              <div className="mt-8 pt-4 border-t border-crema">
+                <div className="text-sm text-crema font-agency">
+                  {availableDesigns.length}{" "}
+                  {availableDesigns.length !== 1
+                    ? t("designs_saved_locally")
+                    : t("design_saved_locally")}{" "}
+                  {t("saved_locally")}
                 </div>
               </div>
             )}
@@ -195,16 +224,18 @@ export default function Activity() {
           <>
             {libraryLoading ? (
               <div className="flex items-center justify-center h-64">
-                <div className="text-gray-400 font-sat text-sm">
+                <div className="text-crema font-sat text-sm">
                   {t("loading_library")}
                 </div>
               </div>
-            ) : workflows.length === 0 && synthPrompts.length === 0 && compositePrompts.length === 0 ? (
+            ) : workflows.length === 0 &&
+              synthPrompts.length === 0 &&
+              compositePrompts.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-center">
-                <div className="text-gray-500 font-sat text-lg mb-2">
+                <div className="text-crema font-sat text-lg mb-2">
                   {t("no_library_items_yet")}
                 </div>
-                <div className="text-gray-400 font-mana text-sm max-w-md">
+                <div className="text-crema font-mana text-sm max-w-md">
                   {t("save_workflows_prompts")}
                 </div>
               </div>
@@ -212,18 +243,20 @@ export default function Activity() {
               <div className="space-y-8">
                 {workflows.length > 0 && (
                   <div>
-                    <h3 className="text-blue-400 font-satB text-sm mb-4 flex items-center gap-2">
+                    <h3 className="text-white font-slim text-sm mb-4 flex items-center gap-2">
                       <span>{t("comfyui_workflows")}</span>
-                      <span className="text-gray-400">({workflows.length})</span>
+                      <span className="text-ligero">({workflows.length})</span>
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                       {workflows.map((workflow) => (
                         <LibraryCard
                           key={workflow.id}
                           item={workflow}
                           type="workflow"
                           onLoad={(id, type) => handleLoadLibraryItem(id, type)}
-                          onDelete={(id) => handleDeleteLibraryItem(id, 'workflow')}
+                          onDelete={(id) =>
+                            handleDeleteLibraryItem(id, "workflow")
+                          }
                           isDeleting={isDeletingLibrary === workflow.id}
                         />
                       ))}
@@ -232,18 +265,22 @@ export default function Activity() {
                 )}
                 {synthPrompts.length > 0 && (
                   <div>
-                    <h3 className="text-green-400 font-satB text-sm mb-4 flex items-center gap-2">
+                    <h3 className="text-white font-slim text-sm mb-4 flex items-center gap-2">
                       <span>{t("synth_prompts")}</span>
-                      <span className="text-gray-400">({synthPrompts.length})</span>
+                      <span className="text-ligero">
+                        ({synthPrompts.length})
+                      </span>
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                       {synthPrompts.map((prompt) => (
                         <LibraryCard
                           key={prompt.id}
                           item={prompt}
                           type="synthPrompt"
                           onLoad={(id, type) => handleLoadLibraryItem(id, type)}
-                          onDelete={(id) => handleDeleteLibraryItem(id, 'synthPrompt')}
+                          onDelete={(id) =>
+                            handleDeleteLibraryItem(id, "synthPrompt")
+                          }
                           isDeleting={isDeletingLibrary === prompt.id}
                         />
                       ))}
@@ -252,18 +289,22 @@ export default function Activity() {
                 )}
                 {compositePrompts.length > 0 && (
                   <div>
-                    <h3 className="text-purple-400 font-satB text-sm mb-4 flex items-center gap-2">
+                    <h3 className="text-white font-slim text-sm mb-4 flex items-center gap-2">
                       <span>{t("composite_prompts")}</span>
-                      <span className="text-gray-400">({compositePrompts.length})</span>
+                      <span className="text-ligero">
+                        ({compositePrompts.length})
+                      </span>
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                       {compositePrompts.map((prompt) => (
                         <LibraryCard
                           key={prompt.id}
                           item={prompt}
                           type="compositePrompt"
                           onLoad={(id, type) => handleLoadLibraryItem(id, type)}
-                          onDelete={(id) => handleDeleteLibraryItem(id, 'compositePrompt')}
+                          onDelete={(id) =>
+                            handleDeleteLibraryItem(id, "compositePrompt")
+                          }
                           isDeleting={isDeletingLibrary === prompt.id}
                         />
                       ))}
@@ -272,17 +313,27 @@ export default function Activity() {
                 )}
               </div>
             )}
-            {(workflows.length > 0 || synthPrompts.length > 0 || compositePrompts.length > 0) && (
-              <div className="mt-8 pt-4 border-t border-gray-700">
-                <div className="text-sm text-gray-400 font-sat">
-                  {stats.workflowsCount + stats.synthPromptsCount + stats.compositePromptsCount} {(stats.workflowsCount + stats.synthPromptsCount + stats.compositePromptsCount) !== 1 ? t("library_items_saved_locally") : t("library_item_saved_locally")} {t("saved_locally")}
+            {(workflows.length > 0 ||
+              synthPrompts.length > 0 ||
+              compositePrompts.length > 0) && (
+              <div className="mt-8 pt-4 border-t border-crema">
+                <div className="text-sm text-crema font-agency">
+                  {stats.workflowsCount +
+                    stats.synthPromptsCount +
+                    stats.compositePromptsCount}{" "}
+                  {stats.workflowsCount +
+                    stats.synthPromptsCount +
+                    stats.compositePromptsCount !==
+                  1
+                    ? t("library_items_saved_locally")
+                    : t("library_item_saved_locally")}{" "}
+                  {t("saved_locally")}
                 </div>
               </div>
             )}
           </>
         )}
       </div>
-      <PageNavigation currentPage="/Activity" />
       <DeleteConfirmationModal
         isOpen={!!showDeleteModal}
         designName={showDeleteModal?.designName || ""}

@@ -368,10 +368,10 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
   const renderManualCanvas = () => {
     return (
       <div
-        className="border border-yellow-500 rounded bg-white/10 overflow-visible relative"
+        className="border border-amarillo rounded bg-black overflow-visible relative"
         style={{ width: canvasWidth, height: canvasHeight }}
       >
-        <div className="absolute top-2 left-2 text-yellow-500 font-mana text-xs bg-black px-2 py-1 rounded">
+        <div className="absolute top-2 left-2 text-amarillo font-agency text-xs bg-black px-2 py-1 rounded border border-amarillo">
           MANUAL MODE
         </div>
         <canvas
@@ -397,47 +397,59 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
     <div className="flex flex-col gap-6">
       <div className="flex-1">
         <div className="mb-4 flex justify-between items-center">
-          <div className="text-white font-mana text-sm">
+          <div className="text-white font-agency text-xs">
             {t("zero_waste_pattern_nesting")}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 pr-4">
             <button
               onClick={handleNestClick}
               disabled={isNesting || isSparrowRunning || isManualMode}
-              className={`px-4 py-2 rounded font-mana text-xs ${
+              className={`lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul ${
                 isNesting || isSparrowRunning || isManualMode
-                  ? "bg-gris/40 text-white/50 cursor-not-allowed"
-                  : "bg-ama hover:opacity-70 text-black cursor-pointer"
+                  ? "bg-viol text-white/50 cursor-not-allowed"
+                  : "bg-white text-black hover:opacity-80"
               }`}
+              style={{ transform: "skewX(-15deg)" }}
             >
-              {isNesting ? t("nesting") : t("nest")}
+              <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+                {isNesting ? t("nesting") : t("nest")}
+              </span>
             </button>
             {(isNesting || isSparrowRunning) && (
               <button
                 onClick={handleCancelNesting}
-                className="px-4 py-2 bg-red-500 hover:opacity-70 text-white rounded font-mana text-xs cursor-pointer"
+                className="lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-white text-black hover:opacity-80"
+                style={{ transform: "skewX(-15deg)" }}
               >
-                {t("cancel")}
+                <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+                  {t("cancel")}
+                </span>
               </button>
             )}
             {liveSvgContent && !isNesting && !isSparrowRunning && (
               <>
                 <button
                   onClick={() => setIsManualMode(!isManualMode)}
-                  className={`px-4 py-2 rounded font-mana text-xs cursor-pointer ${
+                  className={`lowercase px-2 py-1 text-xs font-count transition-all text-black rounded-sm border-2 border-azul ${
                     isManualMode
-                      ? "bg-yellow-500 text-black"
-                      : "bg-gris hover:opacity-70 text-white"
+                      ? "bg-white"
+                      : "bg-crema hover:opacity-80"
                   }`}
+                  style={{ transform: "skewX(-15deg)" }}
                 >
-                  {isManualMode ? t("auto_mode") : t("manual_nest")}
+                  <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+                    {isManualMode ? t("auto_mode") : t("manual_nest")}
+                  </span>
                 </button>
                 {isManualMode && (
                   <button
                     onClick={resetToAutoLayout}
-                    className="px-4 py-2 bg-red-500 hover:opacity-70 text-white rounded font-mana text-xs cursor-pointer"
+                    className="lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 text-black border-azul bg-white hover:opacity-80"
+                    style={{ transform: "skewX(-15deg)" }}
                   >
-                    {t("reset")}
+                    <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+                      {t("reset")}
+                    </span>
                   </button>
                 )}
               </>
@@ -446,37 +458,43 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded text-red-300 font-mana text-xs">
+          <div className="mb-4 p-3 bg-black border border-rosa rounded text-white font-agency text-xs">
             {error}
           </div>
         )}
 
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-2 mb-4 pl-1">
           <button
             onClick={() => savePatternState()}
-            className="px-4 py-2 bg-verde hover:opacity-70 text-black rounded font-mana text-xs cursor-pointer"
+            className="lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-white text-black hover:opacity-80"
+            style={{ transform: "skewX(-15deg)" }}
           >
-            {t("save")}
+            <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+              {t("save")}
+            </span>
           </button>
           <button
             onClick={() => setShowExportDialog(true)}
             disabled={!liveSvgContent && !isManualMode}
-            className={`px-4 py-2 rounded font-mana text-xs cursor-pointer ${
+            className={`lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul ${
               !liveSvgContent && !isManualMode
-                ? "bg-gris/40 text-white/50 cursor-not-allowed"
-                : "bg-blue-500 hover:opacity-70 text-white"
+                ? "bg-viol text-white/50 cursor-not-allowed"
+                : "bg-white text-black hover:opacity-80"
             }`}
+            style={{ transform: "skewX(-15deg)" }}
           >
-            {t("export_to_print")}
+            <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+              {t("export_to_print")}
+            </span>
           </button>
         </div>
 
         {sparrowStats && (
-          <div className="mb-4 p-3 bg-verde/20 border border-verde/50 rounded">
-            <div className="text-verde font-mana text-xs mb-2">
+          <div className="mb-4 p-3 bg-black border border-crema rounded">
+            <div className="text-white font-agency text-xs mb-2">
               {t("optimization_stats")}
             </div>
-            <div className="text-white/70 font-mana text-xxxs space-y-1">
+            <div className="text-crema font-agency text-xs space-y-1">
               <div>{t("phase")}: {sparrowStats.phase}</div>
               <div>{t("iteration")}: {sparrowStats.iteration}</div>
               <div>
@@ -493,13 +511,13 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
           </div>
         )}
 
-        <div className="bg-gray-900 rounded p-4 min-h-[400px]">
+        <div className="bg-black rounded p-4 min-h-[400px]">
           {liveSvgContent ? (
             isManualMode ? (
               renderManualCanvas()
             ) : (
               <div
-                className="border border-red-500 rounded bg-white/10 overflow-visible relative sparrow-svg-container"
+                className="border border-crema rounded bg-black overflow-visible relative sparrow-svg-container"
                 style={{ width: canvasWidth, height: canvasHeight }}
               >
                 <svg
@@ -527,24 +545,24 @@ export const PackingCanvas: FunctionComponent<PackingCanvasProps> = ({
               </div>
             )
           ) : (
-            <div className="flex items-center justify-center h-96 border border-dashed border-white/20 rounded">
+            <div className="flex items-center justify-center h-96 border border-dashed border-crema text-black font-agency text-xs rounded">
               <div className="text-center">
                 {isSparrowRunning ? (
                   <>
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ama mx-auto mb-4"></div>
-                    <div className="text-ama font-mana text-sm mb-2">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+                    <div className="mb-2">
                       {t("optimizing_pattern_layout")}
                     </div>
-                    <div className="text-white/50 font-mana text-xxxs">
+                    <div className="text-black font-agency text-xs">
                       {t("sparrow_algorithm_message")}
                     </div>
                   </>
                 ) : (
                   <>
-                    <div className="text-white/50 font-mana text-sm mb-2">
+                    <div className="mb-2">
                       {t("ready_for_pattern_nesting")}
                     </div>
-                    <div className="text-white/30 font-mana text-xxxs">
+                    <div >
                       {t("select_pattern_pieces_nest")}
                     </div>
                   </>

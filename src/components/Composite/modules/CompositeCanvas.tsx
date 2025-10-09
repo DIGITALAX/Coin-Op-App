@@ -1162,30 +1162,39 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
           <div className="flex gap-2 mb-2">
             <button
               onClick={() => handleModeChange("normal")}
-              className={`px-3 py-1 text-xs rounded transition-colors ${
+              className={`lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul ${
                 mode === "normal"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                  ? "bg-white text-black"
+                  : "bg-viol text-white hover:opacity-80"
               }`}
+              style={{ transform: "skewX(-15deg)" }}
             >
-              {t("normal_mode")}
+              <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+                {t("normal_mode")}
+              </span>
             </button>
             <button
               onClick={() => handleModeChange("warp")}
-              className={`px-3 py-1 text-xs rounded transition-colors ${
+              className={`lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul ${
                 mode === "warp"
-                  ? "bg-purple-600 text-white"
-                  : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                  ? "bg-white text-black"
+                  : "bg-viol text-white hover:opacity-80"
               }`}
+              style={{ transform: "skewX(-15deg)" }}
             >
-              {t("warp_mode")}
+              <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+                {t("warp_mode")}
+              </span>
             </button>
             {selectedChildId !== null && (
               <button
                 onClick={deleteSelected}
-                className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors"
+                className="lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul bg-white text-black hover:opacity-80"
+                style={{ transform: "skewX(-15deg)" }}
               >
-                {t("delete")}
+                <span style={{ transform: "skewX(15deg)" }} className="relative inline-block">
+                  {t("delete")}
+                </span>
               </button>
             )}
           </div>
@@ -1193,7 +1202,7 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
             ref={canvasRef}
             width={canvasWidth}
             height={canvasHeight}
-            className="border border-gray-600 rounded-lg"
+            className="border border-crema rounded-lg"
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}

@@ -146,17 +146,17 @@ export const CanvasHistory = ({ onHistoryLoad }: CanvasHistoryProps) => {
   if (canvasHistory.length === 0) return null;
   return (
     <div className="mt-6">
-      <h3 className="text-white font-sat text-sm mb-3 tracking-wider">
+      <h3 className="text-ligero font-dos text-xs mb-3 tracking-wider">
         {t("canvas_history")}
       </h3>
-      <div className="flex gap-3 overflow-x-auto pb-2 pt-2 px-2">
+      <div className="flex flex-wrap gap-3 pb-2 pt-2">
         {canvasHistory.map((historyItem) => (
           <div
             key={historyItem.id}
             onClick={() => {
               onHistoryLoad(historyItem);
             }}
-            className="flex-shrink-0 w-24 h-24 border border-oscurazul rounded cursor-pointer hover:opacity-70 bg-oscuro p-1 relative group overflow-visible"
+            className="group flex-shrink-0 w-24 h-24 bg-turq border border-aqua rounded cursor-pointer hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 p-1 relative overflow-visible transition-all"
           >
             <img
               src={thumbnailUrls[historyItem.id] || ""}
@@ -169,15 +169,15 @@ export const CanvasHistory = ({ onHistoryLoad }: CanvasHistoryProps) => {
             />
             <div
               onClick={(e) => downloadThumbnail(historyItem, e)}
-              className="absolute cursor-pointer -top-1 -left-1 w-4 h-4 bg-ama hover:bg-ama/80 text-black rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
+              className="absolute cursor-pointer -top-1 -left-1 w-5 h-5 bg-white hover:opacity-80 text-black rounded-sm text-xs font-sat flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
             >
               ↓
             </div>
             <div
               onClick={(e) => deleteFromHistory(historyItem.id, e)}
-              className="absolute cursor-pointer -top-1 -right-1 w-4 h-4 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
+              className="absolute cursor-pointer -top-1 -right-1 w-5 h-5 bg-rosa hover:opacity-80 text-white rounded-sm text-xs font-sat flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
             >
-              X
+              ×
             </div>
           </div>
         ))}
