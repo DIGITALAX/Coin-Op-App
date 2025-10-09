@@ -91,8 +91,19 @@ export default function Layer() {
             className="w-6 h-6 animate-spin"
             draggable={false}
           />
-          <div className="text-white font-slim text-sm tracking-wider">
-            {t("loading_templates")}
+          <div className="text-white relative w-fit h-fit flex font-slim text-sm tracking-wider">
+            <span className="absolute inset-0 text-azul translate-x-[3px] translate-y-[3px]">
+              {t("loading_templates")}
+            </span>
+            <span className="absolute inset-0 text-amarillo translate-x-[2px] translate-y-[2px]">
+              {t("loading_templates")}
+            </span>
+            <span className="absolute inset-0 text-turq translate-x-[1px] translate-y-[1px]">
+              {t("loading_templates")}
+            </span>
+            <span className="relative text-white">
+              {t("loading_templates")}
+            </span>
           </div>
         </div>
       </div>

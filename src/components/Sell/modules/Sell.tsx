@@ -82,7 +82,7 @@ export default function Sell() {
                           : "text-white hover:text-rosa"
                       }`}
                     >
-                      <div className="relative w-fit h-fit z-10 flex">
+                      <span className="absolute inset-0 text-azul translate-x-[3px] translate-y-[3px]">
                         {isCheckingComposite
                           ? t("loading")
                           : !hasComposite
@@ -90,7 +90,34 @@ export default function Sell() {
                           : isProcessing
                           ? t("sending")
                           : t("send_to_coin")}
-                      </div>
+                      </span>
+                      <span className="absolute inset-0 text-amarillo translate-x-[2px] translate-y-[2px]">
+                        {isCheckingComposite
+                          ? t("loading")
+                          : !hasComposite
+                          ? t("complete_composite")
+                          : isProcessing
+                          ? t("sending")
+                          : t("send_to_coin")}
+                      </span>
+                      <span className="absolute inset-0 text-turq translate-x-[1px] translate-y-[1px]">
+                        {isCheckingComposite
+                          ? t("loading")
+                          : !hasComposite
+                          ? t("complete_composite")
+                          : isProcessing
+                          ? t("sending")
+                          : t("send_to_coin")}
+                      </span>
+                      <span className="relative text-white">
+                        {isCheckingComposite
+                          ? t("loading")
+                          : !hasComposite
+                          ? t("complete_composite")
+                          : isProcessing
+                          ? t("sending")
+                          : t("send_to_coin")}
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -125,9 +152,18 @@ export default function Sell() {
                       }}
                       className={`relative whitespace-nowrap w-fit h-fit flex uppercase text-base justify-center text-center font-slim transition-colors text-white hover:text-rosa`}
                     >
-                      <div className="relative w-fit h-fit z-10 flex">
+                      <span className="absolute inset-0 text-azul translate-x-[3px] translate-y-[3px]">
                         {t("create_with_fgo")}
-                      </div>
+                      </span>
+                      <span className="absolute inset-0 text-amarillo translate-x-[2px] translate-y-[2px]">
+                        {t("create_with_fgo")}
+                      </span>
+                      <span className="absolute inset-0 text-turq translate-x-[1px] translate-y-[1px]">
+                        {t("create_with_fgo")}
+                      </span>
+                      <span className="relative text-white">
+                        {t("create_with_fgo")}
+                      </span>
                     </button>
                   </div>
                 </div>

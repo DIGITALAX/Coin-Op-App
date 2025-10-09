@@ -323,6 +323,7 @@
   "id": "ID",
   "delete_design_confirmation": "Are you sure you want to delete \"{{designName}}\"? This action cannot be undone",
   "blender_integration": "Blender Integration",
+  "in_development": "(In Development)",
   "blender_export_description": "Export your {{itemType}} designs directly to Blender for advanced 3D modeling and rendering.",
   "download_blender_plugin": "Download Blender Plugin",
   "installation_instructions": "Installation Instructions",

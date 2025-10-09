@@ -34,6 +34,9 @@ const Blender: FunctionComponent = () => {
             <h1 className="font-ark text-white text-3xl tracking-wider mb-4">
               {t("blender_integration")}
             </h1>
+            <p className="font-agency text-crema text-xs opacity-70">
+              {t("in_development")}
+            </p>
             <p className="font-agency text-crema text-lg mb-2">
               {t("blender_export_description", {
                 itemType: selectedTemplate?.template_type,
@@ -46,9 +49,20 @@ const Blender: FunctionComponent = () => {
             </div>
             <button
               onClick={handleDownloadPlugin}
-              className="w-full font-slim transition-colors text-white tracking-wider hover:text-rosa"
+              className="relative font-slim text-2xl tracking-wider hover:opacity-80 transition-opacity"
             >
-              {t("download_blender_plugin")}
+              <span className="absolute inset-0 text-azul translate-x-[3px] translate-y-[3px]">
+                {t("download_blender_plugin")}
+              </span>
+              <span className="absolute inset-0 text-amarillo translate-x-[2px] translate-y-[2px]">
+                {t("download_blender_plugin")}
+              </span>
+              <span className="absolute inset-0 text-turq translate-x-[1px] translate-y-[1px]">
+                {t("download_blender_plugin")}
+              </span>
+              <span className="relative text-white">
+                {t("download_blender_plugin")}
+              </span>
             </button>
           </div>
 

@@ -6,7 +6,12 @@ import { Link } from "react-router-dom";
 import { TemplateChoice } from "../types/format.types";
 export default function Format() {
   const { t } = useTranslation();
-  const { selectedTemplate, selectTemplate, groupedTemplates, isLoadingTemplates } = useApp();
+  const {
+    selectedTemplate,
+    selectTemplate,
+    groupedTemplates,
+    isLoadingTemplates,
+  } = useApp();
   const { getTemplateCategory, getTemplateTypeName } = useFormat();
 
   if (isLoadingTemplates) {
@@ -18,8 +23,20 @@ export default function Format() {
             className="w-6 h-6 animate-spin"
             draggable={false}
           />
-          <div className="text-white font-slim text-sm tracking-wider">
-            {t('loading_templates')}
+          <div className="text-white relative w-fit h-fit flex font-slim text-sm tracking-wider">
+            {" "}
+            <span className="absolute inset-0 text-azul translate-x-[3px] translate-y-[3px]">
+              {t("loading_templates")}
+            </span>
+            <span className="absolute inset-0 text-amarillo translate-x-[2px] translate-y-[2px]">
+              {t("loading_templates")}
+            </span>
+            <span className="absolute inset-0 text-turq translate-x-[1px] translate-y-[1px]">
+              {t("loading_templates")}
+            </span>
+            <span className="relative text-white">
+              {t("loading_templates")}
+            </span>
           </div>
         </div>
       </div>
@@ -30,7 +47,7 @@ export default function Format() {
     <div className="relative w-full h-full flex items-center justify-center">
       <div className="mb-6">
         <h2 className="text-xs font-pixel text-white tracking-wider mb-4">
-          {t('select_template')}
+          {t("select_template")}
         </h2>
         <div className="flex gap-4 pb-2">
           {groupedTemplates.map((template) => (
@@ -59,7 +76,10 @@ export default function Format() {
                   </div>
                   <div className="relative w-full h-fit flex items-center justify-end text-right break-all">
                     <div className="relative w-fit h-fit flex">
-                      {"> " + getTemplateTypeName(template.template_type as TemplateChoice["type"]).toUpperCase()}
+                      {"> " +
+                        getTemplateTypeName(
+                          template.template_type as TemplateChoice["type"]
+                        ).toUpperCase()}
                     </div>
                   </div>
                 </div>

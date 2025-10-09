@@ -112,7 +112,7 @@ export default function Activity() {
     }
   };
 
-  if (!isLoadingTemplates) {
+  if (isLoadingTemplates) {
     return (
       <div className="relative w-full h-full flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -121,8 +121,19 @@ export default function Activity() {
             className="w-6 h-6 animate-spin"
             draggable={false}
           />
-          <div className="text-white font-slim text-sm tracking-wider">
-            {t("loading_templates")}
+          <div className="text-white relative w-fit h-fit flex font-slim text-sm tracking-wider">
+            <span className="absolute inset-0 text-azul translate-x-[3px] translate-y-[3px]">
+              {t("loading_templates")}
+            </span>
+            <span className="absolute inset-0 text-amarillo translate-x-[2px] translate-y-[2px]">
+              {t("loading_templates")}
+            </span>
+            <span className="absolute inset-0 text-turq translate-x-[1px] translate-y-[1px]">
+              {t("loading_templates")}
+            </span>
+            <span className="relative text-white">
+              {t("loading_templates")}
+            </span>
           </div>
         </div>
       </div>
@@ -243,8 +254,19 @@ export default function Activity() {
               <div className="space-y-8">
                 {workflows.length > 0 && (
                   <div>
-                    <h3 className="text-white font-slim text-sm mb-4 flex items-center gap-2">
-                      <span>{t("comfyui_workflows")}</span>
+                    <h3 className="text-white font-slim relative w-fit h-fit text-sm mb-4 flex items-center gap-2">
+                      <span className="absolute inset-0 text-azul translate-x-[3px] translate-y-[3px]">
+                        {t("comfyui_workflows")}
+                      </span>
+                      <span className="absolute inset-0 text-amarillo translate-x-[2px] translate-y-[2px]">
+                        {t("comfyui_workflows")}
+                      </span>
+                      <span className="absolute inset-0 text-turq translate-x-[1px] translate-y-[1px]">
+                        {t("comfyui_workflows")}
+                      </span>
+                      <span className="relative text-white">
+                        {t("comfyui_workflows")}
+                      </span>
                       <span className="text-ligero">({workflows.length})</span>
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -265,8 +287,19 @@ export default function Activity() {
                 )}
                 {synthPrompts.length > 0 && (
                   <div>
-                    <h3 className="text-white font-slim text-sm mb-4 flex items-center gap-2">
-                      <span>{t("synth_prompts")}</span>
+                    <h3 className="text-white relative w-fit h-fit font-slim text-sm mb-4 flex items-center gap-2">
+                      <span className="absolute inset-0 text-azul translate-x-[3px] translate-y-[3px]">
+                        {t("synth_prompts")}
+                      </span>
+                      <span className="absolute inset-0 text-amarillo translate-x-[2px] translate-y-[2px]">
+                        {t("synth_prompts")}
+                      </span>
+                      <span className="absolute inset-0 text-turq translate-x-[1px] translate-y-[1px]">
+                        {t("synth_prompts")}
+                      </span>
+                      <span className="relative text-white">
+                        {t("synth_prompts")}
+                      </span>
                       <span className="text-ligero">
                         ({synthPrompts.length})
                       </span>
@@ -289,8 +322,19 @@ export default function Activity() {
                 )}
                 {compositePrompts.length > 0 && (
                   <div>
-                    <h3 className="text-white font-slim text-sm mb-4 flex items-center gap-2">
-                      <span>{t("composite_prompts")}</span>
+                    <h3 className="text-white relative w-fit h-fit flex font-slim text-sm mb-4 items-center gap-2">
+                      <span className="absolute inset-0 text-azul translate-x-[3px] translate-y-[3px]">
+                        {t("composite_prompts")}
+                      </span>
+                      <span className="absolute inset-0 text-amarillo translate-x-[2px] translate-y-[2px]">
+                        {t("composite_prompts")}
+                      </span>
+                      <span className="absolute inset-0 text-turq translate-x-[1px] translate-y-[1px]">
+                        {t("composite_prompts")}
+                      </span>
+                      <span className="relative text-white">
+                        {t("composite_prompts")}
+                      </span>
                       <span className="text-ligero">
                         ({compositePrompts.length})
                       </span>

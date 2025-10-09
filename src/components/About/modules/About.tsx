@@ -28,10 +28,17 @@ export default function About() {
               src="/images/arrow.png"
             />
           </div>
-          <div
-            className={`relative w-fit h-fit text-left justify-center break-all items-center text-sm whitespace-pre-line font-slim`}
-          >
-            {t("view_tutorial")}
+          <div className="relative w-fit h-fit text-left justify-center break-all items-center text-sm whitespace-pre-line font-slim">
+            <span className="absolute inset-0 text-azul translate-x-[3px] translate-y-[3px]">
+              {t("view_tutorial")}
+            </span>
+            <span className="absolute inset-0 text-amarillo translate-x-[2px] translate-y-[2px]">
+              {t("view_tutorial")}
+            </span>
+            <span className="absolute inset-0 text-turq translate-x-[1px] translate-y-[1px]">
+              {t("view_tutorial")}
+            </span>
+            <span className="relative text-white">{t("view_tutorial")}</span>
           </div>
         </div>
 
@@ -47,13 +54,14 @@ export default function About() {
                   key={language.code}
                   onClick={() => changeLanguage(language.code)}
                   className={`relative lowercase px-2 py-1 text-xs font-count transition-all rounded-sm border-2 border-azul ${
-                    currentLanguage === language.code
-                      ? "bg-white"
-                      : "bg-viol"
+                    currentLanguage === language.code ? "bg-white" : "bg-viol"
                   }`}
-                  style={{ transform: 'skewX(-15deg)' }}
+                  style={{ transform: "skewX(-15deg)" }}
                 >
-                  <span style={{ transform: 'skewX(15deg)' }} className="relative inline-block">
+                  <span
+                    style={{ transform: "skewX(15deg)" }}
+                    className="relative inline-block"
+                  >
                     {language.name}
                   </span>
                 </button>

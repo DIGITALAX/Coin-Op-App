@@ -96,8 +96,6 @@ export const pageMap: { [key in string]: string } = {
   ["Sell"]: "/Sell",
 };
 
-
-
 export const HOODIE_FRONT_PANEL_DIMENSIONS: Record<
   GarmentSize,
   { widthCm: number; heightCm: number }
@@ -133,12 +131,16 @@ export const SHIRT_FRONT_PANEL_DIMENSIONS: Record<
 };
 
 export const PATTERN_COLORS: string[] = [
-  "#4ECDC4",
-  "#45B7AF",
-  "#96CEB4",
-  "#FFEAA7",
-  "#DDA0DD",
-  "#FFB6C1",
-  "#87CEEB",
-  "#98FB98",
+  "#8B5CF6",
+  "#3B82F6",
+  "#06B6D4",
+  "#A78BFA",
+  "#60A5FA",
+  "#FBBF24",
+  "#F472B6",
+  "#E5E7EB",
+  "#9333EA",
+  "#2563EB",
+  "#0891B2",
+  "#F9FAFB",
 ];
