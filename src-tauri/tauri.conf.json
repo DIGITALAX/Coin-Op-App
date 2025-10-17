@@ -37,8 +37,9 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "resources": [
-      "../sparrow/target/release/sparrow"
+    "resources": [],
+    "externalBin": [
+      "binaries/sparrow"
     ]
   }
 }

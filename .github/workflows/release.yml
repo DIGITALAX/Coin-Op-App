@@ -42,12 +42,16 @@ jobs:
         run: |
           cd sparrow
           cargo build --release --features=live_svg
+          mkdir -p ../src-tauri/binaries
+          cp target/release/sparrow ../src-tauri/binaries/sparrow-${{ matrix.platform == 'macos-latest' && 'universal-apple-darwin' || 'x86_64-unknown-linux-gnu' }}
 
       - name: Build Sparrow (Windows)
         if: matrix.platform == 'windows-latest'
         run: |
           cd sparrow
           cargo build --release --features=live_svg
+          mkdir ..\src-tauri\binaries
+          copy target\release\sparrow.exe ..\src-tauri\binaries\sparrow-x86_64-pc-windows-msvc.exe
         shell: cmd
 
       - name: Build Tauri app
