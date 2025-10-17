@@ -37,13 +37,23 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
-      - name: Build Sparrow (Unix)
-        if: matrix.platform != 'windows-latest'
+      - name: Build Sparrow (macOS)
+        if: matrix.platform == 'macos-latest'
+        run: |
+          cd sparrow
+          rustup target add aarch64-apple-darwin x86_64-apple-darwin
+          cargo build --release --features=live_svg --target aarch64-apple-darwin
+          cargo build --release --features=live_svg --target x86_64-apple-darwin
+          mkdir -p ../src-tauri/binaries
+          lipo -create -output ../src-tauri/binaries/sparrow-universal-apple-darwin target/aarch64-apple-darwin/release/sparrow target/x86_64-apple-darwin/release/sparrow
+
+      - name: Build Sparrow (Linux)
+        if: matrix.platform == 'ubuntu-22.04'
         run: |
           cd sparrow
           cargo build --release --features=live_svg
           mkdir -p ../src-tauri/binaries
-          cp target/release/sparrow ../src-tauri/binaries/sparrow-${{ matrix.platform == 'macos-latest' && 'universal-apple-darwin' || 'x86_64-unknown-linux-gnu' }}
+          cp target/release/sparrow ../src-tauri/binaries/sparrow-x86_64-unknown-linux-gnu
 
       - name: Build Sparrow (Windows)
         if: matrix.platform == 'windows-latest'
