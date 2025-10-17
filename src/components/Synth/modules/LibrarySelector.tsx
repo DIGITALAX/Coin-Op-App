@@ -13,7 +13,6 @@ export default function LibrarySelector({ type, mode = 'synth', onSelect, onSave
   const [saveDescription, setSaveDescription] = useState("");
   const items = type === 'workflow' ? workflows : (mode === 'composite' ? compositePrompts : synthPrompts);
   const typeLabel = type === 'workflow' ? t('workflows') : (mode === 'composite' ? t('composite_prompts') : t('synth_prompts'));
-  const typeColor = type === 'workflow' ? 'text-blue-400' : (mode === 'composite' ? 'text-purple-400' : 'text-green-400');
   const handleSave = () => {
     if (saveName.trim()) {
       onSave(saveName.trim(), saveDescription.trim() || undefined);

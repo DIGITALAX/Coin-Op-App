@@ -30,13 +30,23 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
   );
   const [elements, setElements] = useState<ElementInterface[]>([]);
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
-  const [tool, setTool] = useState<"pencil" | "erase">("pencil");
+  const [tool, setTool] = useState<"pencil" | "erase" | "select">("pencil");
   const [brushWidth, setBrushWidth] = useState<number>(10);
   const [hex, setHex] = useState<string>("#F5A623");
   const [selectedElement, setSelectedElement] =
     useState<ElementInterface | null>(null);
   const [selectedImageElement, setSelectedImageElement] =
     useState<ElementInterface | null>(null);
+  const [draggedImage, setDraggedImage] = useState<{
+    element: ElementInterface;
+    startX: number;
+    startY: number;
+    offsetX: number;
+    offsetY: number;
+  } | null>(null);
+  const [resizeHandle, setResizeHandle] = useState<"tl" | "tr" | "bl" | "br" | null>(null);
+  const [isRotating, setIsRotating] = useState<boolean>(false);
+  const [rotationStartAngle, setRotationStartAngle] = useState<number>(0);
   const [zoom, setZoom] = useState<number>(1.0);
   const [pan, setPan] = useState<{
     xInitial: number;
@@ -183,76 +193,36 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
       y <= imageElement.y1 + imageElement.height
     );
   };
-  const adjustImageWidth = (delta: number) => {
-    if (!selectedImageElement || !selectedImageElement.id) return;
-    try {
-      saveToUndoHistory();
-      setElements((prev) =>
-        prev.map((el) =>
-          el.id === selectedImageElement.id
-            ? { ...el, width: Math.max(20, (el.width || 0) + delta) }
-            : el
-        )
-      );
-      setSelectedImageElement((prev) =>
-        prev
-          ? { ...prev, width: Math.max(20, (prev.width || 0) + delta) }
-          : null
-      );
-    } catch (error) {}
+
+  const isPointInHandle = (
+    x: number,
+    y: number,
+    handleX: number,
+    handleY: number,
+    size: number = 8
+  ): boolean => {
+    return (
+      x >= handleX - size / 2 &&
+      x <= handleX + size / 2 &&
+      y >= handleY - size / 2 &&
+      y <= handleY + size / 2
+    );
   };
-  const adjustImageHeight = (delta: number) => {
-    if (!selectedImageElement || !selectedImageElement.id) return;
-    try {
-      saveToUndoHistory();
-      setElements((prev) =>
-        prev.map((el) =>
-          el.id === selectedImageElement.id
-            ? { ...el, height: Math.max(20, (el.height || 0) + delta) }
-            : el
-        )
-      );
-      setSelectedImageElement((prev) =>
-        prev
-          ? { ...prev, height: Math.max(20, (prev.height || 0) + delta) }
-          : null
-      );
-    } catch (error) {}
+
+  const isPointInRotateHandle = (
+    x: number,
+    y: number,
+    img: ElementInterface
+  ): boolean => {
+    if (!img.x1 || !img.y1 || !img.width) return false;
+    const rotateHandleY = img.y1 - 20;
+    const rotateHandleX = img.x1 + img.width / 2;
+    const distance = Math.sqrt(
+      Math.pow(x - rotateHandleX, 2) + Math.pow(y - rotateHandleY, 2)
+    );
+    return distance <= 6;
   };
-  const rotateImage = (degrees: number) => {
-    if (!selectedImageElement || !selectedImageElement.id) return;
-    try {
-      saveToUndoHistory();
-      const newRotation =
-        ((selectedImageElement.rotation || 0) + degrees) % 360;
-      setElements((prev) =>
-        prev.map((el) =>
-          el.id === selectedImageElement.id
-            ? { ...el, rotation: newRotation }
-            : el
-        )
-      );
-      setSelectedImageElement((prev) =>
-        prev ? { ...prev, rotation: newRotation } : null
-      );
-    } catch (error) {}
-  };
-  const moveImage = (deltaX: number, deltaY: number) => {
-    if (!selectedImageElement || !selectedImageElement.id) return;
-    try {
-      saveToUndoHistory();
-      const newX = (selectedImageElement.x1 || 0) + deltaX * devicePixelRatio;
-      const newY = (selectedImageElement.y1 || 0) + deltaY * devicePixelRatio;
-      setElements((prev) =>
-        prev.map((el) =>
-          el.id === selectedImageElement.id ? { ...el, x1: newX, y1: newY } : el
-        )
-      );
-      setSelectedImageElement((prev) =>
-        prev ? { ...prev, x1: newX, y1: newY } : null
-      );
-    } catch (error) {}
-  };
+
   const handleMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
     if (!patternElement) return;
     const canvas = canvasRef.current;
@@ -261,13 +231,57 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
     const canvasPos = getMousePos(e);
     const patternX = canvasPos.x / devicePixelRatio;
     const patternY = canvasPos.y / devicePixelRatio;
-    const imageElements = elements.filter((el) => el.type === "image");
-    for (let i = imageElements.length - 1; i >= 0; i--) {
-      if (isPointInImage(canvasPos.x, canvasPos.y, imageElements[i])) {
-        setSelectedImageElement(imageElements[i]);
-        return;
+
+    if (tool === "select" && selectedImageElement) {
+      const img = selectedImageElement;
+      if (img.x1 !== undefined && img.y1 !== undefined && img.width && img.height) {
+        if (isPointInRotateHandle(canvasPos.x, canvasPos.y, img)) {
+          setIsRotating(true);
+          const centerX = img.x1 + img.width / 2;
+          const centerY = img.y1 + img.height / 2;
+          const angle = Math.atan2(canvasPos.y - centerY, canvasPos.x - centerX);
+          setRotationStartAngle(angle - ((img.rotation || 0) * Math.PI) / 180);
+          return;
+        }
+
+        if (isPointInHandle(canvasPos.x, canvasPos.y, img.x1, img.y1)) {
+          setResizeHandle("tl");
+          return;
+        }
+        if (isPointInHandle(canvasPos.x, canvasPos.y, img.x1 + img.width, img.y1)) {
+          setResizeHandle("tr");
+          return;
+        }
+        if (isPointInHandle(canvasPos.x, canvasPos.y, img.x1, img.y1 + img.height)) {
+          setResizeHandle("bl");
+          return;
+        }
+        if (isPointInHandle(canvasPos.x, canvasPos.y, img.x1 + img.width, img.y1 + img.height)) {
+          setResizeHandle("br");
+          return;
+        }
       }
     }
+
+    if (tool === "select") {
+      const imageElements = elements.filter((el) => el.type === "image");
+      for (let i = imageElements.length - 1; i >= 0; i--) {
+        if (isPointInImage(canvasPos.x, canvasPos.y, imageElements[i])) {
+          setSelectedImageElement(imageElements[i]);
+          setDraggedImage({
+            element: imageElements[i],
+            startX: canvasPos.x,
+            startY: canvasPos.y,
+            offsetX: canvasPos.x - (imageElements[i].x1 || 0),
+            offsetY: canvasPos.y - (imageElements[i].y1 || 0),
+          });
+          return;
+        }
+      }
+      setSelectedImageElement(null);
+      return;
+    }
+
     setSelectedImageElement(null);
     const isInPattern = isPointInPattern(
       patternX,
@@ -279,18 +293,105 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
     if (!isInPattern) {
       return;
     }
-    saveToUndoHistory();
-    const newElement = createElement(e.clientX, e.clientY);
-    setSelectedElement(newElement);
-    setElements((prev) => [...prev, newElement]);
-    setIsDrawing(true);
+
+    if (tool === "pencil" || tool === "erase") {
+      saveToUndoHistory();
+      const newElement = createElement(e.clientX, e.clientY);
+      setSelectedElement(newElement);
+      setElements((prev) => [...prev, newElement]);
+      setIsDrawing(true);
+    }
   };
   const handleMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
+    const canvasPos = getMousePos(e);
+
+    if (isRotating && selectedImageElement) {
+      const img = selectedImageElement;
+      if (img.x1 !== undefined && img.y1 !== undefined && img.width && img.height) {
+        const centerX = img.x1 + img.width / 2;
+        const centerY = img.y1 + img.height / 2;
+        const angle = Math.atan2(canvasPos.y - centerY, canvasPos.x - centerX);
+        const newRotation = ((angle - rotationStartAngle) * 180) / Math.PI;
+
+        setElements((prev) =>
+          prev.map((el) =>
+            el.id === img.id
+              ? { ...el, rotation: newRotation }
+              : el
+          )
+        );
+        setSelectedImageElement((prev) =>
+          prev ? { ...prev, rotation: newRotation } : null
+        );
+      }
+      return;
+    }
+
+    if (resizeHandle && selectedImageElement) {
+      const img = selectedImageElement;
+      if (img.x1 !== undefined && img.y1 !== undefined && img.width && img.height) {
+        let newX = img.x1;
+        let newY = img.y1;
+        let newWidth = img.width;
+        let newHeight = img.height;
+
+        if (resizeHandle === "tl") {
+          newWidth = img.width + (img.x1 - canvasPos.x);
+          newHeight = img.height + (img.y1 - canvasPos.y);
+          newX = canvasPos.x;
+          newY = canvasPos.y;
+        } else if (resizeHandle === "tr") {
+          newWidth = canvasPos.x - img.x1;
+          newHeight = img.height + (img.y1 - canvasPos.y);
+          newY = canvasPos.y;
+        } else if (resizeHandle === "bl") {
+          newWidth = img.width + (img.x1 - canvasPos.x);
+          newHeight = canvasPos.y - img.y1;
+          newX = canvasPos.x;
+        } else if (resizeHandle === "br") {
+          newWidth = canvasPos.x - img.x1;
+          newHeight = canvasPos.y - img.y1;
+        }
+
+        newWidth = Math.max(20, newWidth);
+        newHeight = Math.max(20, newHeight);
+
+        setElements((prev) =>
+          prev.map((el) =>
+            el.id === img.id
+              ? { ...el, x1: newX, y1: newY, width: newWidth, height: newHeight }
+              : el
+          )
+        );
+        setSelectedImageElement((prev) =>
+          prev ? { ...prev, x1: newX, y1: newY, width: newWidth, height: newHeight } : null
+        );
+      }
+      return;
+    }
+
+    if (draggedImage && tool === "select") {
+      const newX = canvasPos.x - draggedImage.offsetX;
+      const newY = canvasPos.y - draggedImage.offsetY;
+
+      setElements((prev) =>
+        prev.map((el) =>
+          el.id === draggedImage.element.id
+            ? { ...el, x1: newX, y1: newY }
+            : el
+        )
+      );
+
+      setSelectedImageElement((prev) =>
+        prev ? { ...prev, x1: newX, y1: newY } : null
+      );
+      return;
+    }
+
     if (!isDrawing || !patternElement || !selectedElement) return;
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!ctx || !canvas) return;
-    const canvasPos = getMousePos(e);
     const patternX = canvasPos.x / devicePixelRatio;
     const patternY = canvasPos.y / devicePixelRatio;
     if (
@@ -307,6 +408,18 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
     updateElement(selectedElement, e.clientX, e.clientY);
   };
   const handleMouseUp = () => {
+    if (draggedImage) {
+      saveToUndoHistory();
+      setDraggedImage(null);
+    }
+    if (resizeHandle) {
+      saveToUndoHistory();
+      setResizeHandle(null);
+    }
+    if (isRotating) {
+      saveToUndoHistory();
+      setIsRotating(false);
+    }
     setIsDrawing(false);
     setSelectedElement(null);
   };
@@ -329,15 +442,54 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
     if (tempCtx) {
       tempCtx.imageSmoothingEnabled = false;
       tempCtx.imageSmoothingQuality = "high";
-      elements.forEach((element) => {
+
+      const imageElements = elements.filter(el => el.type === "image");
+      const drawingElements = elements.filter(el => el.type !== "image");
+
+      imageElements.forEach((element) => {
         drawElement(element, tempCtx);
       });
+
+      drawingElements.forEach((element) => {
+        drawElement(element, tempCtx);
+      });
+
       ctx.drawImage(tempCanvas, 0, 0);
     }
     ctx.restore();
+
+    if (selectedImageElement && tool === "select") {
+      const img = selectedImageElement;
+      if (img.x1 !== undefined && img.y1 !== undefined && img.width && img.height) {
+        ctx.save();
+        ctx.strokeStyle = "#0088ff";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(img.x1, img.y1, img.width, img.height);
+
+        const handleSize = 8;
+        ctx.fillStyle = "#0088ff";
+
+        ctx.fillRect(img.x1 - handleSize / 2, img.y1 - handleSize / 2, handleSize, handleSize);
+        ctx.fillRect(img.x1 + img.width - handleSize / 2, img.y1 - handleSize / 2, handleSize, handleSize);
+        ctx.fillRect(img.x1 - handleSize / 2, img.y1 + img.height - handleSize / 2, handleSize, handleSize);
+        ctx.fillRect(img.x1 + img.width - handleSize / 2, img.y1 + img.height - handleSize / 2, handleSize, handleSize);
+
+        const rotateHandleY = img.y1 - 20;
+        ctx.beginPath();
+        ctx.moveTo(img.x1 + img.width / 2, img.y1);
+        ctx.lineTo(img.x1 + img.width / 2, rotateHandleY);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(img.x1 + img.width / 2, rotateHandleY, 6, 0, 2 * Math.PI);
+        ctx.fill();
+
+        ctx.restore();
+      }
+    }
+
     canvas.style.transform = `translate(${pan.xOffset}px, ${pan.yOffset}px) scale(${zoom})`;
     canvas.style.transformOrigin = "center";
-  }, [patternElement, elements, zoom, pan, selectedImageElement]);
+  }, [patternElement, elements, zoom, pan, selectedImageElement, tool]);
   useEffect(() => {
     redrawCanvas();
   }, [redrawCanvas]);
@@ -604,40 +756,47 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
-        const canvas = canvasRef.current;
-        const container = containerRef.current;
-        if (canvas && container) {
-          const patternCenterX = canvas.width / 2;
-          const patternCenterY = canvas.height / 2;
-          const patternBaseSize = Math.min(canvas.width, canvas.height) / 6;
-          const targetSizeInCanvas = patternBaseSize * 0.8;
-          const imgAspect = img.width / img.height;
-          let finalWidth, finalHeight;
-          if (imgAspect > 1) {
-            finalWidth = targetSizeInCanvas;
-            finalHeight = targetSizeInCanvas / imgAspect;
-          } else {
-            finalHeight = targetSizeInCanvas;
-            finalWidth = targetSizeInCanvas * imgAspect;
+        try {
+          const canvas = canvasRef.current;
+          const container = containerRef.current;
+          if (canvas && container) {
+            const patternCenterX = canvas.width / 2;
+            const patternCenterY = canvas.height / 2;
+            const patternBaseSize = Math.min(canvas.width, canvas.height) / 6;
+            const targetSizeInCanvas = patternBaseSize * 0.8;
+            const imgAspect = img.width / img.height;
+            let finalWidth, finalHeight;
+            if (imgAspect > 1) {
+              finalWidth = targetSizeInCanvas;
+              finalHeight = targetSizeInCanvas / imgAspect;
+            } else {
+              finalHeight = targetSizeInCanvas;
+              finalWidth = targetSizeInCanvas * imgAspect;
+            }
+            const centerX = patternCenterX - finalWidth / 2;
+            const centerY = patternCenterY - finalHeight / 2;
+            const imageElement = {
+              id: Date.now(),
+              type: "image",
+              x1: centerX,
+              y1: centerY,
+              width: finalWidth,
+              height: finalHeight,
+              rotation: 0,
+              image: img,
+            };
+            saveToUndoHistory();
+            setElements((prev) => [...prev, imageElement]);
+            setSelectedImageElement(null);
           }
-          const centerX = patternCenterX - finalWidth / 2;
-          const centerY = patternCenterY - finalHeight / 2;
-          const imageElement = {
-            id: Date.now(),
-            type: "image",
-            x1: centerX,
-            y1: centerY,
-            width: finalWidth,
-            height: finalHeight,
-            rotation: 0,
-            image: img,
-          };
-          saveToUndoHistory();
-          setElements((prev) => [...prev, imageElement]);
-        }
+        } catch (error) {}
       };
-      img.src = event.target?.result as string;
+      img.onerror = () => {};
+      if (event.target?.result) {
+        img.src = event.target.result as string;
+      }
     };
+    reader.onerror = () => {};
     reader.readAsDataURL(file);
   };
   const deleteImage = () => {
@@ -698,10 +857,6 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
     canvasHistory,
     setElements,
     selectedImageElement,
-    adjustImageWidth,
-    adjustImageHeight,
-    rotateImage,
-    moveImage,
     zoom,
     pan,
     loadImageToCanvas,

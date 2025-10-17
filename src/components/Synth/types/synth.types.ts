@@ -2,7 +2,6 @@ import {
   Dispatch,
   MutableRefObject,
   ReactElement,
-  ReactNode,
   RefObject,
   SetStateAction,
 } from "react";
@@ -74,11 +73,7 @@ export interface ElementInterface {
 export type CanvasHistoryProps = {
   onHistoryLoad: (historyItem: CanvasHistory) => void;
 };
-export interface HoldButtonProps {
-  onAction: () => void;
-  className: string;
-  children: ReactNode;
-}
+
 export interface InteractiveCanvasProps {
   templateChild: Template | null;
   size?: "small" | "large";

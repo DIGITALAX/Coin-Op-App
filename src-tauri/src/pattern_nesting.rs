@@ -154,9 +154,9 @@ pub async fn clear_sparrow_data() -> Result<String, String> {
         if let Err(e) = std::fs::remove_dir_all(live_data_dir) {
             return Err(format!("Failed to clear Sparrow data: {}", e));
         }
-        if let Err(e) = std::fs::create_dir_all(live_data_dir) {
-            return Err(format!("Failed to recreate live data directory: {}", e));
-        }
+    }
+    if let Err(e) = std::fs::create_dir_all(live_data_dir) {
+        return Err(format!("Failed to recreate live data directory: {}", e));
     }
     Ok("Sparrow data cleared".to_string())
 }

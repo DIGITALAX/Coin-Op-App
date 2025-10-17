@@ -193,13 +193,13 @@ export default function Activity() {
           <>
             {isLoading ? (
               <div className="flex items-center justify-center h-64">
-                <div className="text-crema font-sat text-sm">
+                <div className="text-crema font-mana text-sm">
                   {t("loading_designs")}
                 </div>
               </div>
             ) : availableDesigns.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-center">
-                <div className="text-crema font-sat text-lg mb-2">
+                <div className="text-crema font-mana text-lg mb-2">
                   {t("no_designs_yet")}
                 </div>
                 <div className="text-crema font-mana text-sm max-w-md">
@@ -235,7 +235,7 @@ export default function Activity() {
           <>
             {libraryLoading ? (
               <div className="flex items-center justify-center h-64">
-                <div className="text-crema font-sat text-sm">
+                <div className="text-crema font-mana text-sm">
                   {t("loading_library")}
                 </div>
               </div>
@@ -243,7 +243,7 @@ export default function Activity() {
               synthPrompts.length === 0 &&
               compositePrompts.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-center">
-                <div className="text-crema font-sat text-lg mb-2">
+                <div className="text-crema font-mana text-lg mb-2">
                   {t("no_library_items_yet")}
                 </div>
                 <div className="text-crema font-mana text-sm max-w-md">

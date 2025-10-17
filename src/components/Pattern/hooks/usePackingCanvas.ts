@@ -346,22 +346,6 @@ export const usePackingCanvas = (selectedPieces: PatternPiece[]) => {
     cancelNesting();
   }, [cancelNesting, liveSvgContent, updateAutoBase]);
 
-  const loadSVGPath = useCallback(async (svgPath: string): Promise<string> => {
-    try {
-      const publicPath = svgPath.startsWith("/patterns/")
-        ? svgPath
-        : svgPath.replace("/src/assets", "");
-      const response = await fetch(publicPath);
-      if (response.ok) {
-        const svgText = await response.text();
-        const parser = new DOMParser();
-        const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
-        const pathElement = svgDoc.querySelector("path");
-        return pathElement?.getAttribute("d") || "";
-      }
-    } catch (error) {}
-    return "";
-  }, []);
 
   const resetDragState = useCallback(() => {
     setIsDragging(false);
@@ -542,7 +526,6 @@ export const usePackingCanvas = (selectedPieces: PatternPiece[]) => {
     handleCancelNesting,
     resetDragState,
     resetToAutoLayout,
-    loadSVGPath,
     getPatternColor,
     calculatePathBounds,
     parseSparrowSVG,

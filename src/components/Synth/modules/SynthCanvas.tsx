@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { useApp } from "../../../context/AppContext";
 import { INFURA_GATEWAY } from "../../../lib/constants";
 import useChildren from "../hooks/useChildren";
-import HoldButton from "./HoldButton";
 import { useSynthCanvas } from "../hooks/useSynthCanvas";
 import { SynthCanvasProps } from "../types/synth.types";
 
@@ -29,14 +28,8 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
     redo,
     undoHistory,
     redoHistory,
-    adjustImageWidth,
     loadImageToCanvas,
     saveCanvasToHistory,
-    selectedImageElement,
-    adjustImageHeight,
-    moveImage,
-    rotateImage,
-    deleteImage,
     setElements,
     loadFromHistory,
   } = useSynthCanvas({ onCanvasSave });
@@ -60,6 +53,16 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
     <div className="relative w-full h-full flex flex-col gap-3">
       <div className="mb-4 space-y-3">
         <div className="flex flex-wrap items-center gap-3">
+          <div
+            onClick={() => setTool("select")}
+            className={`px-3 py-1.5 rounded-sm font-agency text-xs cursor-pointer ${
+              tool === "select"
+                ? "bg-white text-black"
+                : "bg-crema text-black hover:opacity-70"
+            }`}
+          >
+            {t("select")}
+          </div>
           <div
             onClick={() => setTool("pencil")}
             className={`px-3 py-1.5 rounded-sm font-agency text-xs cursor-pointer ${
@@ -163,102 +166,6 @@ export default function SynthCanvas({ onCanvasSave }: SynthCanvasProps) {
             {t("redo")}
           </div>
         </div>
-        {selectedImageElement && (
-          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-crema">
-            <span className="text-black font-agency text-xs">{t("size")}:</span>
-            <HoldButton
-              onAction={() => {
-                if (adjustImageWidth) adjustImageWidth(-5);
-              }}
-              className="px-2 py-1 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs"
-            >
-              W-
-            </HoldButton>
-            <HoldButton
-              onAction={() => {
-                if (adjustImageWidth) adjustImageWidth(5);
-              }}
-              className="px-2 py-1 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs"
-            >
-              W+
-            </HoldButton>
-            <HoldButton
-              onAction={() => {
-                if (adjustImageHeight) adjustImageHeight(-5);
-              }}
-              className="px-2 py-1 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs"
-            >
-              H-
-            </HoldButton>
-            <HoldButton
-              onAction={() => {
-                if (adjustImageHeight) adjustImageHeight(5);
-              }}
-              className="px-2 py-1 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs"
-            >
-              H+
-            </HoldButton>
-            <span className="text-black font-agency text-xs ml-2">{t("move")}:</span>
-            <HoldButton
-              onAction={() => {
-                if (moveImage) moveImage(0, -3);
-              }}
-              className="px-2 py-1 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs"
-            >
-              ↑
-            </HoldButton>
-            <HoldButton
-              onAction={() => {
-                if (moveImage) moveImage(0, 3);
-              }}
-              className="px-2 py-1 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs"
-            >
-              ↓
-            </HoldButton>
-            <HoldButton
-              onAction={() => {
-                if (moveImage) moveImage(-3, 0);
-              }}
-              className="px-2 py-1 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs"
-            >
-              ←
-            </HoldButton>
-            <HoldButton
-              onAction={() => {
-                if (moveImage) moveImage(3, 0);
-              }}
-              className="px-2 py-1 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs"
-            >
-              →
-            </HoldButton>
-            <span className="text-black font-agency text-xs ml-2">{t("rotate")}:</span>
-            <div
-              onClick={() => {
-                if (rotateImage) rotateImage(-15);
-              }}
-              className="px-2 py-1 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs cursor-pointer"
-            >
-              ↶
-            </div>
-            <div
-              onClick={() => {
-                if (rotateImage) rotateImage(15);
-              }}
-              className="px-2 py-1 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs cursor-pointer"
-            >
-              ↷
-            </div>
-            <span className="text-black font-agency text-xs ml-2">{t("delete")}:</span>
-            <div
-              onClick={() => {
-                if (deleteImage) deleteImage();
-              }}
-              className="px-2 py-1 bg-crema hover:opacity-70 text-black rounded-sm font-agency text-xs cursor-pointer"
-            >
-              ×
-            </div>{" "}
-          </div>
-        )}
       </div>
       <div
         ref={containerRef}

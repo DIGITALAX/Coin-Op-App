@@ -104,6 +104,7 @@
   "create_new_project": "CREATE NEW PROJECT",
   "load_project_from_activity": "LOAD PROJECT FROM ACTIVITY",
   "brush": "BRUSH",
+  "select": "SELECT",
   "eraser": "ERASER",
   "size": "SIZE",
   "color": "COLOR",

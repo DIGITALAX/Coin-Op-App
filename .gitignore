@@ -46,7 +46,8 @@ Cargo.lock
 
 # Sparrow-specific files
 sparrow/output/
-sparrow/data/live/.live_solution.svg
+sparrow/data/live/
+sparrow/data/
 **/.live_solution.svg
 
 # Tauri build files

@@ -169,7 +169,7 @@ export const CanvasHistory = ({ onHistoryLoad }: CanvasHistoryProps) => {
             />
             <div
               onClick={(e) => downloadThumbnail(historyItem, e)}
-              className="absolute cursor-pointer -top-1 -left-1 w-5 h-5 bg-white hover:opacity-80 text-black rounded-sm text-xs font-sat flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
+              className="absolute cursor-pointer -top-1 -left-1 w-5 h-5 bg-white hover:opacity-80 text-black rounded-sm text-xs font-mana flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
             >
               ↓
             </div>
