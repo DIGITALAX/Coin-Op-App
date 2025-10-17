@@ -37,10 +37,18 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
-      - name: Build Sparrow
+      - name: Build Sparrow (Unix)
+        if: matrix.platform != 'windows-latest'
         run: |
           cd sparrow
           cargo build --release --features=live_svg
+
+      - name: Build Sparrow (Windows)
+        if: matrix.platform == 'windows-latest'
+        run: |
+          cd sparrow
+          cargo build --release --features=live_svg
+        shell: cmd
 
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0

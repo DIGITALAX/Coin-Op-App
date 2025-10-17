@@ -173,9 +173,12 @@ pub async fn cancel_sparrow_process() -> Result<String, String> {
             unsafe {
                 let result = libc::kill(-pid, libc::SIGKILL);
                 eprintln!("DEBUG: kill(-{}, SIGKILL) returned: {}", pid, result);
-                
+
                 if result != 0 {
+                    #[cfg(target_os = "macos")]
                     let errno = *libc::__error();
+                    #[cfg(target_os = "linux")]
+                    let errno = *libc::__errno_location();
                     eprintln!("DEBUG: errno: {}", errno);
                 }
             }
