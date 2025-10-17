@@ -45,8 +45,7 @@ jobs:
           cargo build --release --features=live_svg --target aarch64-apple-darwin
           cargo build --release --features=live_svg --target x86_64-apple-darwin
           mkdir -p ../src-tauri/binaries
-          cp target/aarch64-apple-darwin/release/sparrow ../src-tauri/binaries/sparrow-aarch64-apple-darwin
-          cp target/x86_64-apple-darwin/release/sparrow ../src-tauri/binaries/sparrow-x86_64-apple-darwin
+          lipo -create -output ../src-tauri/binaries/sparrow-universal-apple-darwin target/aarch64-apple-darwin/release/sparrow target/x86_64-apple-darwin/release/sparrow
 
       - name: Build Sparrow (Linux)
         if: matrix.platform == 'ubuntu-22.04'
