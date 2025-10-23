@@ -599,7 +599,7 @@ const useGenerator = ({
         if (isEditMode) {
           let canvasDataURL;
           if (mode === "composite" && getCanvasImage) {
-            canvasDataURL = getCanvasImage();
+            canvasDataURL = await getCanvasImage();
           } else {
             canvasDataURL = getCanvasDataURL();
           }
@@ -689,6 +689,7 @@ const useGenerator = ({
             onImageGenerated(imageDataUrl);
           }
         } else {
+          window.dispatchEvent(new Event("synthImageGenerated"));
           addImageToCanvas(imageDataUrl, overwriteCanvas);
         }
       } else if (aiProvider === "replicate") {
@@ -712,7 +713,7 @@ const useGenerator = ({
         if (useCanvasAsInput) {
           let canvasDataURL;
           if (mode === "composite" && getCanvasImage) {
-            canvasDataURL = getCanvasImage();
+            canvasDataURL = await getCanvasImage();
           } else {
             canvasDataURL = getCanvasDataURL();
           }
@@ -787,6 +788,7 @@ const useGenerator = ({
             onImageGenerated(imageDataUrl as string);
           }
         } else {
+          window.dispatchEvent(new Event("synthImageGenerated"));
           addImageToCanvas(imageDataUrl as string, overwriteCanvas);
         }
       } else if (aiProvider === "comfy") {

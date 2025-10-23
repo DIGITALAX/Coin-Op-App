@@ -87,7 +87,7 @@ export interface UseInteractiveCanvasReturn {
 export interface UseGeneratorProps {
   mode?: "synth" | "composite";
   onImageGenerated?: (imageUrl: string) => void;
-  getCanvasImage?: () => string | null;
+  getCanvasImage?: () => string | null | Promise<string | null>;
 }
 
 export interface UseSynthCanvasProps {

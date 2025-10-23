@@ -25,7 +25,11 @@ export default function GenerationHistory() {
       try {
         const history = (await getItem("aiGenerationHistory")) || [];
         if (Array.isArray(history)) {
-          setGenerationHistory(history);
+          const parsedHistory = history.map((item: any) => ({
+            ...item,
+            timestamp: new Date(item.timestamp),
+          }));
+          setGenerationHistory(parsedHistory);
         } else {
           setGenerationHistory([]);
         }
@@ -34,6 +38,23 @@ export default function GenerationHistory() {
       }
     };
     loadHistory();
+  }, [getItem, currentDesign?.id]);
+
+  useEffect(() => {
+    const handleSynthGenerated = async () => {
+      const saved = await getItem("aiGenerationHistory");
+      if (Array.isArray(saved)) {
+        const parsedHistory = saved.map((item: any) => ({
+          ...item,
+          timestamp: new Date(item.timestamp),
+        }));
+        setGenerationHistory(parsedHistory);
+      }
+    };
+    window.addEventListener("synthImageGenerated", handleSynthGenerated);
+    return () => {
+      window.removeEventListener("synthImageGenerated", handleSynthGenerated);
+    };
   }, [getItem, currentDesign?.id]);
   const handleDeleteFromHistory = async (itemId: string) => {
     const updatedHistory = generationHistory.filter((h) => h.id !== itemId);

@@ -137,9 +137,10 @@ export default function Composite() {
         <Generator
           mode="composite"
           onImageGenerated={handleImageGenerated}
-          getCanvasImage={async () =>
-            compositeCanvasRef.current?.captureCanvas() || null
-          }
+          getCanvasImage={async () => {
+            const result = await compositeCanvasRef.current?.captureCanvas();
+            return result || null;
+          }}
         />
         <CompositeHistory onImageSelected={handleHistoryImageSelected} />
       </div>

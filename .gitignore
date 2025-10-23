@@ -89,3 +89,5 @@ coverage/
 
 # Security documentation (keep in repo for reference)
 # SECURITY.md should be committed for developer reference
+src-tauri/binaries/*
+!src-tauri/binaries/.gitkeep
