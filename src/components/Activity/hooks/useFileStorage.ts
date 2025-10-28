@@ -11,36 +11,27 @@ import { useCallback } from "react";
 
 let directoriesInitialized = false;
 
+const safeMkdir = async (directory: string) => {
+  try {
+    await mkdir(directory, {
+      baseDir: BaseDirectory.AppData,
+      recursive: true,
+    });
+  } catch (error: any) {
+    const message = error?.message || "";
+    if (!/File exists|os error 17/i.test(message)) {
+      throw error;
+    }
+  }
+};
+
 const initializeDirectories = async () => {
   if (directoriesInitialized) return;
   
   try {
-    const globalExists = await exists("global", {
-      baseDir: BaseDirectory.AppData,
-    });
-    if (!globalExists) {
-      await mkdir("global", {
-        baseDir: BaseDirectory.AppData,
-      });
-    }
-    
-    const globalImagesExists = await exists("global/images", {
-      baseDir: BaseDirectory.AppData,
-    });
-    if (!globalImagesExists) {
-      await mkdir("global/images", {
-        baseDir: BaseDirectory.AppData,
-      });
-    }
-    
-    const designsExists = await exists("designs", {
-      baseDir: BaseDirectory.AppData,
-    });
-    if (!designsExists) {
-      await mkdir("designs", {
-        baseDir: BaseDirectory.AppData,
-      });
-    }
+    await safeMkdir("global");
+    await safeMkdir("global/images");
+    await safeMkdir("designs");
     
     directoriesInitialized = true;
   } catch (error) {
@@ -78,17 +69,8 @@ export const useFileStorage = () => {
         if (mode !== "global") {
           const folderName = `design-${mode}-${designName!.replace(/[^a-zA-Z0-9-_]/g, '_')}`;
           
-          const designFolderExists = await exists(`designs/${folderName}`, {
-            baseDir: BaseDirectory.AppData,
-          });
-          if (!designFolderExists) {
-            await mkdir(`designs/${folderName}`, {
-              baseDir: BaseDirectory.AppData,
-            });
-            await mkdir(`designs/${folderName}/images`, {
-              baseDir: BaseDirectory.AppData,
-            });
-          }
+          await safeMkdir(`designs/${folderName}`);
+          await safeMkdir(`designs/${folderName}/images`);
         }
 
         const data = JSON.stringify(value, null, 2);

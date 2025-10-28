@@ -283,12 +283,12 @@ pub async fn fetch_templates() -> Result<Vec<TemplateData>, String> {
     let query =
         r#"
     {
-      templates(where: {templateContract: "0x98bae4366734b121e1a4bbcf61cc514527e456a7"}) {
+      templates(where: {templateContract: "0x78e58323a4fc153e901dde7ecad7d70e661bdfc5"}) {
         templateContract
         templateId
         physicalPrice
         childReferences {
-          uri
+          placementURI
           childId
           amount
           childContract
@@ -395,7 +395,7 @@ pub async fn fetch_templates() -> Result<Vec<TemplateData>, String> {
         if let Some(refs) = template.get("childReferences").and_then(|v| v.as_array()) {
             for child_ref in refs {
                 let uri = child_ref
-                    .get("uri")
+                    .get("placementURI")
                     .and_then(|v| v.as_str())
                     .unwrap_or("")
                     .to_string();
@@ -532,7 +532,7 @@ pub async fn fetch_children_materials_colors() -> Result<Value, String> {
     let query =
         r#"
     {
-      childs(where: { or: [{childContract: "0xf38d630c6f90adf72765408cf725119fb183d136"}, {childContract: "0xe61b80f94d9a0915ad53283c9d27307b785b1fdc"}] }) {
+      childs(where: { or: [{childContract: "0xe2b5fe11efc1f996eef76caf6925e8db0725b1d7"}, {childContract: "0xd15b2415812bb864796c664ae08006eb9f1f72f6"}] }) {
         childContract
         childId
         physicalPrice
@@ -658,7 +658,7 @@ pub async fn fetch_children_materials_colors() -> Result<Value, String> {
             None
         };
 
-        if child_contract == "0xf38d630c6f90adf72765408cf725119fb183d136" {
+        if child_contract == "0xd15b2415812bb864796c664ae08006eb9f1f72f6" {
             materials_data.push(ChildData {
                 price: physical_price,
                 child_type,

@@ -58,7 +58,7 @@ const useComposite = (
       let childImageData: string | null = null;
       let originalChildUri = childUri;
 
-      if (saved && (saved).length > 0) {
+      if (saved && saved.length > 0) {
         if (childUri?.startsWith("data:")) {
           const childIndex = templateChild?.childReferences.findIndex(
             (c) => c.uri === childUri
@@ -89,6 +89,7 @@ const useComposite = (
       let childRef = templateChild?.childReferences.find(
         (c) => c.uri === originalChildUri
       );
+
       if (childImageData) {
         imageToAdd = childImageData;
       } else {
@@ -96,6 +97,10 @@ const useComposite = (
           imageToAdd = getImageUrl(childRef.child.metadata.image);
         } else {
           imageToAdd = getImageUrl(childUri);
+          console.warn("[Composite] handleChildClick:fallbackToPlacement", {
+            childUri,
+            fallbackImageUrl: imageToAdd,
+          });
         }
       }
       const transforms = childRef?.metadata
@@ -109,11 +114,31 @@ const useComposite = (
         : {};
 
       if (compositeCanvasRef.current && childRef) {
+        let resolvedImageToAdd = imageToAdd;
+        if (
+          typeof resolvedImageToAdd === "string" &&
+          resolvedImageToAdd.startsWith("designs/")
+        ) {
+          try {
+            resolvedImageToAdd = await getBinaryFileUrl(resolvedImageToAdd);
+          } catch (error) {
+            console.warn("[Composite] handleChildClick:conversionFailed", {
+              imageToAdd,
+              error,
+            });
+          }
+        }
+
         compositeCanvasRef.current.addChild(
-          imageToAdd,
+          resolvedImageToAdd,
           originalChildUri,
           transforms
         );
+      } else if (!childRef) {
+        console.warn("[Composite] handleChildClick:noChildRef", {
+          originalChildUri,
+          templateChildId: templateChild?.templateId,
+        });
       }
     },
     [

@@ -29,10 +29,6 @@ export interface NetworkConfig {
   chainId: number;
   rpcUrl: string;
   name: string;
-  contracts: {
-    fulfiller: `0x${string}`;
-    splits: `0x${string}`;
-  };
   tokens: {
     mona: `0x${string}`;
   };

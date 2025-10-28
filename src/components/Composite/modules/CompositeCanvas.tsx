@@ -180,9 +180,9 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
               const isWarping =
                 child.isWarping || (mode === "warp" && child.isSelected);
               ctx.strokeStyle = child.isDragging
-                ? "#00ff00"
+                ? "#b300ffff"
                 : isWarping
-                ? "#ff00ff"
+                ? "#1100ffff"
                 : "#0088ff";
               ctx.lineWidth = 2;
               if (isWarping) {
@@ -245,7 +245,17 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
             resolve();
           };
           img.onerror = () => {
-            ctx.fillStyle = "#ff4444";
+            console.warn("[CompositeCanvas] image load failed", {
+              imageUrl,
+              childSnapshot: {
+                uri: child.uri,
+                width: child.width,
+                height: child.height,
+                x: child.x,
+                y: child.y,
+              },
+            });
+            ctx.fillStyle = "#7552c1ff";
             ctx.fillRect(child.x, child.y, child.width, child.height);
             ctx.strokeStyle = "#ffffff";
             ctx.lineWidth = 2;
@@ -254,7 +264,7 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
             ctx.font = "12px Arial";
             ctx.textAlign = "center";
             ctx.fillText(
-              "Failed",
+              "?",
               child.x + child.width / 2,
               child.y + child.height / 2
             );

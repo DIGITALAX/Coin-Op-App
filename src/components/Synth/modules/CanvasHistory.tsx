@@ -158,15 +158,17 @@ export const CanvasHistory = ({ onHistoryLoad }: CanvasHistoryProps) => {
             }}
             className="group flex-shrink-0 w-24 h-24 bg-turq border border-aqua rounded cursor-pointer hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 p-1 relative overflow-visible transition-all"
           >
-            <img
-              src={thumbnailUrls[historyItem.id] || ""}
-              alt="canvas history"
-              draggable={false}
-              className="w-full h-full object-contain rounded"
-              style={{
-                imageRendering: "crisp-edges",
-              }}
-            />
+            {thumbnailUrls[historyItem.id] && (
+              <img
+                src={thumbnailUrls[historyItem.id]}
+                alt="canvas history"
+                draggable={false}
+                className="w-full h-full object-contain rounded"
+                style={{
+                  imageRendering: "crisp-edges",
+                }}
+              />
+            )}
             <div
               onClick={(e) => downloadThumbnail(historyItem, e)}
               className="absolute cursor-pointer -top-1 -left-1 w-5 h-5 bg-white hover:opacity-80 text-black rounded-sm text-xs font-mana flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"

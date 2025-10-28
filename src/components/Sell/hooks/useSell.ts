@@ -271,7 +271,7 @@ export const useSell = (): UseSellReturn => {
       const fgoUrl =
         process.env.NODE_ENV === "production"
           ? "https://coinop.themanufactory.xyz"
-          : "http://localhost:3000";
+          : "http://localhost:3002";
 
       try {
         const formData = new FormData();

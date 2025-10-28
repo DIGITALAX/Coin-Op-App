@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, createElement } from "react";
+import { useRef, useState, useEffect, createElement, useCallback } from "react";
 import { INFURA_GATEWAY } from "../../../lib/constants";
 import { useApp } from "../../../context/AppContext";
 import { getCurrentTemplate } from "../utils/templateHelpers";
@@ -64,6 +64,9 @@ const useInteractive = (templateChild: Template | null) => {
           if (!child.child.metadata.image.startsWith("data:")) {
             try {
               const svgUrl = getImageSrc(child.child.metadata.image);
+              if (!svgUrl) {
+                continue;
+              }
               const response = await fetch(svgUrl);
               const content = await response.text();
               cache[child.child.metadata.image] = content;
@@ -130,11 +133,14 @@ const useInteractive = (templateChild: Template | null) => {
     return result;
   };
 
-  const getImageSrc = (uri: string) => {
-    return uri?.startsWith("data:")
+  const getImageSrc = useCallback((uri: string): string => {
+    if (!uri) {
+      return "";
+    }
+    return uri.startsWith("data:")
       ? uri
-      : uri?.replace("ipfs://", `${INFURA_GATEWAY}/ipfs/`);
-  };
+      : uri.replace("ipfs://", `${INFURA_GATEWAY}/ipfs/`);
+  }, []);
 
   const parseSvgContent = (svgString: string) => {
     const parser = new DOMParser();

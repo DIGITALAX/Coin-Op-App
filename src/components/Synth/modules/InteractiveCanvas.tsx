@@ -15,6 +15,7 @@ export default function InteractiveCanvas({
   const currentTemplate = getCurrentTemplate(selectedLayer, isBackSide);
   const { getBinaryFileUrl } = useFileStorage();
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
+  const [imagesReady, setImagesReady] = useState(false);
   const {
     getImageSrc,
     convertCoordinatesToPixels,
@@ -38,28 +39,65 @@ export default function InteractiveCanvas({
   } = useInteractive(templateChild);
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadImageUrls = async () => {
-      if (!templateChild?.childReferences) return;
+      const references = templateChild?.childReferences || [];
 
-      const newImageUrls: Record<string, string> = {};
+      if (references.length === 0) {
+        if (!cancelled) {
+          setImageUrls({});
+          setImagesReady(true);
+        }
+        return;
+      }
 
-      for (const child of templateChild.childReferences) {
-        const imageRef = child.child?.metadata?.image;
-        if (imageRef && !imageRef.startsWith("data:") && !imageUrls[imageRef]) {
+      setImagesReady(false);
+
+      const results = await Promise.all(
+        references.map(async (child) => {
+          const imageRef = child.child?.metadata?.image;
+          if (!imageRef) {
+            return null;
+          }
+          if (imageRef.startsWith("data:")) {
+            return [imageRef, imageRef] as [string, string];
+          }
           try {
             const url = await getBinaryFileUrl(imageRef);
-            newImageUrls[imageRef] = url;
-          } catch (error) {}
-        }
+            return [imageRef, url] as [string, string];
+          } catch (error) {
+            const fallback = getImageSrc(imageRef);
+            return fallback ? ([imageRef, fallback] as [string, string]) : null;
+          }
+        })
+      );
+
+      if (cancelled) {
+        return;
       }
 
-      if (Object.keys(newImageUrls).length > 0) {
-        setImageUrls((prev) => ({ ...prev, ...newImageUrls }));
-      }
+      const next: Record<string, string> = {};
+      results.forEach((entry) => {
+        if (!entry) return;
+        const [ref, url] = entry;
+        if (url) {
+          next[ref] = url;
+        }
+      });
+
+      setImageUrls(next);
+      setImagesReady(true);
     };
 
+    setImagesReady(false);
+    setImageUrls({});
     loadImageUrls();
-  }, [templateChild, getBinaryFileUrl]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [templateChild, getBinaryFileUrl, getImageSrc]);
 
   return (
     <div
@@ -117,6 +155,7 @@ export default function InteractiveCanvas({
           imageUrls={imageUrls}
           getImageSrc={getImageSrc}
           currentTemplate={currentTemplate}
+          imagesReady={imagesReady}
           onChildClick={onChildClick}
           convertCoordinatesToPixels={convertCoordinatesToPixels}
           baseTemplateChild={baseTemplateChild}
@@ -150,43 +189,47 @@ const ShowCanvas = ({
   templateChild,
   onChildClick,
   imageUrls,
+  imagesReady,
   onImageLoad,
 }: ShowCanvasProps & { onImageLoad: () => void }) => {
   const { t } = useTranslation();
   const imageSrc = getImageSrc(baseTemplateChild?.child?.metadata?.image || "");
 
+  if (!imagesReady || !imageSrc) {
+    return null;
+  }
+
   const getImageUrl = (imageRef: string): string => {
     if (imageRef.startsWith("data:")) {
       return imageRef;
     }
-    return imageUrls[imageRef] || "";
+    return imageUrls[imageRef] || getImageSrc(imageRef);
   };
 
   return (
-    <div
-      ref={canvasContainerRef}
-      className={`relative bg-black`}
-    >
-      <img
-        ref={imageRef}
-        src={imageSrc}
-        key={imageSrc}
-        alt={t("base_template")}
-        draggable={false}
-        onLoad={() => {
-          if (canvasContainerRef.current && !canvasWidth) {
-            const width = canvasContainerRef.current.offsetWidth;
-            if (width > 0) {
-              setCanvasWidth(width);
+    <div ref={canvasContainerRef} className={`relative bg-black`}>
+      {imageSrc && (
+        <img
+          ref={imageRef}
+          src={imageSrc}
+          key={imageSrc}
+          alt={t("base_template")}
+          draggable={false}
+          onLoad={() => {
+            if (canvasContainerRef.current && !canvasWidth) {
+              const width = canvasContainerRef.current.offsetWidth;
+              if (width > 0) {
+                setCanvasWidth(width);
+              }
             }
-          }
-          onImageLoad();
-        }}
-        style={{
-          height: "auto",
-          display: "block",
-        }}
-      />
+            onImageLoad();
+          }}
+          style={{
+            height: "auto",
+            display: "block",
+          }}
+        />
+      )}
       {(templateChild?.childReferences || [])
         .filter((child) => child.child.metadata?.tags?.includes("zone"))
         .map((child, index: number) => {
@@ -223,12 +266,18 @@ const ShowCanvas = ({
             originalImageUri = child.child.metadata.image;
           }
 
+          const originalImageSrc = originalImageUri
+            ? getImageSrc(originalImageUri)
+            : "";
           const dims = imageDimensions[child.uri];
           if (!dims) {
+            if (!originalImageSrc) {
+              return null;
+            }
             return (
               <img
                 key={`${child.uri}-${index}-${canvasWidth}`}
-                src={getImageSrc(originalImageUri!)}
+                src={originalImageSrc}
                 alt={`Pattern ${index}`}
                 className="absolute transition-opacity"
                 draggable={false}
@@ -303,26 +352,25 @@ const ShowCanvas = ({
             );
             return (
               <div key={`${child.uri}-${index}-container-${canvasWidth}`}>
-                {child.child.metadata.image &&
-                  getImageUrl(child.child.metadata.image) && (
-                    <img
-                      key={`${child.uri}-${index}-data`}
-                      src={getImageSrc(getImageUrl(child.child.metadata.image))}
-                      alt={`Pattern ${index}`}
-                      width={w}
-                      height={h}
-                      draggable={false}
-                      className="absolute"
-                      style={{
-                        left: `${pixelPosition.left}px`,
-                        top: `${pixelPosition.top}px`,
-                        transform,
-                        transformOrigin: "0 0",
-                        pointerEvents: "none",
-                        zIndex: 0,
-                      }}
-                    />
-                  )}
+                {child.child.metadata.image && (
+                  <img
+                    key={`${child.uri}-${index}-data`}
+                    src={getImageUrl(child.child.metadata.image)}
+                    alt={`Pattern ${index}`}
+                    width={w}
+                    height={h}
+                    draggable={false}
+                    className="absolute"
+                    style={{
+                      left: `${pixelPosition.left}px`,
+                      top: `${pixelPosition.top}px`,
+                      transform,
+                      transformOrigin: "0 0",
+                      pointerEvents: "none",
+                      zIndex: 0,
+                    }}
+                  />
+                )}
                 <svg
                   key={`${child.uri}-${index}-${canvasWidth}`}
                   {...parsedSvg.props}

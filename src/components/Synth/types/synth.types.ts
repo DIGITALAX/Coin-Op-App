@@ -143,6 +143,7 @@ export interface ShowCanvasProps {
   currentTemplate: Template | null;
   canvasWidth: number | undefined;
   imageUrls: Record<string, string>;
+  imagesReady: boolean;
   templateChild: Template | null;
   onChildClick?: (childUri: string) => void;
 }

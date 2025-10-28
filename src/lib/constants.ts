@@ -11,10 +11,6 @@ export const NETWORK_CONFIGS: Record<Environment, NetworkConfig> = {
     chainId: 37111,
     rpcUrl: "https://rpc.testnet.lens.dev",
     name: "Lens Testnet",
-    contracts: {
-      fulfiller: "0x44e4684063eC94C6d52F6d2CAFD5e4e1eD6Bd03F",
-      splits: "0x7991EEB9a278a1facd4009b2bc578FA23a307B5d",
-    },
     tokens: {
       mona: "0x8b205CBd20417BF9a28078197A13528bcB584836",
     },
@@ -23,12 +19,8 @@ export const NETWORK_CONFIGS: Record<Environment, NetworkConfig> = {
     chainId: 232,
     rpcUrl: "https://rpc.lens.dev",
     name: "Lens Mainnet",
-    contracts: {
-      fulfiller: "0x0000000000000000000000000000000000000000",
-      splits: "0x0000000000000000000000000000000000000000",
-    },
     tokens: {
-      mona: "0x0000000000000000000000000000000000000000",
+      mona: "0x28547B5b6B405A1444A17694AC84aa2d6A03b3Bd",
     },
   },
 };
