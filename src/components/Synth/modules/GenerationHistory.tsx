@@ -60,6 +60,7 @@ export default function GenerationHistory() {
     const updatedHistory = generationHistory.filter((h) => h.id !== itemId);
     setGenerationHistory(updatedHistory);
     await setItem("aiGenerationHistory", updatedHistory);
+    window.dispatchEvent(new CustomEvent("syncAiGenerationHistory"));
   };
   return (
     generationHistory.length > 0 && (

@@ -12,7 +12,7 @@ export const NETWORK_CONFIGS: Record<Environment, NetworkConfig> = {
     rpcUrl: "https://rpc.testnet.lens.dev",
     name: "Lens Testnet",
     tokens: {
-      mona: "0x8b205CBd20417BF9a28078197A13528bcB584836",
+      mona: "0x3D7f4Fc4E17Ead2ABBcf282A38F209D683e03835",
     },
   },
   mainnet: {

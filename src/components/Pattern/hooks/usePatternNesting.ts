@@ -8,7 +8,7 @@ export const usePatternNesting = () => {
   const [nestingResult, setNestingResult] = useState<NestingResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const nestPatterns = useCallback(async (
-    patterns: PatternPiece[], 
+    patterns: PatternPiece[],
     canvasWidth: number = 1000,
     settings: NestingSettings
   ): Promise<NestingResult | null> => {
@@ -17,6 +17,9 @@ export const usePatternNesting = () => {
     try {
       await invoke<string>('clear_sparrow_data');
       setIsSparrowRunning(true);
+
+      const garmentType = patterns.length > 0 ? patterns[0].garmentType : undefined;
+
       const request: NestingRequest = {
         pattern_pieces: patterns.map(pattern => ({
           id: pattern.id,
@@ -25,7 +28,10 @@ export const usePatternNesting = () => {
           demand: pattern.quantity
         })),
         strip_width: canvasWidth,
-        settings
+        settings: {
+          ...settings,
+          garmentType
+        }
       };
       const result = await invoke<NestingResult>('nest_pattern_pieces', { request });
       setNestingResult(result);

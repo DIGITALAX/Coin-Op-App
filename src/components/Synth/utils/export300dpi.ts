@@ -5,37 +5,60 @@ import drawPatternElement from "./drawPatternElement";
 import { invoke } from "@tauri-apps/api/core";
 
 export const export300dpi = async (historyItem: CanvasHistory, dpi: number) => {
-  const tempCanvas = document.createElement("canvas");
-  tempCanvas.width = 1000;
-  tempCanvas.height = 1000;
+  const baseCanvas = document.createElement("canvas");
+  baseCanvas.width = historyItem.originalCanvasWidth;
+  baseCanvas.height = historyItem.originalCanvasHeight;
+  const baseCtx = baseCanvas.getContext("2d");
+  if (!baseCtx) return;
 
-  let pattern = null;
-  if (historyItem.child?.child?.metadata?.image) {
-    pattern = await addRashToCanvas(
-      historyItem.child.child.metadata.image,
-      tempCanvas,
-      true
-    );
+  baseCtx.save();
+  baseCtx.setTransform(1, 0, 0, 1, 0, 0);
+  baseCtx.clearRect(0, 0, baseCanvas.width, baseCanvas.height);
+  baseCtx.imageSmoothingEnabled = false;
+  baseCtx.imageSmoothingQuality = "high";
+  (baseCtx as CanvasRenderingContext2D).globalCompositeOperation = "source-over";
+
+  const basePattern = historyItem.child?.child?.metadata?.image
+    ? await addRashToCanvas(
+        historyItem.child.child.metadata.image,
+        baseCanvas,
+        false
+      )
+    : null;
+  if (basePattern) {
+    drawPatternElement(basePattern, baseCtx, 96);
   }
 
-  if (!pattern) {
-    return;
+  if (historyItem.elements) {
+    const clonedElements = historyItem.elements.map((element) => {
+      const cloned: any = { ...element };
+      if (element.points) {
+        cloned.points = element.points.map((point: any) => ({ ...point }));
+      }
+      return cloned;
+    });
+
+    for (const element of clonedElements) {
+      if (element.type === "image" && element.imageSrc) {
+        const img = new Image();
+        await new Promise<void>((resolve) => {
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+          img.src = element.imageSrc;
+        });
+        element.image = img;
+        drawElement(element, baseCtx, 96);
+      } else {
+        drawElement(element, baseCtx, 96);
+      }
+    }
   }
 
-  const patternWidth = pattern.originalWidth || 1;
-  const patternHeight = pattern.originalHeight || 1;
-  const aspectRatio = patternWidth / patternHeight;
+  baseCtx.restore();
 
-  const maxSizeInPixels = Math.round(16.535 * dpi);
-
-  let canvasWidth, canvasHeight;
-  if (aspectRatio >= 1) {
-    canvasWidth = maxSizeInPixels;
-    canvasHeight = Math.round(maxSizeInPixels / aspectRatio);
-  } else {
-    canvasHeight = maxSizeInPixels;
-    canvasWidth = Math.round(maxSizeInPixels * aspectRatio);
-  }
+  const scale = dpi / 96;
+  const canvasWidth = Math.round(baseCanvas.width * scale);
+  const canvasHeight = Math.round(baseCanvas.height * scale);
 
   const highResCanvas = document.createElement("canvas");
   highResCanvas.width = canvasWidth;
@@ -43,78 +66,9 @@ export const export300dpi = async (historyItem: CanvasHistory, dpi: number) => {
   const highResCtx = highResCanvas.getContext("2d");
   if (!highResCtx) return;
 
-  highResCtx.save();
-  highResCtx.setTransform(1, 0, 0, 1, 0, 0);
-  highResCtx.clearRect(0, 0, highResCanvas.width, highResCanvas.height);
-  highResCtx.imageSmoothingEnabled = false;
+  highResCtx.imageSmoothingEnabled = true;
   highResCtx.imageSmoothingQuality = "high";
-  (highResCtx as CanvasRenderingContext2D).globalCompositeOperation =
-    "source-over";
-
-  const highResPattern = await addRashToCanvas(
-    historyItem.child.child.metadata.image,
-    highResCanvas,
-    true
-  );
-  if (highResPattern) {
-    drawPatternElement(highResPattern, highResCtx, dpi);
-  }
-
-  const elementsCanvas = document.createElement("canvas");
-  elementsCanvas.width = canvasWidth;
-  elementsCanvas.height = canvasHeight;
-  const elementsCtx = elementsCanvas.getContext("2d");
-
-  if (elementsCtx && historyItem.elements) {
-    elementsCtx.imageSmoothingEnabled = false;
-    elementsCtx.imageSmoothingQuality = "high";
-
-    const originalCanvasWidth = historyItem.originalCanvasWidth;
-    const originalCanvasHeight = historyItem.originalCanvasHeight;
-
-    const scaleFactorX = canvasWidth / originalCanvasWidth;
-    const scaleFactorY = canvasHeight / originalCanvasHeight;
-
-    for (const element of historyItem.elements) {
-      const scaledElement = {
-        ...element,
-        points: element.points?.map((point: any) => ({
-          x: point.x * scaleFactorX,
-          y: point.y * scaleFactorY,
-          pressure: point.pressure,
-        })),
-        x1: element.x1 ? element.x1 * scaleFactorX : undefined,
-        y1: element.y1 ? element.y1 * scaleFactorY : undefined,
-        x2: element.x2 ? element.x2 * scaleFactorX : undefined,
-        y2: element.y2 ? element.y2 * scaleFactorY : undefined,
-        width: element.width ? element.width * scaleFactorX : undefined,
-        height: element.height ? element.height * scaleFactorY : undefined,
-        strokeWidth: element.strokeWidth
-          ? Math.max(
-              element.strokeWidth * scaleFactorX,
-              element.strokeWidth * scaleFactorY
-            )
-          : undefined,
-      };
-
-      if (element.type === "image" && element.imageSrc && !element.image) {
-        const img = new Image();
-        await new Promise<void>((resolve) => {
-          img.onload = () => resolve();
-          img.onerror = () => resolve();
-          img.src = element.imageSrc;
-        });
-        const imageElement = { ...scaledElement, image: img };
-        drawElement(imageElement, elementsCtx, dpi);
-      } else {
-        drawElement(scaledElement, elementsCtx, dpi);
-      }
-    }
-
-    highResCtx.drawImage(elementsCanvas, 0, 0);
-  }
-
-  highResCtx.restore();
+  highResCtx.drawImage(baseCanvas, 0, 0, canvasWidth, canvasHeight);
 
   const imageData = highResCtx.getImageData(
     0,

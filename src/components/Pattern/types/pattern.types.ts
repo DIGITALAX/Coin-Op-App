@@ -72,6 +72,7 @@ export interface NestingSettings {
   stripWidthMultiplier: number;
   iterationLimit: number;
   strikeLimit: number;
+  garmentType?: "tshirt" | "hoodie";
 }
 export type RotationPreset = {
   name: string;

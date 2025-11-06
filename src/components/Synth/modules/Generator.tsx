@@ -432,7 +432,7 @@ export default function Generator({
                       onSave={handleSaveWorkflow}
                     />
                   </div>
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-3 flex-wrap gap-2">
                     <input
                       type="file"
                       accept=".json"

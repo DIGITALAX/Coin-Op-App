@@ -560,6 +560,11 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     if (!patternElement) return;
+
+
+    setSelectedImageElement(null);
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
     const tempCanvas = document.createElement("canvas");
     const tempCtx = tempCanvas.getContext("2d");
     if (!tempCtx) return;
@@ -622,33 +627,34 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
         resolve(blob!);
       }, 'image/png');
     });
-    
+
     const timestamp = Date.now();
     const fileName = `canvas_${selectedPatternChild.uri?.replace(/[^a-zA-Z0-9]/g, '_')}_${currentTemplate?.templateId}_${timestamp}.png`;
-    
+
     if (!currentDesign) return;
-    
+
     const thumbnailPath = await saveBinaryFile(
-      fileName, 
-      blob, 
+      fileName,
+      blob,
       currentDesign.id,
       currentDesign.name
     );
-    
+
     const serializableElements = elements.map((element) => {
       if (element.type === "image" && element.image) {
-        return {
+        const serialized = {
           ...element,
           image: undefined,
           imageSrc: element.image.src,
           imageWidth: element.image.naturalWidth,
           imageHeight: element.image.naturalHeight,
         };
+        return serialized;
       }
       return element;
     });
     const actualCanvas = document.getElementById("synth-canvas-id") as HTMLCanvasElement;
-    
+
     const historyItem: CanvasHistory = {
       id: Date.now().toString(),
       childUri: selectedPatternChild.uri,
@@ -660,6 +666,7 @@ export const useSynthCanvas = (props?: UseSynthCanvasProps) => {
       timestamp: Date.now(),
       originalCanvasWidth: actualCanvas?.width,
       originalCanvasHeight: actualCanvas?.height,
+      canvasDevicePixelRatio: devicePixelRatio,
     };
     try {
       const currentHistory = (await getItem("canvasHistory")) || [];

@@ -283,7 +283,7 @@ pub async fn fetch_templates() -> Result<Vec<TemplateData>, String> {
     let query =
         r#"
     {
-      templates(where: {templateContract: "0x78e58323a4fc153e901dde7ecad7d70e661bdfc5"}) {
+      templates(where: {templateContract: "0xf8e52d8ef6a02f4655e5c14c719740f34045c821"}) {
         templateContract
         templateId
         physicalPrice
@@ -532,7 +532,7 @@ pub async fn fetch_children_materials_colors() -> Result<Value, String> {
     let query =
         r#"
     {
-      childs(where: { or: [{childContract: "0xe2b5fe11efc1f996eef76caf6925e8db0725b1d7"}, {childContract: "0xd15b2415812bb864796c664ae08006eb9f1f72f6"}] }) {
+      childs(where: { or: [{childContract: "0xdda8d550c2f2aa2959a05326bfdfdd626e26c816"}, {childContract: "0x1e993b7b1de0818c685cc981c05788795cb13202"}] }) {
         childContract
         childId
         physicalPrice
@@ -658,7 +658,7 @@ pub async fn fetch_children_materials_colors() -> Result<Value, String> {
             None
         };
 
-        if child_contract == "0xd15b2415812bb864796c664ae08006eb9f1f72f6" {
+        if child_contract == "0x1e993b7b1de0818c685cc981c05788795cb13202" {
             materials_data.push(ChildData {
                 price: physical_price,
                 child_type,

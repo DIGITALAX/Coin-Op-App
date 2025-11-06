@@ -47,6 +47,7 @@ export interface CanvasHistory {
   timestamp: number;
   originalCanvasWidth: number;
   originalCanvasHeight: number;
+  canvasDevicePixelRatio?: number;
 }
 export interface ElementInterface {
   id: number;

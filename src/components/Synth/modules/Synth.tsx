@@ -87,6 +87,24 @@ export default function Synth() {
               if (loadFromHistoryFn) {
                 loadFromHistoryFn(mostRecentCanvas);
               }
+              if (
+                mostRecentCanvas.layerTemplateId &&
+                currentTemplate &&
+                mostRecentCanvas.layerTemplateId !== currentTemplate.templateId
+              ) {
+                return;
+              }
+              if (
+                currentTemplate?.childReferences &&
+                mostRecentCanvas.thumbnailPath
+              ) {
+                const childIndex = currentTemplate.childReferences.findIndex(
+                  (child) => child.uri === mostRecentCanvas.childUri
+                );
+                if (childIndex >= 0) {
+                  updateChildCanvas(childIndex, mostRecentCanvas.thumbnailPath);
+                }
+              }
             }, 100);
           }
         }
@@ -94,7 +112,7 @@ export default function Synth() {
     };
     const timeoutId = setTimeout(syncCanvas, 100);
     return () => clearTimeout(timeoutId);
-  }, [selectedPatternChild, currentDesign, getItem]);
+  }, [selectedPatternChild, currentDesign, getItem, currentTemplate, updateChildCanvas]);
   const handleChildClick = useCallback(
     async (childUri: string) => {
       if (!selectedLayer) return;
@@ -140,6 +158,21 @@ export default function Synth() {
                 const loadFromHistoryFn = (window as any).canvasLoadFromHistory;
                 if (loadFromHistoryFn) {
                   loadFromHistoryFn(historyItem);
+                  if (
+                    historyItem.thumbnailPath &&
+                    currentTemplate?.childReferences
+                  ) {
+                    const historyChildIndex =
+                      currentTemplate.childReferences.findIndex(
+                        (childRef) => childRef.uri === historyItem.childUri
+                      );
+                    if (historyChildIndex >= 0) {
+                      updateChildCanvas(
+                        historyChildIndex,
+                        historyItem.thumbnailPath
+                      );
+                    }
+                  }
                 } else if (attempts < 10) {
                   setTimeout(() => tryLoadFromHistory(attempts + 1), 100);
                 } else {
@@ -199,7 +232,15 @@ export default function Synth() {
         }
       }
     },
-    [selectedLayer, setSelectedPatternChild, templateChild, getItem]
+    [
+      selectedLayer,
+      setSelectedPatternChild,
+      templateChild,
+      getItem,
+      currentTemplate,
+      selectedTemplate,
+      updateChildCanvas,
+    ]
   );
   const handleGeneratorStateChange = useCallback(
     (state: { aiProvider: string; comfySettings: any }) => {
@@ -254,6 +295,53 @@ export default function Synth() {
       ? workflowData
       : JSON.stringify(workflowData);
   }, [generatorState.comfySettings.workflowJson]);
+
+  const getSynthCanvasImage = async () => {
+    const canvas = document.querySelector("canvas#synth-canvas-id") as HTMLCanvasElement;
+    if (!canvas) return null;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    let minX = canvas.width, maxX = 0;
+    let minY = canvas.height, maxY = 0;
+    let hasContent = false;
+
+    const step = 4;
+    for (let y = 0; y < canvas.height; y += step) {
+      for (let x = 0; x < canvas.width; x += step) {
+        const index = (y * canvas.width + x) * 4;
+        if (data[index + 3] > 0) {
+          hasContent = true;
+          minX = Math.min(minX, x);
+          maxX = Math.max(maxX, x);
+          minY = Math.min(minY, y);
+          maxY = Math.max(maxY, y);
+        }
+      }
+    }
+
+    if (!hasContent) return canvas.toDataURL("image/png");
+
+    minX = Math.max(0, minX - step);
+    maxX = Math.min(canvas.width - 1, maxX + step);
+    minY = Math.max(0, minY - step);
+    maxY = Math.min(canvas.height - 1, maxY + step);
+
+    const boundsWidth = maxX - minX + 1;
+    const boundsHeight = maxY - minY + 1;
+
+    const croppedCanvas = document.createElement("canvas");
+    croppedCanvas.width = boundsWidth;
+    croppedCanvas.height = boundsHeight;
+    const croppedCtx = croppedCanvas.getContext("2d");
+    if (!croppedCtx) return null;
+
+    croppedCtx.drawImage(canvas, minX, minY, boundsWidth, boundsHeight, 0, 0, boundsWidth, boundsHeight);
+    return croppedCanvas.toDataURL("image/png");
+  };
   return (
     <div className="relative w-full h-full flex flex-col p-4 bg-black">
       <div className="mb-6">
@@ -293,6 +381,7 @@ export default function Synth() {
             setShowNodeEditor={setShowNodeEditor}
             onStateChange={handleGeneratorStateChange}
             onComfySettingsUpdate={handleComfySettingsUpdate}
+            getCanvasImage={getSynthCanvasImage}
           />
           <div className="bg-white border border-crema rounded p-6 h-[600px]">
             {showNodeEditor &&

@@ -53,6 +53,8 @@ pub struct NestingSettings {
     pub iteration_limit: u64,
     #[serde(rename = "strikeLimit")]
     pub strike_limit: u64,
+    #[serde(rename = "garmentType")]
+    pub garment_type: Option<String>,
 }
 #[derive(Debug, Deserialize)]
 pub struct PatternPiece {
@@ -86,10 +88,7 @@ pub async fn nest_pattern_pieces(request: NestingRequest) -> Result<NestingResul
     let child = command
         .spawn()
         .map_err(|e| format!("Failed to start Sparrow binary: {} (Make sure to build with: cargo build --release --features=live_svg)", e))?;
-    
-    let pid = child.id();
-    eprintln!("DEBUG: Spawned Sparrow with PID: {}", pid);
-    
+
     {
         let mut process_guard = SPARROW_PROCESS.lock().unwrap();
         *process_guard = Some(child);
@@ -166,30 +165,20 @@ pub async fn cancel_sparrow_process() -> Result<String, String> {
     let mut process_guard = SPARROW_PROCESS.lock().unwrap();
     if let Some(child) = process_guard.take() {
         let pid = child.id() as i32;
-        eprintln!("DEBUG: Attempting to kill process with PID: {}", pid);
-        
+
         #[cfg(unix)]
         {
             unsafe {
-                let result = libc::kill(-pid, libc::SIGKILL);
-                eprintln!("DEBUG: kill(-{}, SIGKILL) returned: {}", pid, result);
-
-                if result != 0 {
-                    #[cfg(target_os = "macos")]
-                    let errno = *libc::__error();
-                    #[cfg(target_os = "linux")]
-                    let errno = *libc::__errno_location();
-                    eprintln!("DEBUG: errno: {}", errno);
-                }
+                let _ = libc::kill(-pid, libc::SIGKILL);
             }
         }
-        
+
         #[cfg(not(unix))]
         {
             let mut child = child;
             let _ = child.kill();
         }
-        
+
         Ok(format!("Kill attempted for PID: {}", pid))
     } else {
         Ok("No Sparrow process running".to_string())
@@ -197,7 +186,7 @@ pub async fn cancel_sparrow_process() -> Result<String, String> {
 }
 async fn convert_svgs_to_sparrow_json(request: NestingRequest) -> Result<String> {
     let mut all_dimensions = Vec::new();
-    for piece in &request.pattern_pieces {
+    for piece in request.pattern_pieces.iter() {
         let svg_content = get_svg_content(&piece.svg_path).await?;
         let coordinates = parse_svg_to_coordinates(&svg_content)?;
         let mut min_x = coordinates[0][0];
@@ -243,13 +232,20 @@ async fn convert_svgs_to_sparrow_json(request: NestingRequest) -> Result<String>
     let pattern_count = items.len() as f64;
     let target_pattern_size = 30.0;
     let base_constraint = target_pattern_size * pattern_count.max(2.0);
-    
-    let scaled_strip_width = base_constraint / request.settings.strip_width_multiplier;
+
+    let garment_type = request.settings.garment_type.as_deref().unwrap_or("default");
+    let effective_multiplier = match garment_type {
+        "tshirt" => request.settings.strip_width_multiplier / 2.0,
+        _ => request.settings.strip_width_multiplier
+    };
+
+    let scaled_strip_width = base_constraint / effective_multiplier;
+
     let sparrow_json =
         json!({
-        "name": "custom_patterns", 
+        "name": "custom_patterns",
         "items": items,
-        "strip_height": scaled_strip_width,  
+        "strip_height": scaled_strip_width,
         "min_item_separation": request.settings.min_item_separation,
         "iteration_limit": request.settings.iteration_limit,
         "strike_limit": request.settings.strike_limit

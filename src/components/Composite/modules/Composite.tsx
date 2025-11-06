@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import InteractiveCanvas from "../../Synth/modules/InteractiveCanvas";
 import Generator from "../../Synth/modules/Generator";
@@ -11,15 +11,29 @@ import useComposite from "../hooks/useComposite";
 import { CompositeCanvasRef } from "../types/composite.types";
 import CompositeCanvas from "./CompositeCanvas";
 import { getCurrentTemplate } from "../../Synth/utils/templateHelpers";
+import ComfyUINodeEditor from "../../ComfyUI/modules/ComfyUINodeEditor";
+import { useDesignStorage } from "../../Activity/hooks/useDesignStorage";
 
 export default function Composite() {
   const { t } = useTranslation();
   const { selectedLayer, isBackSide } = useApp();
   const { currentDesign } = useDesignContext();
   const { loadCompositePrompt } = useLibrary();
+  const { getItem, setItem } = useDesignStorage();
   const currentTemplate = getCurrentTemplate(selectedLayer, isBackSide);
   const { templateChild } = useInteractiveCanvas(currentTemplate);
   const compositeCanvasRef = useRef<CompositeCanvasRef>(null);
+  const [showNodeEditor, setShowNodeEditor] = useState<boolean>(false);
+  const [generatorState, setGeneratorState] = useState<{
+    aiProvider: string;
+    comfySettings: any;
+  }>({
+    aiProvider: "openai",
+    comfySettings: { workflowJson: null, url: "http://localhost:8188" },
+  });
+  const [setComfySettingsRef, setSetComfySettingsRef] = useState<
+    ((updateFn: (prev: any) => any) => void) | null
+  >(null);
   const {
     handleChildClick,
     generatedImage,
@@ -27,9 +41,67 @@ export default function Composite() {
     deleteGeneratedImage,
     setGeneratedImage,
   } = useComposite(currentTemplate!, templateChild, compositeCanvasRef);
+
   const handleHistoryImageSelected = (imageUrl: string) => {
     setGeneratedImage(imageUrl);
   };
+
+  const handleGeneratorStateChange = useCallback(
+    (state: { aiProvider: string; comfySettings: any }) => {
+      setGeneratorState(state);
+    },
+    []
+  );
+
+  const handleWorkflowChange = useCallback(
+    async (workflow: any) => {
+      setGeneratorState((prev) => ({
+        ...prev,
+        comfySettings: {
+          ...prev.comfySettings,
+          workflowJson: workflow,
+        },
+      }));
+      if (workflow === null || workflow === undefined) {
+        await setItem("comfyuiSettings", {});
+      } else {
+        const currentSettings = (await getItem("comfyuiSettings")) || {};
+        if (typeof currentSettings !== "object") {
+          await setItem("comfyuiSettings", {});
+          return;
+        }
+        const updatedSettings = {
+          ...currentSettings,
+          workflowJson: workflow,
+        };
+        await setItem("comfyuiSettings", updatedSettings);
+      }
+      if (setComfySettingsRef) {
+        setComfySettingsRef((prev) => ({
+          ...prev,
+          workflowJson: workflow,
+          ...(workflow === null && {
+            workflowFileName: "",
+            promptNodes: [],
+            hasImageInput: false,
+          }),
+        }));
+      }
+    },
+    [setComfySettingsRef, getItem, setItem]
+  );
+
+  const handleComfySettingsUpdate = useCallback((setComfySettingsFn: any) => {
+    setSetComfySettingsRef(() => setComfySettingsFn);
+  }, []);
+
+  const memoizedWorkflowJson = useMemo(() => {
+    if (!generatorState.comfySettings.workflowJson) return undefined;
+    const workflowData = generatorState.comfySettings.workflowJson;
+    return typeof workflowData === "string"
+      ? workflowData
+      : JSON.stringify(workflowData);
+  }, [generatorState.comfySettings.workflowJson]);
   
   const handleDownloadCanvas = async () => {
     if (!compositeCanvasRef.current) return;
@@ -77,6 +149,25 @@ export default function Composite() {
     };
     loadLibraryItem();
   }, [loadCompositePrompt]);
+
+  useEffect(() => {
+    const loadComfySettings = async () => {
+      if (showNodeEditor) {
+        const settings = (await getItem("comfyuiSettings")) as any;
+        if (settings && settings.workflowJson) {
+          setGeneratorState((prev) => ({
+            ...prev,
+            aiProvider: "comfy",
+            comfySettings: {
+              ...settings,
+              url: settings.url || "http://localhost:8188",
+            },
+          }));
+        }
+      }
+    };
+    loadComfySettings();
+  }, [showNodeEditor, getItem]);
   return (
     <div className="relative w-full h-full flex flex-col p-4 bg-black">
       <div className="mb-6">
@@ -136,12 +227,35 @@ export default function Composite() {
         />
         <Generator
           mode="composite"
+          showNodeEditor={showNodeEditor}
+          setShowNodeEditor={setShowNodeEditor}
           onImageGenerated={handleImageGenerated}
+          onStateChange={handleGeneratorStateChange}
+          onComfySettingsUpdate={handleComfySettingsUpdate}
           getCanvasImage={async () => {
             const result = await compositeCanvasRef.current?.captureCanvas();
             return result || null;
           }}
         />
+        {showNodeEditor && (
+          <div className="bg-white border border-crema rounded h-[600px] flex flex-col">
+            {generatorState.aiProvider === "comfy" && generatorState.comfySettings.workflowJson ? (
+              <ComfyUINodeEditor
+                workflowJson={memoizedWorkflowJson}
+                onWorkflowChange={handleWorkflowChange}
+                comfyUrl={generatorState.comfySettings.url}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full bg-white">
+                <p className="text-black font-agency text-sm">
+                  {generatorState.aiProvider !== "comfy"
+                    ? "Please select ComfyUI as AI provider"
+                    : "Please upload a workflow to edit nodes"}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
         <CompositeHistory onImageSelected={handleHistoryImageSelected} />
       </div>
     </div>

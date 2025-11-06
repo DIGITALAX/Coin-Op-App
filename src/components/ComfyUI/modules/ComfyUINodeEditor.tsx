@@ -34,6 +34,11 @@ export default function ComfyUINodeEditor({
     parseWorkflow
   );
   const { connections } = useConnectionRenderer(workflow, renderNodes);
+
+  const handleClose = () => {
+    window.dispatchEvent(new CustomEvent("toggleNodeEditor"));
+  };
+
   return (
     <div className="relative w-full h-full flex flex-col bg-black">
       <div className="flex items-center gap-3 p-3 bg-white border-b border-crema">

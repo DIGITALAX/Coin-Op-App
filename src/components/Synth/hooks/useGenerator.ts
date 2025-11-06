@@ -48,6 +48,22 @@ const useGenerator = ({
       settings: any;
     }>
   >([]);
+  const syncGenerationHistory = useCallback(async () => {
+    try {
+      const history = (await getItem("aiGenerationHistory")) || [];
+      if (Array.isArray(history)) {
+        const parsedHistory = history.map((item: any) => ({
+          ...item,
+          timestamp: new Date(item.timestamp),
+        }));
+        setGenerationHistory(parsedHistory);
+      } else {
+        setGenerationHistory([]);
+      }
+    } catch (error) {
+      setGenerationHistory([]);
+    }
+  }, [getItem]);
   const [prompt, setPrompt] = useState<string>("");
   const [openAiSettings, setOpenAiSettings] = useState<{
     style: string;
@@ -112,7 +128,7 @@ const useGenerator = ({
       );
       const historyKey =
         mode === "composite" ? "aiCompositeHistory" : "aiGenerationHistory";
-      const savedHistory = await getItem(historyKey) as [];
+      const savedHistory = (await getItem(historyKey)) as [];
       const parsedHistory = (savedHistory || []).map((item: any) => ({
         ...item,
         timestamp: new Date(item.timestamp),
@@ -269,6 +285,15 @@ const useGenerator = ({
     { value: "replicate", label: "REPLICATE API" },
     { value: "comfy", label: "LOCALHOST COMFY" },
   ];
+  useEffect(() => {
+    window.addEventListener("syncAiGenerationHistory", syncGenerationHistory);
+    return () => {
+      window.removeEventListener(
+        "syncAiGenerationHistory",
+        syncGenerationHistory
+      );
+    };
+  }, [syncGenerationHistory]);
   const getModelsForProvider = (provider: string) => {
     switch (provider) {
       case "openai":
@@ -463,11 +488,92 @@ const useGenerator = ({
     return "generations";
   };
   const getCanvasDataURL = () => {
-    const canvas = document.querySelector("canvas");
-    if (canvas) {
+    const canvas =
+      (document.getElementById("synth-canvas-id") as HTMLCanvasElement) ||
+      (document.querySelector("canvas") as HTMLCanvasElement | null);
+
+    if (!canvas) {
+      return null;
+    }
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      return null;
+    }
+
+    const { width, height } = canvas;
+    const imageData = ctx.getImageData(0, 0, width, height);
+    const data = imageData.data;
+
+    let minX = width;
+    let minY = height;
+    let maxX = -1;
+    let maxY = -1;
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const alpha = data[(y * width + x) * 4 + 3];
+        if (alpha > 0) {
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+
+    if (maxX < minX || maxY < minY) {
       return canvas.toDataURL("image/png");
     }
-    return null;
+
+    const borderPadding = Math.round(10 * (window.devicePixelRatio || 1));
+    const paddedMinX = Math.min(Math.max(0, minX + borderPadding), width - 1);
+    const paddedMinY = Math.min(Math.max(0, minY + borderPadding), height - 1);
+    const paddedMaxX = Math.max(
+      paddedMinX,
+      Math.min(width - 1, maxX - borderPadding)
+    );
+    const paddedMaxY = Math.max(
+      paddedMinY,
+      Math.min(height - 1, maxY - borderPadding)
+    );
+
+    let cropLeft = paddedMinX;
+    let cropTop = paddedMinY;
+    let cropWidth = paddedMaxX - paddedMinX + 1;
+    let cropHeight = paddedMaxY - paddedMinY + 1;
+
+    if (cropWidth <= 0 || cropHeight <= 0) {
+      cropLeft = Math.max(0, minX);
+      cropTop = Math.max(0, minY);
+      cropWidth = Math.min(width - cropLeft, maxX - minX + 1);
+      cropHeight = Math.min(height - cropTop, maxY - minY + 1);
+      if (cropWidth <= 0 || cropHeight <= 0) {
+        return canvas.toDataURL("image/png");
+      }
+    }
+
+    const offscreen = document.createElement("canvas");
+    offscreen.width = cropWidth;
+    offscreen.height = cropHeight;
+    const offscreenCtx = offscreen.getContext("2d");
+    if (!offscreenCtx) {
+      return canvas.toDataURL("image/png");
+    }
+
+    offscreenCtx.drawImage(
+      canvas,
+      cropLeft,
+      cropTop,
+      cropWidth,
+      cropHeight,
+      0,
+      0,
+      cropWidth,
+      cropHeight
+    );
+
+    return offscreen.toDataURL("image/png");
   };
   const addImageToCanvas = (imageDataUrl: string, shouldOverwrite = false) => {
     const setElementsFn = (window as any).canvasSetElements;
@@ -792,9 +898,155 @@ const useGenerator = ({
           addImageToCanvas(imageDataUrl as string, overwriteCanvas);
         }
       } else if (aiProvider === "comfy") {
-        alert(
-          "ComfyUI is not yet supported for composite generation. Please use OpenAI or Replicate."
-        );
+        if (!comfySettings.workflowJson) {
+          throw new Error("No workflow loaded");
+        }
+
+        let workflowToExecute = JSON.parse(JSON.stringify(comfySettings.workflowJson));
+
+        for (const nodeId in workflowToExecute) {
+          if (nodeId.startsWith("#")) continue;
+          const node = workflowToExecute[nodeId];
+          if (node && node.class_type === "RandomNoise" && node.inputs) {
+            node.inputs.noise_seed = Math.floor(Math.random() * 2147483647);
+          }
+        }
+
+        if (useCanvasAsInput && comfySettings.hasImageInput) {
+          let canvasDataURL;
+          if (mode === "composite" && getCanvasImage) {
+            canvasDataURL = await getCanvasImage();
+          } else {
+            canvasDataURL = getCanvasDataURL();
+          }
+
+          if (canvasDataURL) {
+            const uploadedFilename = await invoke("comfyui_upload_image", {
+              comfyUrl: comfySettings.url,
+              imageData: canvasDataURL,
+            });
+
+            for (const nodeId in workflowToExecute) {
+              if (nodeId.startsWith("#")) continue;
+              const node = workflowToExecute[nodeId];
+              if (node && node.class_type && (node.class_type === "LoadImage" || node.class_type.includes("LoadImage"))) {
+                if (node.inputs) {
+                  node.inputs.image = uploadedFilename;
+                }
+              }
+            }
+          }
+        }
+
+        for (const nodeId in workflowToExecute) {
+          if (nodeId.startsWith("#")) continue;
+          const node = workflowToExecute[nodeId];
+          if (node && node.class_type) {
+            const promptNode = comfySettings.promptNodes.find((pn: any) => pn.nodeId === nodeId);
+            if (promptNode && node.inputs) {
+              node.inputs[promptNode.inputKey] = prompt.trim();
+            }
+          }
+        }
+
+        const cleanedWorkflow: Record<string, any> = {};
+        for (const nodeId in workflowToExecute) {
+          if (!nodeId.startsWith("#")) {
+            cleanedWorkflow[nodeId] = workflowToExecute[nodeId];
+          }
+        }
+
+        const clientId = `client_${Date.now()}_${Math.random()}`;
+        const promptId = await invoke("comfyui_execute_workflow", {
+          comfyUrl: comfySettings.url,
+          workflowJson: cleanedWorkflow,
+          clientId,
+        });
+
+        let history: any = null;
+        let attempts = 0;
+        const maxAttempts = 120;
+
+        while (attempts < maxAttempts) {
+          if (controller.signal.aborted) {
+            throw new Error("Generation cancelled");
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+
+          const historyDataRaw = await invoke("comfyui_get_history", {
+            comfyUrl: comfySettings.url,
+            promptId,
+          });
+          const historyData = historyDataRaw as Record<string, any>;
+
+          if (historyData && historyData[promptId as string]) {
+            history = historyData[promptId as string];
+            break;
+          }
+
+          attempts++;
+        }
+
+        if (!history) {
+          throw new Error("Workflow execution timed out");
+        }
+
+
+        let outputFilename: string | null = null;
+
+        if (history.outputs) {
+          for (const nodeId in history.outputs) {
+            const nodeOutput = history.outputs[nodeId];
+
+            if (nodeOutput.images && nodeOutput.images.length > 0) {
+              const imageInfo = nodeOutput.images[0];
+              outputFilename = imageInfo.filename;
+              const subfolder = imageInfo.subfolder ? imageInfo.subfolder.replace(/\\/g, "/") : null;
+
+              const imageDataUrl = await invoke("comfyui_download_image", {
+                comfyUrl: comfySettings.url,
+                filename: outputFilename,
+                subfolder: subfolder || "",
+                imageType: "output",
+              });
+
+              const historyItem = {
+                id: `gen-${Date.now()}`,
+                imageData: imageDataUrl as string,
+                prompt: prompt.trim(),
+                model: "custom-workflow",
+                provider: aiProvider,
+                timestamp: new Date(),
+                settings: { workflowFileName: comfySettings.workflowFileName, useCanvasAsInput, overwriteCanvas },
+              };
+
+              const newHistory = [historyItem, ...generationHistory].slice(0, 50);
+              setGenerationHistory(newHistory);
+              const storageKey = mode === "composite" ? "aiCompositeHistory" : "aiGenerationHistory";
+              await setItem(storageKey, newHistory);
+
+              if (currentDesign) {
+                await refreshDesigns();
+              }
+
+              if (mode === "composite") {
+                window.dispatchEvent(new Event("compositeImageGenerated"));
+                if (onImageGenerated) {
+                  onImageGenerated(imageDataUrl as string);
+                }
+              } else {
+                window.dispatchEvent(new Event("synthImageGenerated"));
+                addImageToCanvas(imageDataUrl as string, overwriteCanvas);
+              }
+              break;
+            }
+          }
+        }
+
+        if (!outputFilename) {
+          throw new Error("No output image from workflow");
+        }
       }
     } catch (error: any) {
       if (error.name === "AbortError") {
