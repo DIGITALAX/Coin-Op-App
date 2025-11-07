@@ -181,9 +181,10 @@ export const useSell = (): UseSellReturn => {
 
         if (canvasHistory && Array.isArray(canvasHistory)) {
           const childrenFront =
-            selectedLayer.front?.childReferences?.filter((child: any) =>
-              child?.child?.metadata?.tags?.includes("zone")
-            ) || [];
+            selectedLayer.front?.childReferences?.filter((child: any) => {
+              const tags = child?.child?.metadata?.tags || [];
+              return tags.includes("zone") || tags.includes("base");
+            }) || [];
 
           const frontBlobPromises = childrenFront.map(async (zoneChild) => {
             const childHistory = canvasHistory.find(
@@ -192,42 +193,40 @@ export const useSell = (): UseSellReturn => {
                 history.layerTemplateId === selectedLayer.front.templateId
             ) as CanvasHistory;
 
+            let canvasImage: Blob | null = null;
             if (childHistory) {
-              const blob = await export300dpiWithMetadata(childHistory, 300);
-              if (blob) {
-                return {
-                  canvasImage: blob,
-                  childId: zoneChild.childId,
-                  childContract: zoneChild.childContract,
-                };
-              }
+              canvasImage = await export300dpiWithMetadata(childHistory, 300);
             }
-            return null;
+
+            return {
+              canvasImage: canvasImage || new Blob(),
+              childId: zoneChild.childId,
+              childContract: zoneChild.childContract,
+            };
           });
 
           const childrenBack =
-            selectedLayer.back?.childReferences?.filter((child: any) =>
-              child?.child?.metadata?.tags?.includes("zone")
-            ) || [];
-
+            selectedLayer.back?.childReferences?.filter((child: any) => {
+              const tags = child?.child?.metadata?.tags || [];
+              return tags.includes("zone") || tags.includes("base");
+            }) || [];
           const backBlobPromises = childrenBack.map(async (zoneChild) => {
             const childHistory = canvasHistory.find(
               (history) =>
                 history.childUri === zoneChild.uri &&
-                history.layerTemplateId === selectedLayer.back?.templateId
+                history.layerTemplateId === backTemplate?.templateId
             ) as CanvasHistory;
 
+            let canvasImage: Blob | null = null;
             if (childHistory) {
-              const blob = await export300dpiWithMetadata(childHistory, 300);
-              if (blob) {
-                return {
-                  canvasImage: blob,
-                  childId: zoneChild.childId,
-                  childContract: zoneChild.childContract,
-                };
-              }
+              canvasImage = await export300dpiWithMetadata(childHistory, 300);
             }
-            return null;
+
+            return {
+              canvasImage: canvasImage || new Blob(),
+              childId: zoneChild.childId,
+              childContract: zoneChild.childContract,
+            };
           });
 
           const frontResults = await Promise.all(frontBlobPromises);

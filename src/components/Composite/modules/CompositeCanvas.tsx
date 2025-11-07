@@ -96,7 +96,7 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
       };
       const timeoutId = setTimeout(saveChildren, 500);
       return () => clearTimeout(timeoutId);
-    }, [children, getStorageKey, setItem, isLoaded]);
+    }, [children, getStorageKey, setItem, isLoaded, isBackSide]);
     const redraw = useCallback(async () => {
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -712,20 +712,8 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
         setChildren((prev) =>
           prev.map((child) => {
             if (child.id === dragState.elementId) {
-              const newX = Math.max(
-                0,
-                Math.min(
-                  canvasWidth - child.width,
-                  mousePos.x - dragState.offsetX
-                )
-              );
-              const newY = Math.max(
-                0,
-                Math.min(
-                  canvasHeight - child.height,
-                  mousePos.y - dragState.offsetY
-                )
-              );
+              const newX = mousePos.x - dragState.offsetX;
+              const newY = mousePos.y - dragState.offsetY;
               const deltaX = newX - child.x;
               const deltaY = newY - child.y;
               const updatedWarpPoints = child.warpPoints
@@ -855,10 +843,6 @@ const CompositeCanvas = forwardRef<CompositeCanvasRef, CompositeCanvasProps>(
                   }
                   break;
               }
-              newX = Math.max(0, Math.min(canvasWidth - newWidth, newX));
-              newY = Math.max(0, Math.min(canvasHeight - newHeight, newY));
-              newWidth = Math.min(newWidth, canvasWidth - newX);
-              newHeight = Math.min(newHeight, canvasHeight - newY);
 
               return {
                 ...child,

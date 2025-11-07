@@ -276,14 +276,14 @@ pub async fn fetch_grouped_templates() -> Result<Vec<GroupedTemplate>, String> {
 }
 
 pub async fn fetch_templates() -> Result<Vec<TemplateData>, String> {
-    // let api_key = "";
+    let api_key = "727ea051fc77aae1f6acf943bbdb965f";
 
     let client = reqwest::Client::new();
 
     let query =
         r#"
     {
-      templates(where: {templateContract: "0xf8e52d8ef6a02f4655e5c14c719740f34045c821"}) {
+      templates(where: {templateContract: "0xb3a7fa244e230da90e93a68fd04c1f07e1f62f23"}) {
         templateContract
         templateId
         physicalPrice
@@ -319,12 +319,12 @@ pub async fn fetch_templates() -> Result<Vec<TemplateData>, String> {
     });
 
     let url = format!(
-        "https://api.studio.thegraph.com/query/109132/fractional-garment-ownership/version/latest"
+        "https://gateway.thegraph.com/api/subgraphs/id/4jujS6j8wMahNTSzN2T8wN7iTiEfNRQfoYYQL7Q1Bn9X"
     );
 
     let response = client
         .post(&url)
-        // .header("Authorization", format!("Bearer {}", api_key))
+        .header("Authorization", format!("Bearer {}", api_key))
         .header("Content-Type", "application/json")
         .json(&query_body)
         .send().await
@@ -525,14 +525,14 @@ pub async fn fetch_templates() -> Result<Vec<TemplateData>, String> {
 }
 
 pub async fn fetch_children_materials_colors() -> Result<Value, String> {
-    // let api_key = "";
+    let api_key = "727ea051fc77aae1f6acf943bbdb965f";
 
     let client = reqwest::Client::new();
 
     let query =
         r#"
     {
-      childs(where: { or: [{childContract: "0xdda8d550c2f2aa2959a05326bfdfdd626e26c816"}, {childContract: "0x1e993b7b1de0818c685cc981c05788795cb13202"}] }) {
+      childs(where: { or: [{childContract: "0xf71d3b3a5efa4f8e34d4cd922831833350fa3dfb"}, {childContract: "0x029bc2ba787c131fd58938a192787c066955cd2f"}] }) {
         childContract
         childId
         physicalPrice
@@ -554,12 +554,12 @@ pub async fn fetch_children_materials_colors() -> Result<Value, String> {
     });
 
     let url = format!(
-        "https://api.studio.thegraph.com/query/109132/fractional-garment-ownership/version/latest"
+        "https://gateway.thegraph.com/api/subgraphs/id/4jujS6j8wMahNTSzN2T8wN7iTiEfNRQfoYYQL7Q1Bn9X"
     );
 
     let response = client
         .post(&url)
-        // .header("Authorization", format!("Bearer {}", api_key))
+        .header("Authorization", format!("Bearer {}", api_key))
         .header("Content-Type", "application/json")
         .json(&query_body)
         .send().await
@@ -658,7 +658,7 @@ pub async fn fetch_children_materials_colors() -> Result<Value, String> {
             None
         };
 
-        if child_contract == "0x1e993b7b1de0818c685cc981c05788795cb13202" {
+        if child_contract == "0x029bc2ba787c131fd58938a192787c066955cd2f" {
             materials_data.push(ChildData {
                 price: physical_price,
                 child_type,
