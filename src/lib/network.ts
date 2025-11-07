@@ -10,13 +10,6 @@ export const getNetworkConfig = (env?: Environment): NetworkConfig => {
 export const getCurrentNetwork = (): NetworkConfig => {
   return getNetworkConfig();
 };
-export const getContractAddress = (
-  contractName: keyof NetworkConfig["contracts"],
-  env?: Environment
-): `0x${string}` => {
-  const config = getNetworkConfig(env);
-  return config.contracts[contractName];
-};
 export const getTokenAddress = (
   tokenName: keyof NetworkConfig["tokens"],
   env?: Environment
