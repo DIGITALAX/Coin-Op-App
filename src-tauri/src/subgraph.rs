@@ -1,7 +1,7 @@
 use serde::{ Deserialize, Serialize };
 use serde_json::{ Value, json, from_str };
 
-const INFURA_GATEWAY: &str = "https://thedial.infura-ipfs.io/ipfs";
+const INFURA_GATEWAY: &str = "https://cdn.digitalax.xyz/ipfs";
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TemplateChoice {

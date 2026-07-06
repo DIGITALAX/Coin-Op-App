@@ -3,7 +3,7 @@ import { TemplateChoice } from "../components/Format/types/format.types";
 import { Fulfiller } from "../components/Fulfillment/types/fulfillment.types";
 import { GarmentSize } from "../components/Pattern/types/pattern.types";
 
-export const INFURA_GATEWAY: string = "https://thedial.infura-ipfs.io";
+export const INFURA_GATEWAY: string = "https://cdn.digitalax.xyz";
 export type Environment = "testnet" | "mainnet";
 
 export const NETWORK_CONFIGS: Record<Environment, NetworkConfig> = {

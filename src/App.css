@@ -136,7 +136,7 @@
   --color-turq1: #00084f;
   --color-ligero: #1c8bbb;
 
-  --bg-cross: url("https://thedial.infura-ipfs.io/ipfs/QmPKU1ck9PLyFchFpe2vzJh3eyxSYij28ixTdRzaHi4E1p");
+  --bg-cross: url("https://cdn.digitalax.xyz/ipfs/QmPKU1ck9PLyFchFpe2vzJh3eyxSYij28ixTdRzaHi4E1p");
 }
 
 @layer utilities {

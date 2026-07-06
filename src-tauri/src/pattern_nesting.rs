@@ -532,9 +532,9 @@ fn extract_stats_from_svg(svg_content: &str) -> SparrowStats {
 
 async fn get_svg_content(svg_path: &str) -> Result<String> {
     let ipfs_url = if svg_path.starts_with("ipfs://") {
-        format!("https://thedial.infura-ipfs.io/ipfs/{}", svg_path.replace("ipfs://", ""))
+        format!("https://cdn.digitalax.xyz/ipfs/{}", svg_path.replace("ipfs://", ""))
     } else if svg_path.starts_with("Qm") {
-        format!("https://thedial.infura-ipfs.io/ipfs/{}", svg_path)
+        format!("https://cdn.digitalax.xyz/ipfs/{}", svg_path)
     } else {
         return Err(anyhow::anyhow!("Invalid SVG path format. Expected IPFS URI but got: {}", svg_path));
     };

@@ -48,11 +48,11 @@ const Pattern: FunctionComponent = () => {
 
       if (svgData.startsWith("ipfs://") || svgData.startsWith("Qm")) {
         const ipfsUrl = svgData.startsWith("ipfs://")
-          ? `https://thedial.infura-ipfs.io/ipfs/${svgData.replace(
+          ? `https://cdn.digitalax.xyz/ipfs/${svgData.replace(
               "ipfs://",
               ""
             )}`
-          : `https://thedial.infura-ipfs.io/ipfs/${svgData}`;
+          : `https://cdn.digitalax.xyz/ipfs/${svgData}`;
         const response = await fetch(ipfsUrl);
         if (response.ok) {
           svgText = await response.text();
